@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
@@ -7,7 +8,9 @@ import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'custom_order_page.dart';
 
 class OrdersView extends StatefulWidget {
-  OrdersView({Key key}) : super(key: key);
+  final String from;
+
+  OrdersView({Key key, this.from}) : super(key: key);
 
   @override
   _OrdersViewState createState() => _OrdersViewState();
@@ -17,6 +20,7 @@ class _OrdersViewState extends State<OrdersView>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+
   @override
   // ignore: must_call_super
   Widget build(BuildContext context) {
@@ -32,15 +36,14 @@ class _OrdersViewState extends State<OrdersView>
                 size: 30,
               ),
               onPressed: () {
-                /*  if (!scaffoldController.isOpen()) {
-                                    scaffoldController.menuController.open();
-                                  }*/
-                cusMainScaffoldKey.currentState.openDrawer();
+
+                widget.from == "dis"
+                    ? disMainScaffoldKey.currentState.openDrawer()
+                    : cusMainScaffoldKey.currentState.openDrawer();
               }),
           bottom: TabBar(
               isScrollable: true,
               unselectedLabelColor: Colors.grey[500],
-
               indicatorSize: TabBarIndicatorSize.tab,
               indicator: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),

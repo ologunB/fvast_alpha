@@ -37,6 +37,9 @@ dev_dependencies:
   url_launcher:
   cached_network_image:
   http:
+  loading_overlay: ^0.2.1
+  webview_flutter:
+  signature:
 
 flutter:
 

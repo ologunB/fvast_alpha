@@ -4,13 +4,19 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fvastalpha/views/cou_service/commission/commission.dart';
 import 'package:fvastalpha/views/cou_service/home/dis_home_view.dart';
 import 'package:fvastalpha/views/cou_service/home/new_order_form.dart';
+import 'package:fvastalpha/views/cou_service/settings/settings.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
+import 'package:fvastalpha/views/user/contact_us/contact_us.dart';
+import 'package:fvastalpha/views/user/task_history/order_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class DisLayoutTemplate extends StatefulWidget {
   @override
@@ -45,6 +51,16 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     switch (pos) {
       case 0:
         return DispatchHomeView();
+      case 1:
+        return OrdersView(from: "dis");
+      case 2:
+        return CommissionView();
+      case 3:
+        return SettingsDisView(
+          from: "dis",
+        );
+      case 4:
+        return ContactUsF(from: "dis");
       default:
         return new Text("Error");
     }
@@ -65,7 +81,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
   Future<void> initPlatformState() async {
     if (!mounted) return;
 
-     OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+    OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
 
     OneSignal.shared.setRequiresUserPrivacyConsent(_requireConsent);
 
@@ -94,8 +110,12 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
             Navigator.push(
                 context,
                 CupertinoPageRoute(
-                    builder: (context) =>
-                        NewTaskRequest(cusUid: uid, transId: id, from: from, fromTime: fromTime, to: to)));
+                    builder: (context) => NewTaskRequest(
+                        cusUid: uid,
+                        transId: id,
+                        from: from,
+                        fromTime: fromTime,
+                        to: to)));
           });
         }
       });
@@ -111,18 +131,24 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
               ["trans_id"];
 
       String from =
-      jsonDecode(result.notification.payload.rawPayload["custom"])["a"]["from"];
+          jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
+              ["from"];
       String fromTime =
-      jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
-      ["fromTime"];
+          jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
+              ["fromTime"];
       String to =
-      jsonDecode(result.notification.payload.rawPayload["custom"])["a"]["to"];
+          jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
+              ["to"];
       Future.delayed(Duration(milliseconds: 100)).then((a) {
         Navigator.push(
             context,
             CupertinoPageRoute(
-                builder: (context) =>
-                    NewTaskRequest(cusUid: uid, transId: id, from: from, fromTime: fromTime, to: to)));
+                builder: (context) => NewTaskRequest(
+                    cusUid: uid,
+                    transId: id,
+                    from: from,
+                    fromTime: fromTime,
+                    to: to)));
       });
     });
 
@@ -220,9 +246,57 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     MY_NUMBER = await phone;
     MY_NAME = await name;
     MY_IMAGE = await image;
+
+    if (ACCEPT_T_D == "false") {
+      acceptTermsAndCondition();
+    }
     setState(() {});
   }
 
+  acceptTermsAndCondition() {
+    showDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Image.asset(
+              "assets/images/logo.png",
+              height: 70,
+            ),
+            content: SingleChildScrollView(
+              child: Text(
+                '''TERMS AND CONDITIONS\n
+Welcome to fvast.com, this site is owned and managed by FVAST ENTERPRISE , a business duly registered with the corporate affairs commission in Nigeria, with registration number BN: 2956782
+FVAST ENTERPRISE registered address is at No.9a Mogadishu Street Wuse zone 4, Abuja.
+FVAST is a web based app for ordering logistics; it communicates logistics service requests to the logistics service providers who have been registered as users of the FVAST app.
+FVAST makes it easy for customers who require logistics services in any part of Nigeria and beyond to be linked up to riders who are willing to render such services provided both parties are signed on to the FVAST app.
+FVAST APP, grants both riders and customers a non-exclusive, revocable license to access the app and its associated services. The eligibility to qualify for the numerous benefits embedded therein is dependent on riders and customers agreement to its terms and conditions which is geared towards protecting its valued users. FVAST may only terminate use of the website and services if in breach of its terms and conditions and this won’t be without giving proper notifications, several warnings and fair hearing to the affected users.''',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 15),
+              ),
+            ),
+            actions: [
+              FlatButton(
+                  onPressed: () async {
+                    SystemChannels.platform
+                        .invokeMethod('SystemNavigator.pop');
+                  },
+                  child: Text("NO")),
+              FlatButton(
+                  onPressed: () async {
+                    Future<SharedPreferences> _prefs =
+                    SharedPreferences.getInstance();
+
+                    final SharedPreferences prefs = await _prefs;
+
+                    prefs.setString("accept_td", "True");
+                    Navigator.pop(context);
+                  },
+                  child: Text("YES")),
+
+            ],
+          );
+        });
+  }
   addTags() {
     OneSignal.shared.sendTag("dispatcher", "online").then((response) {
       print("Successfully sent tags with response: $response");
@@ -235,7 +309,6 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
   removeTags() {
     OneSignal.shared.deleteTag("dispatcher").then((response) {
       print("Successfully deleted tag with response: $response");
-      showCenterToast("You are offline", context);
     }).catchError((error) {
       print("Encountered an error sending tags: $error");
     });
@@ -264,14 +337,29 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
                                 if (snap.connectionState ==
                                     ConnectionState.done) {
                                   return Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(30),
-                                        child: Image.asset(
-                                            "assets/images/person.png",
-                                            height: 50,
-                                            width: 50)),
-                                  );
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(30.0),
+                                        child: CachedNetworkImage(
+                                          imageUrl: snap.data ?? "ere",
+                                          height: 60,
+                                          width: 60,
+                                          placeholder: (context, url) => Image(
+                                              image: AssetImage(
+                                                  "assets/images/person.png"),
+                                              height: 60,
+                                              width: 60,
+                                              fit: BoxFit.contain),
+                                          errorWidget: (context, url, error) =>
+                                              Image(
+                                                  image: AssetImage(
+                                                      "assets/images/person.png"),
+                                                  height: 60,
+                                                  width: 60,
+                                                  fit: BoxFit.contain),
+                                        ),
+                                      ));
                                 }
                                 return Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -381,7 +469,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
                         ),
                       ),
                     ),
-                    InkWell(
+                    /*           InkWell(
                       onTap: () {
                         _onSelectItem(3);
                       },
@@ -392,10 +480,10 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
                           style: TextStyle(fontSize: 18),
                         ),
                       ),
-                    ),
+                    ),*/
                     InkWell(
                       onTap: () {
-                        _onSelectItem(4);
+                        _onSelectItem(3);
                       },
                       child: ListTile(
                         leading: Icon(Icons.settings),
@@ -407,7 +495,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
                     ),
                     InkWell(
                       onTap: () {
-                        _onSelectItem(5);
+                        _onSelectItem(4);
                       },
                       child: ListTile(
                         leading: Icon(Icons.live_help),

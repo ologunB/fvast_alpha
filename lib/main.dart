@@ -9,13 +9,15 @@ import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:fvastalpha/views/user/walkthrough/walkthrough_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(
+    // FirebaseApp defaultApp = await Firebase.initializeApp();
+    MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -78,4 +80,3 @@ class _MyWrapperState extends State<MyWrapper> {
     );
   }
 }
-

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/widgets/toast.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
-String MY_NAME, MY_UID, MY_TYPE, MY_NUMBER, MY_EMAIL, MY_IMAGE;
+String MY_NAME, MY_UID, MY_TYPE, MY_NUMBER, MY_EMAIL, MY_IMAGE, ACCEPT_T_D;
 Position currentLocation = Position(longitude: 7.3034138, latitude: 5.143012);
 
 showEmptyToast(String aa, BuildContext context) {

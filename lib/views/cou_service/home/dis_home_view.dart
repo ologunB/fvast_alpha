@@ -28,6 +28,11 @@ class _HomeMapState extends State<DispatchHomeView> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    _center = LatLng(currentLocation.latitude, currentLocation.longitude);
+    mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+      target: LatLng(currentLocation.latitude, currentLocation.longitude),
+      zoom: 10.0,
+    )));
   }
 
   void _onFilledMapCreated(GoogleMapController controller) {
@@ -293,6 +298,7 @@ class _HomeMapState extends State<DispatchHomeView> {
         minHeight: height * .25,
       ),
       body: Container(
+        height: height * .65,
         child: Stack(
           children: <Widget>[
             StreamBuilder<QuerySnapshot>(

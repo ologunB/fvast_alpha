@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
@@ -9,6 +10,10 @@ import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ContactUsF extends StatefulWidget {
+  final String from;
+
+  const ContactUsF({Key key, this.from}) : super(key: key);
+
   @override
   _ContactUsFState createState() => _ContactUsFState();
 }
@@ -39,10 +44,9 @@ class _ContactUsFState extends State<ContactUsF> {
                           size: 30,
                         ),
                         onPressed: () {
-                          /*  if (!scaffoldController.isOpen()) {
-                                    scaffoldController.menuController.open();
-                                  }*/
-                          cusMainScaffoldKey.currentState.openDrawer();
+                          widget.from == "dis"
+                              ? disMainScaffoldKey.currentState.openDrawer()
+                              : cusMainScaffoldKey.currentState.openDrawer();
                         }),
                     Expanded(
                         child: Padding(
@@ -93,10 +97,10 @@ class _ContactUsFState extends State<ContactUsF> {
                   if (_messageController.text.toString().isEmpty) {
                     return showEmptyToast("Message", context);
                   }
-                  String _messageTitle = "Messsage To FABAT";
+                  String _messageTitle = "Messsage To FVAST";
                   String _messageBody = _messageController.text.toString();
                   String _url =
-                      "mailto:info@fabat.com.ng?subject=$_messageTitle&body=$_messageBody%20";
+                      "mailto:fvastsupp0rt@gmail.com?subject=$_messageTitle&body=$_messageBody%20";
 
                   if (await canLaunch(_url)) {
                     await launch(_url);

@@ -11,7 +11,7 @@ class CustomDialog extends StatefulWidget {
   CustomDialog(
       {Key key,
       this.title,
-      this.isLoading,
+      this.isLoading = false,
       this.onClicked,
       this.includeHeader = false,
       this.context})

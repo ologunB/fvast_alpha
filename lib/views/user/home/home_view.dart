@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fvastalpha/models/task.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
+import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
@@ -17,7 +20,6 @@ import 'order_details.dart';
 import 'package:geolocator/geolocator.dart';
 
 class HomeView extends StatefulWidget {
-
   @override
   _HomeMapState createState() => _HomeMapState();
 }
@@ -35,6 +37,11 @@ class _HomeMapState extends State<HomeView> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    _center = LatLng(currentLocation.latitude, currentLocation.longitude);
+    mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+      target: LatLng(currentLocation.latitude, currentLocation.longitude),
+      zoom: 10.0,
+    )));
   }
 
   getUserLocation() async {
@@ -42,7 +49,7 @@ class _HomeMapState extends State<HomeView> {
     List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
         currentLocation.latitude, currentLocation.longitude);
 
-    //showCenterToast(currentLocation.longitude.toString(), context);
+   print(currentLocation.longitude.toString() + "      " + currentLocation.latitude.toString());
 
     _center = LatLng(currentLocation.latitude, currentLocation.longitude);
     _markers.add(
@@ -82,6 +89,12 @@ class _HomeMapState extends State<HomeView> {
       bound = LatLngBounds(southwest: toLatLng, northeast: fromLatLng);
     }
 
+    _center = LatLng(currentLocation.latitude, currentLocation.longitude);
+    setState(() {
+
+    });
+    getUserLocation();
+
     CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
     mapController.animateCamera(u2).then((void v) {
       check(u2, this.mapController);
@@ -113,7 +126,7 @@ class _HomeMapState extends State<HomeView> {
       check(u, c);
   }
 
-  LatLng _center = const LatLng(7.3034138, 5.143012800000008);
+  LatLng _center = const LatLng(7.3034138, 5.143012);
 
   void _onCameraMove(CameraPosition position) {
     _center = position.target;
@@ -346,15 +359,14 @@ class _HomeMapState extends State<HomeView> {
     );
   }
 
-
-
   @override
   void initState() {
-    getAndDraw();
     getUserLocation();
+    getAndDraw();
     super.initState();
   }
 
+/*
   Widget emptyMap() {
     return GoogleMap(
       onMapCreated: _onMapCreated,
@@ -366,6 +378,7 @@ class _HomeMapState extends State<HomeView> {
           target: LatLng(currentLocation.latitude, currentLocation.longitude)),
     );
   }
+*/
 
   @override
   Widget build(BuildContext context) {
@@ -399,6 +412,7 @@ class _HomeMapState extends State<HomeView> {
         minHeight: height * .25,
       ),
       body: Container(
+        height: height * .65,
         child: Stack(
           children: <Widget>[
             StreamBuilder<QuerySnapshot>(
@@ -413,6 +427,10 @@ class _HomeMapState extends State<HomeView> {
                   return new Text('Error: ${snapshot.error}');
                 switch (snapshot.connectionState) {
                   case ConnectionState.waiting:
+                    _center = LatLng(
+                        currentLocation.latitude, currentLocation.longitude);
+                 //   setState(() {});
+
                     return GoogleMap(
                       onMapCreated: _onMapCreated,
                       myLocationEnabled: true,
@@ -435,6 +453,9 @@ class _HomeMapState extends State<HomeView> {
 
                         //setPolylines(l1, l2, l3, l4);
                       }).toList();
+                      _center = LatLng(
+                          currentLocation.latitude, currentLocation.longitude);
+                   //   setState(() {});
                       return GoogleMap(
                         polylines: _polylines,
                         tiltGesturesEnabled: true,
@@ -449,6 +470,9 @@ class _HomeMapState extends State<HomeView> {
                         onCameraMove: _onCameraMove,
                       );
                     } else {
+                      _center = LatLng(
+                          currentLocation.latitude, currentLocation.longitude);
+                 //  setState(() {});
                       return GoogleMap(
                         myLocationButtonEnabled: true,
                         myLocationEnabled: true,
@@ -458,7 +482,8 @@ class _HomeMapState extends State<HomeView> {
                           zoom: 10.0,
                         ),
                         onCameraMove: _onCameraMove,
-                      );;
+                      );
+                      ;
                     }
                 }
               },
@@ -552,7 +577,7 @@ String userHomeNext(status) {
   if (status == "Accepted") {
     todo = "Task Accepted";
     widgetColor = Colors.lightBlueAccent[200];
-  } else if (status == "Start Task") {
+  } else if (status == "Started Task") {
     todo = "Arrival Started";
     widgetColor = Colors.greenAccent[200];
   } else if (status == "Mark Arrived") {

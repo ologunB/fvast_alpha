@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
@@ -162,6 +163,8 @@ class _ModeSelectorState extends State<ModeSelector> {
   int routeType;
   TextEditingController payMode = TextEditingController();
   TextEditingController inputCouponCode = TextEditingController();
+  TextEditingController btcWalletController =
+      TextEditingController(text: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy");
   TextEditingController validCode = TextEditingController();
   TextEditingController receiversName = TextEditingController();
   TextEditingController receiversNumber = TextEditingController();
@@ -294,8 +297,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                 Text("Tax: ", style: TextStyle(fontSize: 16)),
                 Expanded(child: Divider(thickness: 2)),
                 Expanded(child: Divider(thickness: 2)),
-                Text(" 7.5% VAT ",
-                    style: TextStyle(fontSize: 16))
+                Text(" 7.5% VAT ", style: TextStyle(fontSize: 16))
               ],
             ),
           ),
@@ -413,7 +415,8 @@ class _ModeSelectorState extends State<ModeSelector> {
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Icon(
-                  routeTypes[(routeType ?? 3)].icon ??  Icons.format_list_bulleted,
+                  routeTypes[(routeType ?? 3)].icon ??
+                      Icons.format_list_bulleted,
                   color: (routeType ?? 0) > 1
                       ? Styles.appPrimaryColor
                       : Colors.grey,
@@ -424,7 +427,7 @@ class _ModeSelectorState extends State<ModeSelector> {
               children: <Widget>[
                 Center(
                   child: Text(
-                   "Others",
+                    "Others",
                     style: TextStyle(
                         fontSize: 17,
                         color: (routeType ?? 0) > 1
@@ -666,7 +669,31 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                           fontWeight:
                                                               FontWeight.w400)),
                                                 ),
-                                                SizedBox(height: 50),
+
+                                                RadioListTile(
+                                                  value: "Bitcoin Payment",
+                                                  toggleable: true,
+                                                  groupValue: paymentType,
+                                                  activeColor:
+                                                      Styles.appPrimaryColor,
+                                                  controlAffinity:
+                                                      ListTileControlAffinity
+                                                          .trailing,
+                                                  onChanged: (value) {
+
+                                                    // to enable uncomment
+                                                /*    _setState(() {
+                                                      paymentType = value;
+                                                    });*/
+                                                  },
+                                                  title: Text("Bitcoin Payment(Coming soon)",
+                                                      style: TextStyle(
+                                                          fontSize: 18,
+                                                          color: Colors.black,
+                                                          fontWeight:
+                                                              FontWeight.w400)),
+                                                ),
+                                                SizedBox(height: 5),
                                                 CustomButton(
                                                     title: "Choose",
                                                     onPress: () {
@@ -865,6 +892,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                     CustomButton(
                         title: "PROCEED",
                         onPress: () {
+
                           if (paymentType == null) {
                             showCenterToast("Choose a payment type", context);
                             return;
@@ -1137,8 +1165,13 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                           "Cash Payment") {
                                                         compileTransaction(
                                                             context);
-                                                      } else {
+                                                      } else if (paymentType ==
+                                                          "Card Payment") {
                                                         processCardTransaction(
+                                                            context);
+                                                      } else if (paymentType ==
+                                                          "Bitcoin Payment") {
+                                                        useBitcoinPayment(
                                                             context);
                                                       }
                                                     },
@@ -1226,6 +1259,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                 style: TextStyle(color: Colors.white, fontSize: 18),
               ),
               backgroundColor: Styles.appPrimaryColor,
+              behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 1),
             ),
           );
@@ -1251,6 +1285,96 @@ class _ModeSelectorState extends State<ModeSelector> {
 
       print(result);
     });
+  }
+
+  void useBitcoinPayment(context) {
+    showDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text(
+              "Send ₦" +
+                  totalAmount.toString() +
+                  " to this Bitcoin Wallet Address",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.black, fontSize: 20),
+            ),
+            content: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Theme(
+                data: ThemeData(
+                    primaryColor: Styles.commonDarkBackground,
+                    hintColor: Styles.commonDarkBackground),
+                child: TextField(
+                  autofocus: true,
+                  readOnly: true,
+                  controller: btcWalletController,
+                  decoration: InputDecoration(
+                      fillColor: Styles.commonDarkBackground,
+                      filled: true,
+                      suffix: InkWell(
+                        child: Icon(Icons.content_copy),
+                        onTap: () {
+                          Clipboard.setData(new ClipboardData(text: btcWalletController.text));
+                          if (mounted) {
+                            scaffoldKey.currentState.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "Address Copied!",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 18),
+                                ),
+                                backgroundColor: Styles.appPrimaryColor,
+                                behavior: SnackBarBehavior.floating,
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      contentPadding: EdgeInsets.all(10),
+                      hintStyle: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                      )),
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400),
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Styles.appPrimaryColor,
+                    ),
+                    child: FlatButton(
+                      onPressed: () {
+                        // compileTransaction(context);
+                      },
+                      child: Text(
+                        "Proceed",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        });
   }
 
   compileTransaction(context) async {

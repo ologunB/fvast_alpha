@@ -15,8 +15,17 @@ class EachOrderItem extends StatefulWidget {
 class _EachOrderItemState extends State<EachOrderItem> {
   @override
   Widget build(BuildContext context) {
-    Color color =
-        widget.transaction.type == "Deposit" ? Colors.green : Colors.red;
+    Color color = Colors.green;
+    if(widget.transaction.type == "Deposit"){
+      color = Colors.green;
+    }else if(widget.transaction.type == "Withdrawal"){
+      color = Colors.red;
+    }else if(widget.transaction.type == "Card Payment"){
+      color = Colors.blueAccent;
+    }else if(widget.transaction.type == "Cash Payment"){
+      color = Colors.deepOrange;
+    }
+
     EachTransaction transaction = widget.transaction;
 
     return Container(
@@ -83,7 +92,7 @@ class _EachOrderItemState extends State<EachOrderItem> {
                     transaction.type,
                     style: TextStyle(
                         color: color,
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600),
                   ),
                 ),

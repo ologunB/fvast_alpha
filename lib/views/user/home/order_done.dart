@@ -7,7 +7,7 @@ import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 class OrderCompletedPage extends StatefulWidget {
   final payment, receiversName, receiversNumber, type, amount, route, from;
 
@@ -29,7 +29,7 @@ class OrderCompletedPage extends StatefulWidget {
 class _OrderCompletedPageState extends State<OrderCompletedPage> {
   @override
   void initState() {
-    Future.delayed(Duration(seconds: 15)).then((a) {
+    Future.delayed(Duration(seconds: 20)).then((a) {
       Navigator.pop(context);
     });
     super.initState();
@@ -38,6 +38,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   double ratingNum = 0;
+  String feedback_text = "";
 
   @override
   Widget build(BuildContext context) {
@@ -240,9 +241,13 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                                 color: Colors.grey[500],
                                 fontSize: 16,
                                 fontWeight: FontWeight.w400),
+
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.0),
                             )),
+                        onChanged: (a){
+                          feedback_text = a;
+                        },
                         style: TextStyle(
                             color: Colors.black,
                             fontSize: 18,
@@ -263,6 +268,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                             ),
                             child: FlatButton(
                               onPressed: () {
+                                Navigator.pop(context);
                                 Navigator.pop(context);
                               },
                               child: Row(
@@ -292,9 +298,19 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                             ),
                             child: FlatButton(
                               onPressed: () {
-                                Navigator.pop(context);
+                                Map<String, Object> mData = Map();
+                                mData.putIfAbsent("Star Rating", () => ratingNum);
+                                mData.putIfAbsent("Feedback", () => feedback_text);
 
+                     /*           Firestore.instance
+                                    .collection("Orders")
+                                    .document("Completed") //create for dispatcher
+                                    .collection(MY_UID)
+                                    .document(widget.transId)
+                                    .setData(mData);
+                                */
                                 if (widget.from == "Customer") {
+
                                   Navigator.pushAndRemoveUntil(
                                       context,
                                       CupertinoPageRoute(

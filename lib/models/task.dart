@@ -23,7 +23,7 @@ class Task {
   String _disName;
   String _disImage, _disUid;
   String _disNumber;
-  String _paymentType, _disAddress, _plateNumber, _disNotes;
+  String _paymentType, _disAddress, _plateNumber, _disNotes, _disSign;
   double _toLong;
   double _toLat;
   double _fromLong;
@@ -32,40 +32,76 @@ class Task {
   int _timeStamp;
 
   String get name => _name;
+
   String get userPhone => _userPhone;
+
   String get disUid => _disUid;
+
   int get distance => _distance;
+
   String get type => _type;
+
   String get from => _from;
+
   String get to => _to;
+
   String get weight => _weight;
+
   String get size => _size;
+
   String get deliInstru => _deliInstru;
+
   String get pickInstr => _pickInstr;
+
   String get reNum => _reNum;
+
   String get reName => _reName;
+
   String get disAddress => _disAddress;
+
   String get coupon => _coupon;
+
   String get paymentType => _paymentType;
+
   double get toLong => _toLong;
+
   double get toLat => _toLat;
+
   double get fromLong => _fromLong;
+
   double get fromLat => _fromLat;
+
   String get startDate => _startDate;
+
   String get status => _status;
+
   String get acceptedDate => _acceptedDate;
+
   String get id => _id;
+
   String get disImage => _disImage;
+
   String get disName => _disName;
+
   String get disNumber => _disNumber;
+
   String get userUid => _userUid;
+
   String get adminUid => _adminUid;
+
   String get plateNumber => _plateNumber;
+
   int get routeType => _routeType;
+
   double get amount => _amount;
+
   int get timeStamp => _timeStamp;
+
   List get disImages => _disImages;
+
   String get disNotes => _disNotes;
+  String get disSign => _disSign;
+
 
   Task(
       this._id,
@@ -98,7 +134,11 @@ class Task {
       this._disImage,
       this._disAddress,
       this._from,
-      this._to, this._userPhone, this._plateNumber, this._disNotes, this._disImages);
+      this._to,
+      this._userPhone,
+      this._plateNumber,
+      this._disNotes,
+      this._disImages, this._disSign);
 
   Task.map(dynamic obj) {
     this._name = obj["Name"];
@@ -135,5 +175,6 @@ class Task {
     this._plateNumber = obj["Plate Number"];
     this._disNotes = obj["Dis Notes"];
     this._disImages = obj["Dis Images"];
+    this._disSign = obj["Dis Signature"] ?? "not";
   }
 }

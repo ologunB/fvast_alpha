@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'dart:typed_data';
+import 'package:signature/signature.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,12 @@ import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+
+import 'dis_order_done.dart';
 
 class DisTaskDetail extends StatefulWidget {
   final Task task;
@@ -139,7 +146,6 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
     Task task = widget.task;
     int routeType = task.routeType;
 
-
     int baseFare = routeTypes[routeType].baseFare;
     int distance = task.distance;
     int perKiloCharge = (routeTypes[routeType].perKilo * distance / 10).round();
@@ -200,6 +206,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                           child: CustomLoadingButton(
                               title: todoNext(status),
                               onPress: () {
+
                                 processTask(_scaffoldKey.currentContext,
                                     todoNext(status));
                               },
@@ -378,7 +385,9 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                 padding: const EdgeInsets.all(8.0),
                 child: Center(
                   child: Text(
-                   noteController.text.trim() == ""  ? "No Notes yet!": noteController.text,
+                    noteController.text.trim() == ""
+                        ? "No Notes yet!"
+                        : noteController.text,
                     style: TextStyle(fontSize: 17),
                   ),
                 ),
@@ -395,7 +404,12 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                       Text("Images",
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w600)),
-                      Icon(Icons.add)
+                      GestureDetector(
+                        child: Icon(Icons.add),
+                        onTap: () {
+                          onAddImage(context);
+                        },
+                      )
                     ],
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   ),
@@ -422,21 +436,37 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                       Text("Signature",
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w600)),
-                      Icon(Icons.add)
+                      GestureDetector(
+                        child: Icon(Icons.add),
+                        onTap: () {
+                          onAddSignature(context);
+                        },
+                      )
                     ],
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Center(
-                  child: Text(
-                    "No Signatures yet!",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
+              signImage == null
+                  ? Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(
+                          child: CachedNetworkImage(
+                              imageUrl: widget.task.disSign,
+                              height: 40,
+                              width: 40,
+                              placeholder: (context, url) =>
+                                  CircularProgressIndicator(),
+                              errorWidget: (context, url, error) => Text(
+                                    "No Signatures yet!",
+                                    style: TextStyle(fontSize: 16),
+                                  ))),
+                    )
+                  : Image.memory(
+                      signImage,
+                      height: 40,
+                      width: 40,
+                    ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Container(
@@ -578,7 +608,59 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
       ),
     ));
   }
+
   bool isLoading = false;
+
+  File pop;
+
+  Future getImageGallery() async {
+    var img = await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      pop = img;
+    });
+  }
+
+  Future getImageCamera() async {
+    var img = await ImagePicker.pickImage(source: ImageSource.camera);
+
+    setState(() {
+      pop = img;
+    });
+  }
+
+  void onAddImage(context) {
+    // String initialText = noteController.text;
+    showCupertinoDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                InkWell(
+                  onTap: () {
+                    getImageGallery();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("Choose Image from Gallery"),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    getImageCamera();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("Take Image from Camera"),
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+  }
 
   void onAddNotes(context) {
     String initialText = noteController.text;
@@ -606,7 +688,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                   padding: EdgeInsets.all(10),
                   maxLines: 10,
                   onSubmitted: (e) {
-                    Map<String, Object>  data = Map();
+                    Map<String, Object> data = Map();
                     data.putIfAbsent("Dis Notes", () => noteController.text);
                     Firestore.instance
                         .collection("Orders")
@@ -614,9 +696,8 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                         .collection(MY_UID)
                         .document(widget.task.id)
                         .updateData(data);
-                        setState(() {});
+                    setState(() {});
                     Navigator.pop(context);
-
                   },
                   style: TextStyle(fontSize: 20, color: Colors.black),
                   controller: noteController,
@@ -635,9 +716,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                       onPressed: () {
                         Navigator.of(context).pop();
                         noteController.text = initialText;
-                        setState(() {
-
-                        });
+                        setState(() {});
                       },
                       child: Text(
                         "Cancel",
@@ -665,8 +744,9 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                           showCenterToast("Enter note", context);
                           return;
                         }
-                        Map<String, Object>  data = Map();
-                        data.putIfAbsent("Dis Notes", () => noteController.text);
+                        Map<String, Object> data = Map();
+                        data.putIfAbsent(
+                            "Dis Notes", () => noteController.text);
                         Firestore.instance
                             .collection("Orders")
                             .document("Pending") //create for dispatcher
@@ -675,6 +755,120 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                             .updateData(data);
                         setState(() {});
                         Navigator.pop(context);
+                      },
+                      child: Text(
+                        "Proceed",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        });
+  }
+
+  Uint8List signImage;
+
+  void onAddSignature(context) {
+    final SignatureController signController = SignatureController(
+      penStrokeWidth: 5,
+      penColor: Colors.black,
+      exportBackgroundColor: Colors.black12,
+    );
+
+    ///  final _signKey = GlobalKey<SignatureState>();
+    showCupertinoDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text(
+              "Add Signature",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.black, fontSize: 23),
+            ),
+            content: Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Container(
+                  height: MediaQuery.of(context).size.height / 4,
+                  decoration: BoxDecoration(
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  child: Signature(
+                    controller: signController,
+                    width: 300,
+                    height: 300,
+                    backgroundColor: Colors
+                        .black12, // key that allow you to provide a GlobalKey that'll let you retrieve the image once user has signed
+                  )),
+            ),
+            actions: <Widget>[
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        color: Colors.red),
+                    child: FlatButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        setState(() {});
+                      },
+                      child: Text(
+                        "Cancel",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      color: Styles.appPrimaryColor,
+                    ),
+                    child: FlatButton(
+                      onPressed: () async {
+                        if (signController.isEmpty) {
+                          showCenterToast(signImage.toString(), context);
+                          return;
+                        }
+                        var image = await signController.toPngBytes();
+
+                        signImage = image;
+                        setState(() {});
+                        Navigator.pop(context);
+
+                        var _storageRef = FirebaseStorage.instance.ref();
+                        StorageReference storeRef =
+                            _storageRef.child("images/${randomString()}");
+                        StorageUploadTask uploadTask = storeRef.putData(image);
+                        StorageTaskSnapshot downloadUrl =
+                            (await uploadTask.onComplete);
+                        String url = (await downloadUrl.ref.getDownloadURL());
+
+                        Map<String, Object> map = Map();
+                        map.putIfAbsent("Dis Signature", () => url);
+                        Firestore.instance
+                            .collection("Orders")
+                            .document("Pending") //create for dispatcher
+                            .collection(MY_UID)
+                            .document(widget.task.id)
+                            .updateData(map);
                       },
                       child: Text(
                         "Proceed",
@@ -730,6 +924,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
             Map data = doc.data;
             data.update("status", (a) => next, ifAbsent: () => next);
 
+
             Firestore.instance
                 .collection("Orders")
                 .document("Completed") //create for dispatcher
@@ -744,6 +939,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                   .document(widget.task.id)
                   .setData(data)
                   .then((value) {
+
                 _handleSendNotification(next, context);
                 Firestore.instance
                     .collection("Orders")
@@ -885,14 +1081,8 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
           _scaffoldKey.currentContext,
           CupertinoPageRoute(
             fullscreenDialog: true,
-            builder: (context) => OrderCompletedPage(
-                payment: widget.task.paymentType,
-                type: widget.task.type,
-                route: widget.task.routeType,
-                receiversName: widget.task.reName,
-                receiversNumber: widget.task.reNum,
-                amount: widget.task.amount,
-                from: "dis"),
+            builder: (context) => DisOrderCompletedPage(
+                task: widget.task,),
           ),
         );
       }
