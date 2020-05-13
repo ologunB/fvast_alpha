@@ -1,0 +1,46 @@
+name: fvastalpha
+description: A new Flutter application.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  shared_preferences:
+  image_picker:  #DONE TODO configure for iOS later
+  google_maps_flutter:   #DONE TODO configure for iOS later
+  firebase_database:
+  firebase_storage:
+  firebase_core: ^0.4.0+9
+  firebase_auth: ^0.14.0+5
+  cloud_firestore:
+  url_launcher:
+  cached_network_image:
+  rave_flutter:   #DONE TODO configure the iOS version later
+  geolocator:  #DONETODO configure the iOS version later
+  geocoder: ^0.2.1
+  provider:
+  intl:
+  smooth_star_rating:
+  floor: ^0.12.0
+  solid_bottom_sheet: ^0.1.9
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+
+  fonts:
+    - family: Geometria
+      fonts:
+        - asset: assets/fonts/Geometria.ttf
