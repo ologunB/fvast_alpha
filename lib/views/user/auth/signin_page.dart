@@ -95,7 +95,7 @@ class _SigninPageState extends State<SigninPage> {
                                       fontSize: 18,
                                       fontWeight: FontWeight.w400),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20.0),
+                                    borderRadius: BorderRadius.circular(5.0),
                                   )),
                               style: TextStyle(
                                   color: Colors.black,
@@ -122,7 +122,7 @@ class _SigninPageState extends State<SigninPage> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.w400),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
+                                  borderRadius: BorderRadius.circular(5.0),
                                 ),
                               ),
                               style: TextStyle(

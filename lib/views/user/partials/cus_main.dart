@@ -7,7 +7,7 @@ import 'package:fvastalpha/views/partials/widgets/drawerbehavior.dart';
 import 'package:fvastalpha/views/user/home/home_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-DrawerScaffoldController scaffoldController = DrawerScaffoldController();
+DrawerScaffoldController scaffoldController;
 
 class CusMainPage extends StatefulWidget {
   @override
@@ -23,9 +23,9 @@ class _CusMainPageState extends State<CusMainPage> {
         icon: IconData(0xe88a, fontFamily: 'MaterialIcons'),
       ),
       MenuItem(
-        id: 'My Garage',
-        title: 'My Garage',
-        icon: IconData(0xe531, fontFamily: 'MaterialIcons'),
+        id: 'Payments',
+        title: 'Payments',
+        icon: Icons.credit_card,
       ),
       MenuItem(
         id: 'Nearby Services',
@@ -33,19 +33,14 @@ class _CusMainPageState extends State<CusMainPage> {
         icon: IconData(0xe55e, fontFamily: 'MaterialIcons'),
       ),
       MenuItem(
-        id: 'Shop',
-        title: 'Shop',
-        icon: IconData(0xeb3f, fontFamily: 'MaterialIcons'),
-      ),
-      MenuItem(
         id: 'Orders',
         title: 'Orders',
         icon: IconData(0xeb3f, fontFamily: 'MaterialIcons'),
       ),
       MenuItem(
-        id: 'My Jobs',
-        title: 'My Jobs',
-        icon: IconData(0xe7ee, fontFamily: 'MaterialIcons'),
+        id: 'Settings',
+        title: 'Settings',
+        icon: Icons.settings,
       ),
     ],
   );
@@ -83,15 +78,15 @@ class _CusMainPageState extends State<CusMainPage> {
   @override
   void initState() {
     super.initState();
-
+    scaffoldController = DrawerScaffoldController();
     uid = _prefs.then((prefs) {
       return (prefs.getString('uid') ?? "customerUID");
     });
     email = _prefs.then((prefs) {
-      return (prefs.getString('email') ?? "customerEmail");
+      return (prefs.getString('email') ?? "customerEmail@fvast.com");
     });
     name = _prefs.then((prefs) {
-      return (prefs.getString('name') ?? "customerName");
+      return (prefs.getString('name') ?? "Random User");
     });
     type = _prefs.then((prefs) {
       return (prefs.getString('type') ?? "customerName");
@@ -299,7 +294,7 @@ class _CusMainPageState extends State<CusMainPage> {
           //  appBar: AppBarProps(title: Text(title), elevation: 0.0),
           menuView: MenuView(
             menu: menu,
-            selectorColor: Colors.blue,
+            selectorColor: Colors.black,
             headerView: _headerView(),
             animation: false,
             color: Theme.of(context).primaryColor,

@@ -1,5 +1,6 @@
- import 'package:flutter/material.dart';
-import 'package:fvastalpha/views/user/walkthrough/walkthrough_page.dart';
+import 'package:flutter/material.dart';
+import 'package:fvastalpha/views/partials/utils/styles.dart';
+import 'package:fvastalpha/views/user/partials/cus_main.dart';
 
 void main() => runApp(MyApp());
 
@@ -11,10 +12,10 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         fontFamily: 'Geometria',
-        primaryColor: Color.fromARGB(255, 22, 58, 78),
+        primaryColor: Styles.appPrimaryColor,
       ),
       debugShowCheckedModeBanner: false,
-      home: WalkthroughPage(),
+      home: CusMainPage(),
     );
   }
 }

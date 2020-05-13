@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
+import 'package:fvastalpha/views/user/home/create_task.dart';
 import 'package:fvastalpha/views/user/partials/cus_main.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -53,6 +54,29 @@ class _HomeMapState extends State<HomeView> {
 
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
+  List<String> aa = [];
+  Widget tasksListWidget(context) {
+    return aa.isEmpty
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(
+                Icons.hourglass_empty,
+                color: Colors.blue,
+              ),
+              Text("Task is empty, Create a Task!")
+            ],
+          )
+        : ListView.builder(
+            itemCount: aa.length,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              return Container(child: Text("a"));
+            });
+  }
+
   @override
   Widget build(BuildContext context) {
     for (var i = 0; i < 2; i++) {
@@ -69,22 +93,38 @@ class _HomeMapState extends State<HomeView> {
     return SafeArea(
         child: Scaffold(
       key: scaffoldKey,
-      bottomSheet: ClipRRect(
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(50), topRight: Radius.circular(50)),
-        child: SolidBottomSheet(
-          headerBar: Container(
-            decoration: BoxDecoration(
-              color: Styles.appPrimaryColor,
-            ),
-            height: 50,
-            child: Text("Good Afternoon Daniel!"),
+      bottomSheet: SolidBottomSheet(
+        headerBar: Container(
+          decoration: BoxDecoration(
+            color: Styles.appPrimaryColor,
           ),
-          draggableBody: true,
-          body: Container(),
-          maxHeight: height * .6,
-          minHeight: height / 4,
+          height: 50,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  "Good Morning, Daniel",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                /*   Center(
+                  child: IconButton(
+                      icon: Icon(
+                        Icons.refresh,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {}),
+                )*/
+              ],
+            ),
+          ),
         ),
+        autoSwiped: false,
+        draggableBody: true,
+        body: tasksListWidget(context),
+        maxHeight: height * .6,
+        minHeight: height * .25,
       ),
       body: Container(
         child: Stack(
@@ -138,27 +178,14 @@ class _HomeMapState extends State<HomeView> {
                           child: Container(
                             decoration: BoxDecoration(
                               color: Styles.appPrimaryColor,
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: FlatButton(
                               onPressed: () {
-                                showModalBottomSheet(
-                                    context: context,
-                                    builder: (context) => Container(
-                                          decoration: BoxDecoration(
-                                              boxShadow: [
-                                                BoxShadow(
-                                                    blurRadius: 22,
-                                                    color: Colors.grey[300])
-                                              ],
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              color: Colors.blue),
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height /
-                                              4,
-                                        ));
+                                Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                        builder: (context) => CreateTask()));
                               },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -194,3 +221,22 @@ class _HomeMapState extends State<HomeView> {
     ));
   }
 }
+/*
+
+showModalBottomSheet(
+context: context,
+builder: (context) => Container(
+decoration: BoxDecoration(
+boxShadow: [
+BoxShadow(
+blurRadius: 22,
+color: Colors.grey[300])
+],
+borderRadius:
+BorderRadius.circular(10),
+color: Colors.blue),
+height: MediaQuery.of(context)
+.size
+    .height /
+4,
+));*/
