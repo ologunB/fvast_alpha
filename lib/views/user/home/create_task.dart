@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/user/home/type_selector.dart';
+import 'package:google_maps_webservice/places.dart';
 
 class CreateTask extends StatefulWidget {
   @override
@@ -32,10 +34,11 @@ class _CreateTaskState extends State<CreateTask> {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Theme(
               data: ThemeData(
-                  primaryColor: Styles.commonDarkBackground,
-                  hintColor: Styles.commonDarkBackground),
+                primaryColor: Colors.grey[200],
+                hintColor: Styles.commonDarkBackground,
+              ),
               child: TextField(
-                enabled: false,
+                readOnly: true,
                 controller: myLocationController,
                 decoration: InputDecoration(
                     fillColor: Styles.commonDarkBackground,
@@ -68,38 +71,46 @@ class _CreateTaskState extends State<CreateTask> {
                   color: Styles.commonDarkBackground,
                 ),
               )),
-          InkWell(
-            onTap: () {},
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Theme(
-                data: ThemeData(
-                    primaryColor: Styles.commonDarkBackground,
-                    hintColor: Styles.commonDarkBackground),
-                child: TextField(
-                  enabled: false,
-                  controller: theirController,
-                  decoration: InputDecoration(
-                      fillColor: Styles.commonDarkBackground,
-                      filled: true,
-                      hintText: "Choose Destination",
-                      prefixIcon: Icon(
-                        Icons.location_on,
-                        color: Colors.red,
-                      ),
-                      contentPadding: EdgeInsets.all(10),
-                      hintStyle: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5.0),
-                      )),
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400),
-                ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Theme(
+              data: ThemeData(
+                primaryColor: Colors.grey[200],
+                hintColor: Styles.commonDarkBackground,
+              ),
+              child: TextField(
+                readOnly: true,
+                onTap: () async {
+                  Prediction p = await PlacesAutocomplete.show(
+                      context: context,
+                      language: "en",
+                      mode: Mode.overlay,
+                      apiKey: "AIzaSyCuPGWMRJV7esDkayIrmSg-cPdrt3f6ffQ",
+                      components: [Component(Component.country, "NG")]);
+
+                  print(p);
+                },
+                controller: theirController,
+                decoration: InputDecoration(
+                    fillColor: Styles.commonDarkBackground,
+                    filled: true,
+                    hintText: "Choose Destination",
+                    prefixIcon: Icon(
+                      Icons.location_on,
+                      color: Colors.red,
+                    ),
+                    contentPadding: EdgeInsets.all(10),
+                    hintStyle: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    )),
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400),
               ),
             ),
           ),

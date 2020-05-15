@@ -6,23 +6,6 @@ import 'package:flutter/material.dart';
 // Querying the environment via [Plattform] throws and exception on Flutter web
 // This extension adds a new [isWeb] getter that should be used
 // before checking for any of the other environments
-extension PlatformWeb on Platform {
-  static bool get isWeb {
-    try {
-      if (Platform.isAndroid ||
-          Platform.isIOS ||
-          Platform.isWindows ||
-          Platform.isFuchsia ||
-          Platform.isLinux ||
-          Platform.isMacOS) {
-        return false;
-      }
-      return true;
-    } catch (e) {
-      return true;
-    }
-  }
-}
 
 Future<bool> showAlertDialog({
   @required BuildContext context,
@@ -31,18 +14,19 @@ Future<bool> showAlertDialog({
   String cancelActionText,
   @required String defaultActionText,
 }) async {
-  if (PlatformWeb.isWeb || !Platform.isIOS) {
+  if (!Platform.isIOS) {
     return await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
         content: Text(content),
         actions: <Widget>[
-          if (cancelActionText != null)
-            FlatButton(
-              child: Text(cancelActionText),
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
+          cancelActionText != null
+              ? FlatButton(
+                  child: Text(cancelActionText),
+                  onPressed: () => Navigator.of(context).pop(false),
+                )
+              : Container(),
           FlatButton(
             child: Text(defaultActionText),
             onPressed: () => Navigator.of(context).pop(true),
@@ -57,11 +41,12 @@ Future<bool> showAlertDialog({
       title: Text(title),
       content: Text(content),
       actions: <Widget>[
-        if (cancelActionText != null)
-          CupertinoDialogAction(
-            child: Text(cancelActionText),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
+        cancelActionText != null
+            ? CupertinoDialogAction(
+                child: Text(cancelActionText),
+                onPressed: () => Navigator.of(context).pop(false),
+              )
+            : Container(),
         CupertinoDialogAction(
           child: Text(defaultActionText),
           onPressed: () => Navigator.of(context).pop(true),

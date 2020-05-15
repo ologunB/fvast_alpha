@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "691882460257",
+    "firebase_url": "https://fvast-d08d6.firebaseio.com",
+    "project_id": "fvast-d08d6",
+    "storage_bucket": "fvast-d08d6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691882460257:android:0b4983b2ae938215e09620",
+        "android_client_info": {
+          "package_name": "com.ologunb.fvastalpha"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "691882460257-hi67hma7thcqgsj7teqljfujcbeh0kk7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ologunb.fvastalpha",
+            "certificate_hash": "ffc2762c7311148ccb376fd7f5b85f738f3082cf"
+          }
+        },
+        {
+          "client_id": "691882460257-536nmfge9kvfj487nr8ffgf32rqb5mp3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWn32bXZ_umd5VaXPQG7zDG7-n00q1V80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "691882460257-536nmfge9kvfj487nr8ffgf32rqb5mp3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

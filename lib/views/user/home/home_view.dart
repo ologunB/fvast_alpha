@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/user/home/create_task.dart';
-import 'package:fvastalpha/views/user/partials/cus_main.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
@@ -105,7 +104,7 @@ class _HomeMapState extends State<HomeView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text(
-                  "Good Morning, Daniel",
+                  "Good Evening, Daniel",
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
                 /*   Center(
@@ -161,9 +160,10 @@ class _HomeMapState extends State<HomeView> {
                                   size: 30,
                                 ),
                                 onPressed: () {
-                                  if (!scaffoldController.isOpen()) {
+                                  /*  if (!scaffoldController.isOpen()) {
                                     scaffoldController.menuController.open();
-                                  }
+                                  }*/
+                                  scaffoldKey.currentState.openEndDrawer();
                                 }),
                             IconButton(
                                 icon: Icon(Icons.notifications),
@@ -215,6 +215,20 @@ class _HomeMapState extends State<HomeView> {
                 ),
               ],
             )
+          ],
+        ),
+      ),
+      drawer: Drawer(
+        elevation: 4,
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text(
+                "Home",
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
           ],
         ),
       ),

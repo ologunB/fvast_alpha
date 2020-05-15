@@ -17,7 +17,7 @@ dev_dependencies:
   shared_preferences:
   image_picker:  #DONE TODO configure for iOS later
   google_maps_flutter:   #DONE TODO configure for iOS later
-  firebase_database:
+  google_maps_webservice:   #DONE TODO configure for iOS later
   firebase_storage:
   firebase_core: ^0.4.0+9
   firebase_auth: ^0.14.0+5
@@ -27,6 +27,9 @@ dev_dependencies:
   rave_flutter:   #DONE TODO configure the iOS version later
   geolocator:  #DONETODO configure the iOS version later
   geocoder: ^0.2.1
+  flutter_google_places: ^0.2.3
+  search_map_place:
+  location:
   provider:
   intl:
   smooth_star_rating:
