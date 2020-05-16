@@ -8,7 +8,7 @@ import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
 import 'package:fvastalpha/views/partials/widgets/show_exception_alert_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signup_page.dart';
-import 'package:fvastalpha/views/user/partials/cus_main.dart';
+import 'package:fvastalpha/views/user/home/home_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SigninPage extends StatefulWidget {
@@ -104,7 +104,7 @@ class _SigninPageState extends State<SigninPage> {
           return;
         }
         Firestore.instance
-            .collection('Users')
+            .collection('All')
             .document(user.uid)
             .get()
             .then((document) {
@@ -113,7 +113,7 @@ class _SigninPageState extends State<SigninPage> {
             CupertinoPageRoute(
               fullscreenDialog: true,
               builder: (context) {
-                return type == "Customer" ? CusMainPage() : DiapatchMainPage();
+                return type == "User" ? HomeView() : DiapatchMainPage();
               },
             ),
           );
@@ -131,6 +131,7 @@ class _SigninPageState extends State<SigninPage> {
         setState(() {
           isLoading = false;
         });
+        _firebaseAuth.signOut();
       }
       return;
     }).catchError((e) {
@@ -153,7 +154,6 @@ class _SigninPageState extends State<SigninPage> {
       prefs.setString("type", type);
       prefs.setString("phone", phone);
     });
-    _firebaseAuth.signOut();
   }
 
   Future resetEmail(String email, _setState) async {
@@ -200,236 +200,217 @@ class _SigninPageState extends State<SigninPage> {
       body: Form(
         key: _formKey,
         autovalidate: _autoValidate,
-        child: Stack(
-          children: <Widget>[
-            ShaderMask(
-              shaderCallback: (Rect bounds) {
-                return LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: <Color>[Colors.transparent, Styles.appPrimaryColor],
-                ).createShader(bounds);
-              },
-              blendMode: BlendMode.darken,
-              child: Image(
-                image: AssetImage("assets/images/mapbg.png"),
-                fit: BoxFit.fitHeight,
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(left: 60),
-              height: MediaQuery.of(context).size.height,
-              child: Column(
+        child: Container(
+          height: MediaQuery.of(context).size.height,
+          padding: EdgeInsets.all(20),
+          child: ListView(
+            children: <Widget>[
+              Column(
                 children: <Widget>[
-                  Expanded(
-                      child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius:
-                            BorderRadius.only(bottomLeft: Radius.circular(70))),
-                    child: Container(
-                      padding: EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Container(
-                            height: MediaQuery.of(context).size.height / 3,
-                            child: Image.asset(
-                              "assets/images/loginimage.png",
-                              fit: BoxFit.contain,
-                              alignment: Alignment.bottomCenter,
-                            ),
+                  Container(
+                    height: MediaQuery.of(context).size.height / 3,
+                    child: Image.asset(
+                      "assets/images/loginimage.png",
+                      fit: BoxFit.contain,
+                      alignment: Alignment.bottomCenter,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 18.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Welcome to FVAST!",
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Styles.appPrimaryColor),
+                        ),
+                      ],
+                      mainAxisSize: MainAxisSize.max,
+                    ),
+                  ),
+                  Text(
+                    "Login",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18.0),
+                    child: Theme(
+                      data: ThemeData(
+                          primaryColor: Styles.commonDarkBackground,
+                          hintColor: Styles.commonDarkBackground),
+                      child: TextFormField(
+                        controller: emailController,
+                        decoration: InputDecoration(
+                            fillColor: Styles.commonDarkBackground,
+                            filled: true,
+                            suffixIcon: Icon(Icons.email),
+                            contentPadding: EdgeInsets.all(10),
+                            hintText: 'Email',
+                            hintStyle: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                            )),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: validateEmail,
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Theme(
+                      data: ThemeData(
+                          primaryColor: Styles.commonDarkBackground,
+                          hintColor: Styles.commonDarkBackground),
+                      child: TextFormField(
+                        obscureText: true,
+                        keyboardType: TextInputType.text,
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return 'Please enter your password!';
+                          } else if (value.length < 6) {
+                            return 'Password must be greater than 6 characters!';
+                          }
+                          return null;
+                        },
+                        controller: passwordController,
+                        decoration: InputDecoration(
+                          fillColor: Styles.commonDarkBackground,
+                          filled: true,
+                          suffixIcon: Icon(Icons.lock),
+                          contentPadding: EdgeInsets.all(10),
+                          hintText: 'Password',
+                          hintStyle: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 18.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Text(
-                                  "Welcome to FVAST!",
+                        ),
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              barrierDismissible: true,
+                              context: context,
+                              builder: (_) => CupertinoAlertDialog(
+                                title: Column(
+                                  children: <Widget>[
+                                    Text("Enter Email"),
+                                  ],
+                                ),
+                                content: CupertinoTextField(
+                                  controller: forgetPassController,
+                                  placeholder: "Email",
+                                  padding: EdgeInsets.all(10),
+                                  keyboardType: TextInputType.emailAddress,
+                                  placeholderStyle:
+                                      TextStyle(fontWeight: FontWeight.w300),
                                   style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Styles.appPrimaryColor),
+                                      fontSize: 20, color: Colors.black),
                                 ),
-                              ],
-                              mainAxisSize: MainAxisSize.max,
-                            ),
-                          ),
-                          Text(
-                            "Login",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 18.0),
-                            child: Theme(
-                              data: ThemeData(
-                                  primaryColor: Styles.commonDarkBackground,
-                                  hintColor: Styles.commonDarkBackground),
-                              child: TextFormField(
-                                controller: emailController,
-                                decoration: InputDecoration(
-                                    fillColor: Styles.commonDarkBackground,
-                                    filled: true,
-                                    suffixIcon: Icon(Icons.email),
-                                    contentPadding: EdgeInsets.all(10),
-                                    hintText: 'Email',
-                                    hintStyle: TextStyle(
-                                        color: Colors.grey[500],
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w400),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(5.0),
-                                    )),
-                                keyboardType: TextInputType.emailAddress,
-                                validator: validateEmail,
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w400),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Theme(
-                              data: ThemeData(
-                                  primaryColor: Styles.commonDarkBackground,
-                                  hintColor: Styles.commonDarkBackground),
-                              child: TextFormField(
-                                obscureText: true,
-                                keyboardType: TextInputType.text,
-                                validator: (value) {
-                                  if (value.isEmpty) {
-                                    return 'Please enter your password!';
-                                  } else if (value.length < 6) {
-                                    return 'Password must be greater than 6 characters!';
-                                  }
-                                  return null;
-                                },
-                                controller: passwordController,
-                                decoration: InputDecoration(
-                                  fillColor: Styles.commonDarkBackground,
-                                  filled: true,
-                                  suffixIcon: Icon(Icons.lock),
-                                  contentPadding: EdgeInsets.all(10),
-                                  hintText: 'Password',
-                                  hintStyle: TextStyle(
-                                      color: Colors.grey[500],
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w400),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5.0),
+                                actions: <Widget>[
+                                  Center(
+                                    child: StatefulBuilder(
+                                      builder: (context, _setState) =>
+                                          CustomLoadingButton(
+                                        title: forgotPassIsLoading
+                                            ? ""
+                                            : "Reset Password",
+                                        onPress: forgotPassIsLoading
+                                            ? null
+                                            : () async {
+                                                resetEmail(
+                                                    forgetPassController.text,
+                                                    _setState);
+                                              },
+                                        icon: forgotPassIsLoading
+                                            ? CupertinoActivityIndicator(
+                                                radius: 20)
+                                            : Icon(
+                                                Icons.arrow_forward,
+                                                color: Colors.white,
+                                              ),
+                                        iconLeft: false,
+                                        hasColor:
+                                            forgotPassIsLoading ? true : false,
+                                        bgColor: Colors.blueGrey,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w400),
+                                ],
                               ),
-                            ),
+                            );
+                          },
+                          child: Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                                color: Styles.appPrimaryColor, fontSize: 15),
                           ),
-                          Row(
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.all(5.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.deepOrange,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: FlatButton(
+                          onPressed: isLoading
+                              ? null
+                              : () {
+                                  signIn(emailController.text,
+                                      passwordController.text, context);
+                                },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.end,
                             children: <Widget>[
                               Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    showDialog(
-                                      barrierDismissible: true,
-                                      context: context,
-                                      builder: (_) => CupertinoAlertDialog(
-                                        title: Column(
-                                          children: <Widget>[
-                                            Text("Enter Email"),
-                                          ],
-                                        ),
-                                        content: CupertinoTextField(
-                                          controller: forgetPassController,
-                                          placeholder: "Email",
-                                          padding: EdgeInsets.all(10),
-                                          keyboardType:
-                                              TextInputType.emailAddress,
-                                          placeholderStyle: TextStyle(
-                                              fontWeight: FontWeight.w300),
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              color: Colors.black),
-                                        ),
-                                        actions: <Widget>[
-                                          Center(
-                                            child: StatefulBuilder(
-                                              builder: (context, _setState) =>
-                                                  CustomLoadingButton(
-                                                title: forgotPassIsLoading
-                                                    ? ""
-                                                    : "Reset Password",
-                                                onPress: forgotPassIsLoading
-                                                    ? null
-                                                    : () async {
-                                                        resetEmail(
-                                                            forgetPassController
-                                                                .text,
-                                                            _setState);
-                                                      },
-                                                icon: forgotPassIsLoading
-                                                    ? CupertinoActivityIndicator(
-                                                        radius: 20)
-                                                    : Icon(
-                                                        Icons.arrow_forward,
-                                                        color: Colors.white,
-                                                      ),
-                                                iconLeft: false,
-                                                hasColor: forgotPassIsLoading
-                                                    ? true
-                                                    : false,
-                                                bgColor: Colors.blueGrey,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                padding: EdgeInsets.all(5.0),
+                                child: isLoading
+                                    ? CupertinoActivityIndicator()
+                                    : Text(
+                                        "SIGN UP",
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white),
                                       ),
-                                    );
-                                  },
-                                  child: Text(
-                                    "Forgot Password?",
-                                    style: TextStyle(
-                                        color: Styles.appPrimaryColor,
-                                        fontSize: 15),
-                                  ),
-                                ),
                               ),
                             ],
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.deepOrange,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: FlatButton(
-                              onPressed: () {
-                                signIn(emailController.text,
-                                    passwordController.text, context);
-                              },
-                              child: Text(
-                                "   LOGIN   ",
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  )),
+                    )
+                  ]),
                   Row(
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -467,8 +448,8 @@ class _SigninPageState extends State<SigninPage> {
                       ])
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

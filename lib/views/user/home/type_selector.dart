@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
-import 'package:fvastalpha/views/user/partials/cus_main.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:fvastalpha/views/user/home/home_view.dart';
+ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
@@ -920,7 +920,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                           context,
                                                           CupertinoPageRoute(
                                                               builder: (context) =>
-                                                                  CusMainPage()),
+                                                                  HomeView()),
                                                           (Route<dynamic>
                                                                   route) =>
                                                               false);

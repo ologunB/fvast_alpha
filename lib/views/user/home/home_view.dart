@@ -1,9 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
+import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
+import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:fvastalpha/views/user/home/create_task.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
 class HomeView extends StatefulWidget {
@@ -51,7 +55,7 @@ class _HomeMapState extends State<HomeView> {
     });
   }
 
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   List<String> aa = [];
   Widget tasksListWidget(context) {
@@ -76,6 +80,20 @@ class _HomeMapState extends State<HomeView> {
             });
   }
 
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  Future afterLogout() async {
+    final SharedPreferences prefs = await _prefs;
+
+    setState(() {
+      prefs.setBool("isLoggedIn", false);
+      prefs.setString("type", "Login");
+      prefs.remove("uid");
+      prefs.remove("email");
+      prefs.remove("name");
+      prefs.remove("phone");
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     for (var i = 0; i < 2; i++) {
@@ -91,7 +109,7 @@ class _HomeMapState extends State<HomeView> {
     var height = MediaQuery.of(context).size.height;
     return SafeArea(
         child: Scaffold(
-      key: scaffoldKey,
+      key: _scaffoldKey,
       bottomSheet: SolidBottomSheet(
         headerBar: Container(
           decoration: BoxDecoration(
@@ -163,7 +181,7 @@ class _HomeMapState extends State<HomeView> {
                                   /*  if (!scaffoldController.isOpen()) {
                                     scaffoldController.menuController.open();
                                   }*/
-                                  scaffoldKey.currentState.openEndDrawer();
+                                  _scaffoldKey.currentState.openDrawer();
                                 }),
                             IconButton(
                                 icon: Icon(Icons.notifications),
@@ -222,35 +240,77 @@ class _HomeMapState extends State<HomeView> {
         elevation: 4,
         child: Column(
           children: <Widget>[
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text(
-                "Home",
-                style: TextStyle(fontSize: 18),
+            Expanded(
+              child: Column(
+                children: <Widget>[
+                  Container(height: 110, color: Styles.appPrimaryColor),
+                  InkWell(
+                    child: ListTile(
+                      leading: Icon(Icons.home),
+                      title: Text(
+                        "Home",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    child: ListTile(
+                      leading: Icon(Icons.credit_card),
+                      title: Text(
+                        "Payment",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    child: ListTile(
+                      leading: Icon(Icons.settings),
+                      title: Text(
+                        "Settings",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+            GestureDetector(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: <Widget>[
+                    Icon(Icons.arrow_back, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text(
+                      "Logout",
+                      style: TextStyle(color: Colors.red, fontSize: 18),
+                    )
+                  ],
+                ),
+              ),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => CustomDialog(
+                    title: "Are you sure you want to log out?",
+                    onClicked: () async {
+                      FirebaseAuth.instance.signOut().then((a) {
+                        afterLogout();
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            CupertinoPageRoute(
+                                builder: (context) => SigninPage()),
+                            (Route<dynamic> route) => false);
+                      });
+                    },
+                    includeHeader: true,
+                  ),
+                );
+              },
+            )
           ],
         ),
       ),
     ));
   }
 }
-/*
-
-showModalBottomSheet(
-context: context,
-builder: (context) => Container(
-decoration: BoxDecoration(
-boxShadow: [
-BoxShadow(
-blurRadius: 22,
-color: Colors.grey[300])
-],
-borderRadius:
-BorderRadius.circular(10),
-color: Colors.blue),
-height: MediaQuery.of(context)
-.size
-    .height /
-4,
-));*/

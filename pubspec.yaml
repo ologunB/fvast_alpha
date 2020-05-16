@@ -27,7 +27,7 @@ dev_dependencies:
   rave_flutter:   #DONE TODO configure the iOS version later
   geolocator:  #DONETODO configure the iOS version later
   geocoder: ^0.2.1
-  flutter_google_places: ^0.2.3
+  flutter_google_places: ^0.2.5
   search_map_place:
   location:
   provider:

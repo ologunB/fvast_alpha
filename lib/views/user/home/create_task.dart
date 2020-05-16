@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/user/home/type_selector.dart';
@@ -84,11 +85,11 @@ class _CreateTaskState extends State<CreateTask> {
                   Prediction p = await PlacesAutocomplete.show(
                       context: context,
                       language: "en",
+                      onError: onError,
                       mode: Mode.overlay,
-                      apiKey: "AIzaSyCuPGWMRJV7esDkayIrmSg-cPdrt3f6ffQ",
+                      apiKey: kGoogleMapKey,
                       components: [Component(Component.country, "NG")]);
-
-                  print(p);
+                  displayPrediction(p, _scaffoldKey.currentState);
                 },
                 controller: theirController,
                 decoration: InputDecoration(
@@ -123,5 +124,28 @@ class _CreateTaskState extends State<CreateTask> {
                 CupertinoPageRoute(builder: (context) => ModeSelector()));
           }),
     );
+  }
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void onError(PlacesAutocompleteResponse response) {
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(content: Text(response.errorMessage)),
+    );
+  }
+
+  GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleMapKey);
+
+  Future<Null> displayPrediction(Prediction p, ScaffoldState scaffold) async {
+    if (p != null) {
+      PlacesDetailsResponse detail =
+          await _places.getDetailsByPlaceId(p.placeId);
+      final lat = detail.result.geometry.location.lat;
+      final lng = detail.result.geometry.location.lng;
+
+      scaffold.showSnackBar(
+        SnackBar(content: Text("${p.description} - $lat/$lng")),
+      );
+    }
   }
 }

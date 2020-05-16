@@ -20,3 +20,5 @@ String validateEmail(value) {
   } else
     return null;
 }
+
+String kGoogleMapKey = "AIzaSyCuPGWMRJV7esDkayIrmSg-cPdrt3f6ffQ";

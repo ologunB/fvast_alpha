@@ -3,7 +3,7 @@ import 'package:fvastalpha/views/cou_service/partials/dispatcher_main_page.dart'
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
-import 'package:fvastalpha/views/user/partials/cus_main.dart';
+import 'package:fvastalpha/views/user/home/home_view.dart';
 import 'package:fvastalpha/views/user/walkthrough/walkthrough_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         primaryColor: Styles.appPrimaryColor,
       ),
       debugShowCheckedModeBanner: false,
-      home: CusMainPage(),
+      home: MyWrapper(),
     );
   }
 }
@@ -59,7 +59,7 @@ class _MyWrapperState extends State<MyWrapper> {
             if (_type == "Dispatcher") {
               return DiapatchMainPage();
             } else if (_type == "User") {
-              return CusMainPage();
+              return HomeView();
             } else if (_type == "Login") {
               return SigninPage();
             } else {
