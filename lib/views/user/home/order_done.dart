@@ -144,8 +144,9 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                     child: CustomButton(
                         title: "DONE",
                         onPress: () {
-                          _scaffoldKey.currentState.showBottomSheet(
-                              (context) => StatefulBuilder(
+                          showModalBottomSheet(
+                              context: context,
+                              builder: (context) => StatefulBuilder(
                                     builder: (context, _setState) => Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,

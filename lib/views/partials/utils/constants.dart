@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/widgets/toast.dart';
 import 'package:intl/intl.dart';
 
-String MY_NAME, MY_UID, MY_TYPE, MY_NUMBER, MY_EMAIL;
+String MY_NAME, MY_UID, MY_TYPE, MY_NUMBER, MY_EMAIL, MY_IMAGE;
 
 showEmptyToast(String aa, BuildContext context) {
   Toast.show("$aa cannot be empty", context,

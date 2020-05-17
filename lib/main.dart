@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:fvastalpha/views/cou_service/home/home_view.dart';
+import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
-import 'package:fvastalpha/views/user/home/home_view.dart';
+import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:fvastalpha/views/user/walkthrough/walkthrough_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -57,9 +57,9 @@ class _MyWrapperState extends State<MyWrapper> {
           if (snapshot.connectionState == ConnectionState.done) {
             String _type = snapshot.data;
             if (_type == "Dispatcher") {
-              return DispatchHomeView();
+              return DisLayoutTemplate();
             } else if (_type == "User") {
-              return HomeView();
+              return LayoutTemplate();
             } else if (_type == "Login") {
               return SigninPage();
             } else {

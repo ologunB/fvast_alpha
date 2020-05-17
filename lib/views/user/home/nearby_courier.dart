@@ -2,9 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
+import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-import 'home_view.dart';
 
 class NearbyCourier extends StatefulWidget {
   @override
@@ -34,7 +33,7 @@ class _NearbyCourierState extends State<NearbyCourier> {
     Future.delayed(Duration(seconds: 3)).then((a) {
       Navigator.pushAndRemoveUntil(
           context,
-          CupertinoPageRoute(builder: (context) => HomeView()),
+          CupertinoPageRoute(builder: (context) => LayoutTemplate()),
           (Route<dynamic> route) => false);
     });
     super.initState();

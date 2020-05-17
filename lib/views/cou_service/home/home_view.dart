@@ -1,13 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
+import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
-import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
-import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
+
+import 'new_order_form.dart';
 
 class DispatchHomeView extends StatefulWidget {
   @override
@@ -29,6 +30,11 @@ class _HomeMapState extends State<DispatchHomeView> {
   void initState() {
     super.initState();
     getUserLocation();
+
+    Future.delayed(Duration(seconds: 2)).then((a) {
+      Navigator.push(
+          context, CupertinoPageRoute(builder: (context) => NewTaskRequest()));
+    });
   }
 
   Future<Position> locateUser() async {
@@ -96,8 +102,6 @@ class _HomeMapState extends State<DispatchHomeView> {
     });
   }
 
-  bool isActive = false;
-
   @override
   Widget build(BuildContext context) {
     for (var i = 0; i < 2; i++) {
@@ -126,7 +130,7 @@ class _HomeMapState extends State<DispatchHomeView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text(
-                  "Good Evening, Daniel",
+                  "Good ${greeting()}, $MY_NAME",
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ],
@@ -174,7 +178,7 @@ class _HomeMapState extends State<DispatchHomeView> {
                                   size: 30,
                                 ),
                                 onPressed: () {
-                                  _scaffoldKey.currentState.openDrawer();
+                                  disMainScaffoldKey.currentState.openDrawer();
                                 }),
                             IconButton(
                                 icon: Icon(Icons.notifications),
@@ -186,148 +190,6 @@ class _HomeMapState extends State<DispatchHomeView> {
                   ),
                 ),
               ],
-            )
-          ],
-        ),
-      ),
-      drawer: Drawer(
-        elevation: 4,
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                children: <Widget>[
-                  Column(
-                    children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.all(8),
-                        child: Row(
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(30),
-                                  child: Image.asset("assets/images/person.png",
-                                      height: 50, width: 50)),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(
-                                      "Audu Daniel",
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w500),
-                                    ),
-                                    Text("0817890978"),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Switch(
-                                value: isActive,
-                                onChanged: (a) {
-                                  isActive = a;
-                                  setState(() {});
-                                })
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(Icons.home),
-                      title: Text(
-                        "Home",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(Icons.credit_card),
-                      title: Text(
-                        "Task History",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(Icons.card_travel),
-                      title: Text(
-                        "Earnings",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(Icons.card_travel),
-                      title: Text(
-                        "Subscriptions/Commission",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(Icons.settings),
-                      title: Text(
-                        "Settings",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(Icons.settings),
-                      title: Text(
-                        "Support",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.arrow_back, color: Colors.red),
-                    SizedBox(width: 10),
-                    Text(
-                      "Logout",
-                      style: TextStyle(color: Colors.red, fontSize: 18),
-                    )
-                  ],
-                ),
-              ),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => CustomDialog(
-                    title: "Are you sure you want to log out?",
-                    onClicked: () async {
-                      FirebaseAuth.instance.signOut().then((a) {
-                        afterLogout();
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => SigninPage()),
-                            (Route<dynamic> route) => false);
-                      });
-                    },
-                    includeHeader: true,
-                  ),
-                );
-              },
             )
           ],
         ),

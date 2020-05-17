@@ -2,13 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fvastalpha/views/cou_service/home/home_view.dart';
+import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
 import 'package:fvastalpha/views/partials/widgets/show_exception_alert_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signup_page.dart';
-import 'package:fvastalpha/views/user/home/home_view.dart';
+import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SigninPage extends StatefulWidget {
@@ -113,13 +113,18 @@ class _SigninPageState extends State<SigninPage> {
             CupertinoPageRoute(
               fullscreenDialog: true,
               builder: (context) {
-                return type == "User" ? HomeView() : DispatchHomeView();
+                return type == "User" ? LayoutTemplate() : DisLayoutTemplate();
               },
             ),
           );
 
-          putInDB(type, document.data["Uid"], document.data["Email"],
-              document.data["Name"], document.data["Phone"]);
+          putInDB(
+              type,
+              document.data["Uid"],
+              document.data["Email"],
+              document.data["Name"],
+              document.data["Phone"],
+              document.data["Avatar"]);
         }).catchError((e) {
           setState(() {
             isLoading = false;
@@ -144,7 +149,7 @@ class _SigninPageState extends State<SigninPage> {
   }
 
   Future putInDB(
-      String type, String uid, String email, String name, phone) async {
+      String type, String uid, String email, String name, phone, image) async {
     final SharedPreferences prefs = await _prefs;
     setState(() {
       prefs.setBool("isLoggedIn", true);
@@ -153,6 +158,7 @@ class _SigninPageState extends State<SigninPage> {
       prefs.setString("name", name);
       prefs.setString("type", type);
       prefs.setString("phone", phone);
+      prefs.setString("image", image);
     });
   }
 
@@ -190,7 +196,7 @@ class _SigninPageState extends State<SigninPage> {
 
   @override
   void initState() {
-    putInDB("Login", "", "", "", "");
+    putInDB("Login", "", "", "", "", "");
     super.initState();
   }
 

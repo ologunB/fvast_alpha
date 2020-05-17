@@ -1,14 +1,11 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
-import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
-import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:fvastalpha/views/user/home/create_task.dart';
+import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
 import 'order_details.dart';
@@ -202,20 +199,6 @@ class _HomeMapState extends State<HomeView> {
             });
   }
 
-  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  Future afterLogout() async {
-    final SharedPreferences prefs = await _prefs;
-
-    setState(() {
-      prefs.setBool("isLoggedIn", false);
-      prefs.setString("type", "Login");
-      prefs.remove("uid");
-      prefs.remove("email");
-      prefs.remove("name");
-      prefs.remove("phone");
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     for (var i = 0; i < 2; i++) {
@@ -239,12 +222,12 @@ class _HomeMapState extends State<HomeView> {
           ),
           height: 50,
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text(
-                  "Good Evening, Daniel",
+                  "Good ${greeting()}, $MY_NAME",
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ],
@@ -292,10 +275,7 @@ class _HomeMapState extends State<HomeView> {
                                   size: 30,
                                 ),
                                 onPressed: () {
-                                  /*  if (!scaffoldController.isOpen()) {
-                                    scaffoldController.menuController.open();
-                                  }*/
-                                  _scaffoldKey.currentState.openDrawer();
+                                  cusMainScaffoldKey.currentState.openDrawer();
                                 }),
                             IconButton(
                                 icon: Icon(Icons.notifications),
@@ -346,136 +326,6 @@ class _HomeMapState extends State<HomeView> {
                   ),
                 ),
               ],
-            )
-          ],
-        ),
-      ),
-      drawer: Drawer(
-        elevation: 4,
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                children: <Widget>[
-                  Column(
-                    children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.all(8),
-                        child: Row(
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(30),
-                                  child: Image.asset("assets/images/person.png",
-                                      height: 50, width: 50)),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(
-                                      "Audu Daniel",
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w500),
-                                    ),
-                                    Text("0817890978"),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: ListTile(
-                      leading: Icon(EvaIcons.home),
-                      title: Text(
-                        "Home",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(EvaIcons.briefcase),
-                      title: Text(
-                        "Tasks History",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(EvaIcons.creditCard),
-                      title: Text(
-                        "Payment and Wallet",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(EvaIcons.settings),
-                      title: Text(
-                        "Settings",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    child: ListTile(
-                      leading: Icon(Icons.help),
-                      title: Text(
-                        "Help",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.arrow_back, color: Colors.red),
-                    SizedBox(width: 10),
-                    Text(
-                      "Logout",
-                      style: TextStyle(color: Colors.red, fontSize: 18),
-                    )
-                  ],
-                ),
-              ),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => CustomDialog(
-                    title: "Are you sure you want to log out?",
-                    onClicked: () async {
-                      FirebaseAuth.instance.signOut().then((a) {
-                        afterLogout();
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => SigninPage()),
-                            (Route<dynamic> route) => false);
-                      });
-                    },
-                    includeHeader: true,
-                  ),
-                );
-              },
             )
           ],
         ),
