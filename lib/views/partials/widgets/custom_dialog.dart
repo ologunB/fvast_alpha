@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fvastalpha/views/partials/utils/styles.dart';
 
 class CustomDialog extends StatefulWidget {
   final String title;
@@ -56,7 +57,7 @@ class _CustomDialogState extends State<CustomDialog> {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(50),
-                color: Color.fromARGB(255, 22, 58, 78),
+                color: Styles.appPrimaryColor,
               ),
               child: FlatButton(
                 onPressed: () {

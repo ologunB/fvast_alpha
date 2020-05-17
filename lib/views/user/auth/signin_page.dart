@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fvastalpha/views/cou_service/partials/dispatcher_main_page.dart';
+import 'package:fvastalpha/views/cou_service/home/home_view.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
@@ -113,7 +113,7 @@ class _SigninPageState extends State<SigninPage> {
             CupertinoPageRoute(
               fullscreenDialog: true,
               builder: (context) {
-                return type == "User" ? HomeView() : DiapatchMainPage();
+                return type == "User" ? HomeView() : DispatchHomeView();
               },
             ),
           );

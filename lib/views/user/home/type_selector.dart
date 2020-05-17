@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
-import 'package:fvastalpha/views/user/home/home_view.dart';
- import 'package:geolocator/geolocator.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
+
+import 'nearby_courier.dart';
 
 class ModeSelector extends StatefulWidget {
   @override
@@ -28,11 +29,11 @@ List<TypeModel> types = [
       desc: "Easy Delivery and Small Packages"),
   TypeModel(
       value: Icons.directions_car,
-      type: "Car",
+      type: "Mini van",
       desc: "Fast Delivery for Medium Small Packages"),
   TypeModel(
       value: Icons.airport_shuttle,
-      type: "Lorry",
+      type: "Mini Truck",
       desc: "Fast Delivery and Heavy Packages")
 ];
 
@@ -207,7 +208,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                             padding: const EdgeInsets.all(8.0),
                                             child: Row(
                                               children: <Widget>[
-                                                Text("Charge: ",
+                                                Text("Base Fare: ",
                                                     style: TextStyle(
                                                         fontSize: 16)),
                                                 Expanded(
@@ -223,7 +224,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                             padding: const EdgeInsets.all(8.0),
                                             child: Row(
                                               children: <Widget>[
-                                                Text("Tax: ",
+                                                Text("Minimun Fare: ",
                                                     style: TextStyle(
                                                         fontSize: 16)),
                                                 Expanded(
@@ -242,7 +243,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                             padding: const EdgeInsets.all(8.0),
                                             child: Row(
                                               children: <Widget>[
-                                                Text("Sub-total: ",
+                                                Text("Per minute: ",
                                                     style: TextStyle(
                                                         fontSize: 16)),
                                                 Expanded(
@@ -261,7 +262,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                             padding: const EdgeInsets.all(8.0),
                                             child: Row(
                                               children: <Widget>[
-                                                Text("Total: ",
+                                                Text("Per Kilometer: ",
                                                     style: TextStyle(
                                                         fontSize: 16)),
                                                 Expanded(
@@ -458,7 +459,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                 decoration: InputDecoration(
                                     fillColor: Styles.commonDarkBackground,
                                     filled: true,
-                                    hintText: "Choose Payment",
+                                    hintText: "Payment Mode",
                                     contentPadding: EdgeInsets.all(10),
                                     hintStyle: TextStyle(
                                         color: Colors.grey[500],
@@ -586,7 +587,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                 decoration: InputDecoration(
                                     fillColor: Styles.commonDarkBackground,
                                     filled: true,
-                                    hintText: "Input Coupon",
+                                    hintText: "Promo Code",
                                     contentPadding: EdgeInsets.all(10),
                                     hintStyle: TextStyle(
                                         color: Colors.grey[500],
@@ -645,13 +646,12 @@ class _ModeSelectorState extends State<ModeSelector> {
                                     ),
                                   ),
                                 ),
-                                autoSwiped: false,
                                 draggableBody: true,
                                 body: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ListView(
                                     children: <Widget>[
-                                      Text("Receiver's Name",
+                                      Text("Deliver To:",
                                           style: TextStyle(fontSize: 18)),
                                       Theme(
                                         data: ThemeData(
@@ -665,6 +665,69 @@ class _ModeSelectorState extends State<ModeSelector> {
                                               fillColor:
                                                   Styles.commonDarkBackground,
                                               filled: true,
+                                              contentPadding:
+                                                  EdgeInsets.all(10),
+                                              hintText: "Reciever's Name",
+                                              hintStyle: TextStyle(
+                                                  color: Colors.grey[500],
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w400),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                              )),
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Theme(
+                                        data: ThemeData(
+                                            primaryColor:
+                                                Styles.commonDarkBackground,
+                                            hintColor:
+                                                Styles.commonDarkBackground),
+                                        child: TextField(
+                                          onTap: () {},
+                                          decoration: InputDecoration(
+                                              fillColor:
+                                                  Styles.commonDarkBackground,
+                                              filled: true,
+                                              contentPadding:
+                                                  EdgeInsets.all(10),
+                                              hintText: "Receiver's Mobile",
+                                              hintStyle: TextStyle(
+                                                  color: Colors.grey[500],
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w400),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                              )),
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text("Instructions",
+                                          style: TextStyle(fontSize: 18)),
+                                      Theme(
+                                        data: ThemeData(
+                                            primaryColor:
+                                                Styles.commonDarkBackground,
+                                            hintColor:
+                                                Styles.commonDarkBackground),
+                                        child: TextField(
+                                          onTap: () {},
+                                          decoration: InputDecoration(
+                                              fillColor:
+                                                  Styles.commonDarkBackground,
+                                              filled: true,
+                                              hintText: "Pickup Instructions",
                                               contentPadding:
                                                   EdgeInsets.all(10),
                                               hintStyle: TextStyle(
@@ -682,8 +745,6 @@ class _ModeSelectorState extends State<ModeSelector> {
                                         ),
                                       ),
                                       SizedBox(height: 8),
-                                      Text("Receiver's Mobile",
-                                          style: TextStyle(fontSize: 18)),
                                       Theme(
                                         data: ThemeData(
                                             primaryColor:
@@ -696,6 +757,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                               fillColor:
                                                   Styles.commonDarkBackground,
                                               filled: true,
+                                              hintText: "Delivery Instructions",
                                               contentPadding:
                                                   EdgeInsets.all(10),
                                               hintStyle: TextStyle(
@@ -713,69 +775,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                         ),
                                       ),
                                       SizedBox(height: 8),
-                                      Text("Pickup Instructions",
-                                          style: TextStyle(fontSize: 18)),
-                                      Theme(
-                                        data: ThemeData(
-                                            primaryColor:
-                                                Styles.commonDarkBackground,
-                                            hintColor:
-                                                Styles.commonDarkBackground),
-                                        child: TextField(
-                                          onTap: () {},
-                                          decoration: InputDecoration(
-                                              fillColor:
-                                                  Styles.commonDarkBackground,
-                                              filled: true,
-                                              contentPadding:
-                                                  EdgeInsets.all(10),
-                                              hintStyle: TextStyle(
-                                                  color: Colors.grey[500],
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w400),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(5.0),
-                                              )),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text("Delivery Instructions",
-                                          style: TextStyle(fontSize: 18)),
-                                      Theme(
-                                        data: ThemeData(
-                                            primaryColor:
-                                                Styles.commonDarkBackground,
-                                            hintColor:
-                                                Styles.commonDarkBackground),
-                                        child: TextField(
-                                          onTap: () {},
-                                          decoration: InputDecoration(
-                                              fillColor:
-                                                  Styles.commonDarkBackground,
-                                              filled: true,
-                                              contentPadding:
-                                                  EdgeInsets.all(10),
-                                              hintStyle: TextStyle(
-                                                  color: Colors.grey[500],
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w400),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(5.0),
-                                              )),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text("Package Size",
+                                      Text("Package Details",
                                           style: TextStyle(fontSize: 18)),
                                       Container(
                                         decoration: BoxDecoration(
@@ -817,8 +817,6 @@ class _ModeSelectorState extends State<ModeSelector> {
                                         ),
                                       ),
                                       SizedBox(height: 8),
-                                      Text("Package Type",
-                                          style: TextStyle(fontSize: 18)),
                                       Container(
                                         decoration: BoxDecoration(
                                           borderRadius:
@@ -833,8 +831,10 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           ),
                                           value: packageType,
                                           underline: SizedBox(),
-                                          items: ["this", "that", "this"]
-                                              .map((value) {
+                                          items: [
+                                            "Glass Packing",
+                                            "Box Packing"
+                                          ].map((value) {
                                             return DropdownMenuItem<String>(
                                               value: value,
                                               child: Padding(
@@ -859,8 +859,6 @@ class _ModeSelectorState extends State<ModeSelector> {
                                         ),
                                       ),
                                       SizedBox(height: 8),
-                                      Text("Package Weight",
-                                          style: TextStyle(fontSize: 18)),
                                       Container(
                                         decoration: BoxDecoration(
                                           borderRadius:
@@ -877,9 +875,9 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           underline: SizedBox(),
                                           items: [
                                             "Less than 1kg",
-                                            "Greater than 1kg",
-                                            "Less than 5kg",
-                                            "Greater than 10kg"
+                                            "1 - 3kg",
+                                            "3 - 8kg",
+                                            "Greater than 8kg"
                                           ].map((value) {
                                             return DropdownMenuItem<String>(
                                               value: value,
@@ -911,19 +909,18 @@ class _ModeSelectorState extends State<ModeSelector> {
                                             showDialog(
                                                 context: context,
                                                 builder: (_) {
+                                                  // finding nearby courier
                                                   return CustomDialog(
                                                     title:
                                                         "Do you want to proceed with this?",
                                                     includeHeader: true,
                                                     onClicked: () {
-                                                      Navigator.pushAndRemoveUntil(
-                                                          context,
-                                                          CupertinoPageRoute(
-                                                              builder: (context) =>
-                                                                  HomeView()),
-                                                          (Route<dynamic>
-                                                                  route) =>
-                                                              false);
+                                                      Navigator.push(
+                                                        context,
+                                                        CupertinoPageRoute(
+                                                            builder: (context) =>
+                                                                NearbyCourier()),
+                                                      );
                                                     },
                                                   );
                                                 });

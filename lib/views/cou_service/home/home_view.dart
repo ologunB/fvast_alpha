@@ -1,25 +1,20 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
-import 'package:fvastalpha/views/user/home/create_task.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
-import 'order_details.dart';
-import 'order_done.dart';
-
-class HomeView extends StatefulWidget {
+class DispatchHomeView extends StatefulWidget {
   @override
   _HomeMapState createState() => _HomeMapState();
 }
 
-class _HomeMapState extends State<HomeView> {
+class _HomeMapState extends State<DispatchHomeView> {
   GoogleMapController mapController;
   List<Marker> markers = <Marker>[];
   Position currentLocation;
@@ -61,86 +56,7 @@ class _HomeMapState extends State<HomeView> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  Widget _tabStep() => Container(
-        margin: EdgeInsets.only(top: 10),
-        child: Stepper(
-          physics: ClampingScrollPhysics(),
-          onStepTapped: (a) {
-            Navigator.push(context,
-                CupertinoPageRoute(builder: (context) => OrderCompletedPage()));
-          },
-          currentStep: 2,
-          steps: [
-            Step(
-              title: Column(
-                children: <Widget>[
-                  Text(
-                    "Yesteday, 12th May, 2020",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * .70,
-                    child: Text(
-                      "12, Koforidua Street, Wuse zone 2, Abuja.",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  )
-                ],
-                crossAxisAlignment: CrossAxisAlignment.start,
-              ),
-              content: Container(),
-            ),
-            Step(
-              title: Column(
-                children: <Widget>[
-                  Text(
-                    "Yesteday, 12th May, 2020",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * .70,
-                    child: Text(
-                      "12, Koforidua Street, Wuse zone 2, Abuja.",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  )
-                ],
-                crossAxisAlignment: CrossAxisAlignment.start,
-              ),
-              content: Text(" "),
-            ),
-            Step(
-              title: Column(
-                children: <Widget>[
-                  Text(
-                    "Yesteday, 12th May, 2020",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * .70,
-                    child: Text(
-                      "12, Koforidua Street, Wuse zone 2, Abuja.",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  )
-                ],
-                crossAxisAlignment: CrossAxisAlignment.start,
-              ),
-              content: Text(" "),
-            ),
-          ],
-          controlsBuilder: (BuildContext context,
-                  {VoidCallback onStepContinue, VoidCallback onStepCancel}) =>
-              Container(),
-        ),
-      );
-  List<String> aa = ["fff"];
+  List<String> aa = [];
   Widget tasksListWidget(context) {
     return aa.isEmpty
         ? Column(
@@ -148,12 +64,9 @@ class _HomeMapState extends State<HomeView> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Icon(
-                  Icons.hourglass_empty,
-                  color: Colors.blue,
-                ),
+              Icon(
+                Icons.hourglass_empty,
+                color: Colors.blue,
               ),
               Text("Task is empty, Create a Task!")
             ],
@@ -162,43 +75,10 @@ class _HomeMapState extends State<HomeView> {
             itemCount: aa.length,
             shrinkWrap: true,
             itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(context,
-                      CupertinoPageRoute(builder: (context) => OrderDetails()));
-                },
-                child: Container(
-                  color: Colors.grey[200],
-                  padding: EdgeInsets.all(10),
+              return Container(
                   child: Column(
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          SizedBox(width: 15),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Icon(Icons.location_searching),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              color: Colors.blue[200],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                "#1022 Task Accepted",
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                      _tabStep()
-                    ],
-                  ),
-                ),
-              );
+                children: <Widget>[],
+              ));
             });
   }
 
@@ -215,6 +95,8 @@ class _HomeMapState extends State<HomeView> {
       prefs.remove("phone");
     });
   }
+
+  bool isActive = false;
 
   @override
   Widget build(BuildContext context) {
@@ -292,54 +174,12 @@ class _HomeMapState extends State<HomeView> {
                                   size: 30,
                                 ),
                                 onPressed: () {
-                                  /*  if (!scaffoldController.isOpen()) {
-                                    scaffoldController.menuController.open();
-                                  }*/
                                   _scaffoldKey.currentState.openDrawer();
                                 }),
                             IconButton(
                                 icon: Icon(Icons.notifications),
                                 onPressed: () {}),
                           ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Padding(
-                          padding: EdgeInsets.all(5.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Styles.appPrimaryColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: FlatButton(
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    CupertinoPageRoute(
-                                        builder: (context) => CreateTask()));
-                              },
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  Icon(
-                                    Icons.add,
-                                    size: 28,
-                                    color: Colors.white,
-                                  ),
-                                  Text(
-                                    "Create Task",
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
                         ),
                       ),
                     ],
@@ -387,17 +227,20 @@ class _HomeMapState extends State<HomeView> {
                                 ),
                               ),
                             ),
+                            Switch(
+                                value: isActive,
+                                onChanged: (a) {
+                                  isActive = a;
+                                  setState(() {});
+                                })
                           ],
                         ),
                       ),
                     ],
                   ),
                   InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
                     child: ListTile(
-                      leading: Icon(EvaIcons.home),
+                      leading: Icon(Icons.home),
                       title: Text(
                         "Home",
                         style: TextStyle(fontSize: 18),
@@ -406,25 +249,34 @@ class _HomeMapState extends State<HomeView> {
                   ),
                   InkWell(
                     child: ListTile(
-                      leading: Icon(EvaIcons.briefcase),
+                      leading: Icon(Icons.credit_card),
                       title: Text(
-                        "Tasks History",
+                        "Task History",
                         style: TextStyle(fontSize: 18),
                       ),
                     ),
                   ),
                   InkWell(
                     child: ListTile(
-                      leading: Icon(EvaIcons.creditCard),
+                      leading: Icon(Icons.card_travel),
                       title: Text(
-                        "Payment and Wallet",
+                        "Earnings",
                         style: TextStyle(fontSize: 18),
                       ),
                     ),
                   ),
                   InkWell(
                     child: ListTile(
-                      leading: Icon(EvaIcons.settings),
+                      leading: Icon(Icons.card_travel),
+                      title: Text(
+                        "Subscriptions/Commission",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    child: ListTile(
+                      leading: Icon(Icons.settings),
                       title: Text(
                         "Settings",
                         style: TextStyle(fontSize: 18),
@@ -433,9 +285,9 @@ class _HomeMapState extends State<HomeView> {
                   ),
                   InkWell(
                     child: ListTile(
-                      leading: Icon(Icons.help),
+                      leading: Icon(Icons.settings),
                       title: Text(
-                        "Help",
+                        "Support",
                         style: TextStyle(fontSize: 18),
                       ),
                     ),

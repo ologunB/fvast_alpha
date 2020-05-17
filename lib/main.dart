@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fvastalpha/views/cou_service/partials/dispatcher_main_page.dart';
+import 'package:fvastalpha/views/cou_service/home/home_view.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        fontFamily: 'Geometria',
+        fontFamily: 'Raleway',
         primaryColor: Styles.appPrimaryColor,
       ),
       debugShowCheckedModeBanner: false,
@@ -57,7 +57,7 @@ class _MyWrapperState extends State<MyWrapper> {
           if (snapshot.connectionState == ConnectionState.done) {
             String _type = snapshot.data;
             if (_type == "Dispatcher") {
-              return DiapatchMainPage();
+              return DispatchHomeView();
             } else if (_type == "User") {
               return HomeView();
             } else if (_type == "Login") {

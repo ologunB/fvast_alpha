@@ -138,6 +138,7 @@ class _CreateTaskState extends State<CreateTask> {
 
   Future<Null> displayPrediction(Prediction p, ScaffoldState scaffold) async {
     if (p != null) {
+      theirController.text = p.reference;
       PlacesDetailsResponse detail =
           await _places.getDetailsByPlaceId(p.placeId);
       final lat = detail.result.geometry.location.lat;
@@ -146,6 +147,7 @@ class _CreateTaskState extends State<CreateTask> {
       scaffold.showSnackBar(
         SnackBar(content: Text("${p.description} - $lat/$lng")),
       );
+      setState((){});
     }
   }
 }
