@@ -212,6 +212,8 @@ class _SigninPageState extends State<SigninPage> {
           child: ListView(
             children: <Widget>[
               Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Container(
                     height: MediaQuery.of(context).size.height / 3,
@@ -403,7 +405,7 @@ class _SigninPageState extends State<SigninPage> {
                                 child: isLoading
                                     ? CupertinoActivityIndicator()
                                     : Text(
-                                        "SIGN UP",
+                                        "SIGN IN",
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                             fontSize: 20,

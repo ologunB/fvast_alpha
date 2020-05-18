@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fvastalpha/views/cou_service/home/task_detail.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 
 class NewTaskRequest extends StatefulWidget {
@@ -176,7 +177,10 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
                       ),
                       child: FlatButton(
                         onPressed: () {
-                          Navigator.pop(context);
+                          Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                  builder: (context) => TaskDetail()));
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
