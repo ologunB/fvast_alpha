@@ -15,6 +15,11 @@ showEmptyToast(String aa, BuildContext context) {
   return;
 }
 
+showCenterToast(String a, BuildContext context) {
+  Toast.show(a, context, duration: Toast.LENGTH_LONG, gravity: Toast.CENTER);
+  return;
+}
+
 String validateEmail(value) {
   Pattern pattern =
       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
@@ -27,7 +32,9 @@ String validateEmail(value) {
     return null;
 }
 
-String kGoogleMapKey = "AIzaSyCuPGWMRJV7esDkayIrmSg-cPdrt3f6ffQ";
+String kGoogleMapKey = "AIzaSyD4XcMQdkcBpG-nrLPwUK7kzywq-DtepzI";
+String ravePublicKey = "FLWPUBK_TEST-4775239fc89f256ef2f24cddcebc17e1-X";
+String raveEncryptKey = "FLWSECK_TEST079f656d190b";
 
 String greeting() {
   var hour = DateTime.now().hour;
@@ -57,6 +64,16 @@ String timeAgo(DateTime d) {
   return "just now";
 }
 
+String timeConvert(double d) {
+  if (d < 1) return "1 hour";
+  if (d > 120) return ">5 days";
+  if (d > 96) return "4 days";
+  if (d > 72) return ">3 days";
+  if (d > 48) return ">2 days";
+  if (d > 24) return ">1 day";
+  if (d < 24) return "${d.ceil()} hours";
+}
+
 const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 String randomString() {
@@ -72,13 +89,8 @@ String presentDate() {
   return DateFormat("EEE MMM d").format(DateTime.now());
 }
 
-String next7Date() {
-  return DateFormat("EEE MMM d")
-      .format(DateTime.now().add(new Duration(days: 7)));
-}
-
 String presentDateTime() {
-  return DateFormat("EEE MMM d, yyyy HH:mm a").format(DateTime.now());
+  return DateFormat("EEE MMM d, HH:mm").format(DateTime.now());
 }
 
 //  return DateFormat("EEE MMM d, yyyy HH:mm a").format(DateTime.now());

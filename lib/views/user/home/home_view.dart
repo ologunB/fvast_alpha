@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
@@ -20,42 +19,9 @@ class HomeView extends StatefulWidget {
 class _HomeMapState extends State<HomeView> {
   GoogleMapController mapController;
   LatLng _center = const LatLng(7.3034138, 5.143012800000008);
-  List<Marker> markers = <Marker>[];
-  Position currentLocation;
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getUserLocation();
-  }
-
-  Future<Position> locateUser() async {
-    return Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  }
-
-  getUserLocation() async {
-    currentLocation = await locateUser();
-
-    List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
-        currentLocation.latitude, currentLocation.longitude);
-
-    setState(() {
-      markers.add(
-        Marker(
-          markerId: MarkerId("Current Location"),
-          position: LatLng(currentLocation.latitude, currentLocation.longitude),
-          infoWindow: InfoWindow(title: "", snippet: placeMark[0].name),
-          icon: BitmapDescriptor.defaultMarkerWithHue(120.0),
-          onTap: () {},
-        ),
-      );
-      _center = LatLng(currentLocation.latitude, currentLocation.longitude);
-    });
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -248,10 +214,9 @@ class _HomeMapState extends State<HomeView> {
             Container(
               child: GoogleMap(
                 onMapCreated: _onMapCreated,
-                initialCameraPosition: CameraPosition(
-                  target: _center,
-                  zoom: 10.0,
-                ),
+                myLocationEnabled: true,
+                initialCameraPosition:
+                    CameraPosition(zoom: 10.0, target: _center),
               ),
               height: MediaQuery.of(context).size.height * .75,
             ),

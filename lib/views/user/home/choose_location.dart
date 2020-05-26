@@ -131,7 +131,13 @@ class _ChooseLocationState extends State<ChooseLocation> {
                       mode: Mode.overlay,
                       apiKey: kGoogleMapKey,
                       components: [Component(Component.country, "NG")]);
-                  displayPrediction(p, "from");
+
+                  await _places.getDetailsByPlaceId(p.placeId).then((detail) {
+                    fromLat = detail.result.geometry.location.lat;
+                    fromLong = detail.result.geometry.location.lng;
+                  }).then((a) {
+                    myLocationController.text = p.description;
+                  });
                 },
                 controller: myLocationController,
                 decoration: InputDecoration(
@@ -182,7 +188,12 @@ class _ChooseLocationState extends State<ChooseLocation> {
                       mode: Mode.overlay,
                       apiKey: kGoogleMapKey,
                       components: [Component(Component.country, "NG")]);
-                  displayPrediction(p, 'to');
+                  await _places.getDetailsByPlaceId(p.placeId).then((detail) {
+                    toLat = detail.result.geometry.location.lat;
+                    toLong = detail.result.geometry.location.lng;
+                  }).then((a) {
+                    theirController.text = p.description;
+                  });
                 },
                 controller: theirController,
                 decoration: InputDecoration(
@@ -215,7 +226,6 @@ class _ChooseLocationState extends State<ChooseLocation> {
         child: CustomButton(
             title: "PROCEED",
             onPress: () {
-              showEmptyToast(fromLong.toString(), context);
               if (fromLong == null) {
                 Toast.show("Present Location is null", context,
                     gravity: Toast.CENTER, duration: Toast.LENGTH_LONG);
@@ -226,8 +236,17 @@ class _ChooseLocationState extends State<ChooseLocation> {
                     gravity: Toast.CENTER, duration: Toast.LENGTH_LONG);
                 return;
               }
-              Navigator.push(context,
-                  CupertinoPageRoute(builder: (context) => ModeSelector()));
+              Navigator.push(
+                context,
+                CupertinoPageRoute(
+                  builder: (context) => ModeSelector(
+                    fromLat: fromLat,
+                    fromLong: fromLong,
+                    toLat: toLat,
+                    toLong: toLong,
+                  ),
+                ),
+              );
             }),
       ),
     );
@@ -235,28 +254,11 @@ class _ChooseLocationState extends State<ChooseLocation> {
 
   void onError(PlacesAutocompleteResponse response) {
     print(response.errorMessage);
+    Toast.show(response.errorMessage, context,
+        gravity: Toast.CENTER, duration: Toast.LENGTH_LONG);
   }
 
   double fromLat, fromLong, toLat, toLong;
 
   GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleMapKey);
-  Future<Null> displayPrediction(Prediction p, String type) async {
-    if (p != null) {
-      if (type == "from") {
-        await _places.getDetailsByPlaceId(p.placeId).then((detail) {
-          fromLat = detail.result.geometry.location.lat;
-          fromLong = detail.result.geometry.location.lng;
-        });
-        myLocationController.text = p.description;
-      } else if (type == "to") {
-        await _places.getDetailsByPlaceId(p.placeId).then((detail) {
-          toLat = detail.result.geometry.location.lat;
-          toLong = detail.result.geometry.location.lng;
-        });
-        theirController.text = p.description;
-      }
-
-      setState(() {});
-    }
-  }
 }

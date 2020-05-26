@@ -1,65 +1,99 @@
 import 'dart:async';
+import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
+import 'package:fvastalpha/views/partials/widgets/text_field.dart';
+import 'package:fvastalpha/views/partials/widgets/toast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:rave_flutter/rave_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
 import 'nearby_courier.dart';
 
 class ModeSelector extends StatefulWidget {
+  final fromLat;
+  final fromLong;
+  final toLat;
+  final toLong;
+
+  const ModeSelector(
+      {Key key, this.fromLat, this.fromLong, this.toLat, this.toLong})
+      : super(key: key);
   @override
   _ModeSelectorState createState() => _ModeSelectorState();
 }
 
 class TypeModel {
   String type;
-  IconData value;
+  IconData icon;
   String desc;
+  int baseFare;
+  int perKilo;
+  int tax;
 
-  TypeModel({this.type, this.value, this.desc});
+  TypeModel(
+      {this.type, this.icon, this.desc, this.baseFare, this.perKilo, this.tax});
 }
 
 List<TypeModel> types = [
   TypeModel(
-      value: Icons.directions_bike,
+      icon: Icons.directions_bike,
       type: "Bike",
-      desc: "Easy Delivery and Small Packages"),
+      desc: "Easy Delivery and Small Packages",
+      baseFare: 20,
+      perKilo: 10,
+      tax: 20),
   TypeModel(
-      value: Icons.directions_car,
+      icon: Icons.directions_car,
       type: "Mini van",
-      desc: "Fast Delivery for Medium Small Packages"),
+      desc: "Fast Delivery for Medium Small Packages",
+      baseFare: 30,
+      perKilo: 20,
+      tax: 20),
   TypeModel(
-      value: Icons.airport_shuttle,
-      type: "Mini Truck",
-      desc: "Fast Delivery and Heavy Packages")
+      icon: Icons.airport_shuttle,
+      type: "Truck",
+      desc: "Fast Delivery for Heavy Packages",
+      baseFare: 40,
+      perKilo: 20,
+      tax: 20)
 ];
 
-String packageSize, packageWeight, packageType;
-
 class _ModeSelectorState extends State<ModeSelector> {
-  bool isBottomNav = true;
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
 
   final Set<Marker> _markers = {};
+  static int calculateDistance(lat1, lon1, lat2, lon2) {
+    var p = 0.017453292519943295;
+    var c = cos;
+    var a = 0.5 -
+        c((lat2 - lat1) * p) / 2 +
+        c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
+    return (12742 * asin(sqrt(a))).toInt();
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     _controller.complete(controller);
 
-    LatLng latLng_1 = LatLng(40.416775, -3.70379);
-    LatLng latLng_2 = LatLng(41.385064, 2.173403);
-    LatLngBounds bound = LatLngBounds(southwest: latLng_1, northeast: latLng_2);
+    LatLng fromLatLng = LatLng(widget.fromLat, widget.fromLong);
+    LatLng toLatLng = LatLng(widget.toLat, widget.toLong);
+    LatLngBounds bound =
+        LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
 
     setState(() {
       _markers.clear();
-      addMarker(latLng_1, "From");
-      addMarker(latLng_2, "To");
+      addMarker(fromLatLng, "From");
+      addMarker(toLatLng, "To");
     });
 
     CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
@@ -70,7 +104,6 @@ class _ModeSelectorState extends State<ModeSelector> {
 
   void addMarker(LatLng mLatLng, String mTitle) {
     _markers.add(Marker(
-      // This marker id can be anything that uniquely identifies each marker.
       markerId:
           MarkerId((mTitle + "_" + _markers.length.toString()).toString()),
       position: mLatLng,
@@ -93,29 +126,62 @@ class _ModeSelectorState extends State<ModeSelector> {
   }
 
   LatLng _center = const LatLng(7.3034138, 5.143012800000008);
-  LatLng _lastMapPosition = const LatLng(7.3034138, 5.143012800000008);
 
   void _onCameraMove(CameraPosition position) {
-    _lastMapPosition = position.target;
+    _center = position.target;
   }
 
-  Future<Position> locateUser() async {
-    return Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  Set<Polyline> _polylines = {};
+  List<LatLng> polylineCoordinates = [];
+  PolylinePoints polylinePoints = PolylinePoints();
+
+  setPolylines() async {
+    List<PointLatLng> result = await polylinePoints?.getRouteBetweenCoordinates(
+        kGoogleMapKey,
+        widget.fromLat,
+        widget.fromLong,
+        widget.toLat,
+        widget.toLong);
+    if (result.isNotEmpty) {
+      result.forEach((PointLatLng point) {
+        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+      });
+    }
+    setState(() {
+      Polyline polyline = Polyline(
+          polylineId: PolylineId('Poly'),
+          color: Color.fromARGB(255, 40, 122, 198),
+          points: polylineCoordinates);
+      _polylines.add(polyline);
+    });
   }
 
-  TextEditingController payMode = TextEditingController();
-  TextEditingController couponMode = TextEditingController();
-  TextEditingController inputCouponCode = TextEditingController();
-
+  int timeFactor = 50;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  String packageSize, packageWeight, packageType;
 
   String paymentType;
-  int routeType = -1;
+  int routeType;
+  TextEditingController payMode = TextEditingController();
+  TextEditingController inputCouponCode = TextEditingController();
+  TextEditingController validCode = TextEditingController();
+  TextEditingController receiversName = TextEditingController();
+  TextEditingController receiversNumber = TextEditingController();
+  TextEditingController pickupInstruct = TextEditingController();
+  TextEditingController deliInstruct = TextEditingController();
+
+  @override
+  void initState() {
+    setPolylines();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
 
+    int distanceBtwn = calculateDistance(
+        widget.toLat, widget.toLong, widget.fromLat, widget.fromLong);
     return Scaffold(
       key: scaffoldKey,
       body: Stack(
@@ -123,14 +189,44 @@ class _ModeSelectorState extends State<ModeSelector> {
           Column(
             children: <Widget>[
               Expanded(
-                child: GoogleMap(
-                  onMapCreated: _onMapCreated,
-                  initialCameraPosition: CameraPosition(
-                    target: _center,
-                    zoom: 10.0,
-                  ),
-                  markers: _markers,
-                  onCameraMove: _onCameraMove,
+                child: Stack(
+                  children: <Widget>[
+                    GoogleMap(
+                      polylines: _polylines,
+                      tiltGesturesEnabled: true,
+                      myLocationButtonEnabled: true,
+                      myLocationEnabled: true,
+                      onMapCreated: _onMapCreated,
+                      initialCameraPosition: CameraPosition(
+                        target: _center,
+                        zoom: 10.0,
+                      ),
+                      markers: _markers,
+                      onCameraMove: _onCameraMove,
+                    ),
+                    Positioned.fill(
+                      child: Align(
+                          child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            timeConvert(distanceBtwn / timeFactor),
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 20),
+                          ),
+                          Text(
+                            distanceBtwn.toString() + " KM",
+                            style: TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18),
+                          )
+                        ],
+                      )),
+                    )
+                  ],
                 ),
               ),
               Container(
@@ -148,172 +244,148 @@ class _ModeSelectorState extends State<ModeSelector> {
                           return GestureDetector(
                             onTap: () {
                               showModalBottomSheet(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(30),
-                                      topRight: Radius.circular(30),
-                                    ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(30),
+                                    topRight: Radius.circular(30),
                                   ),
-                                  context: context,
-                                  builder: (context) => ListView(
-                                        shrinkWrap: true,
+                                ),
+                                context: context,
+                                builder: (context) => ListView(
+                                  shrinkWrap: true,
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Row(
                                         children: <Widget>[
-                                          Padding(
-                                            padding: const EdgeInsets.all(12.0),
-                                            child: Row(
-                                              children: <Widget>[
-                                                Container(
-                                                  height: 8,
-                                                  width: 60,
-                                                  decoration: BoxDecoration(
-                                                      color: Styles
-                                                          .appPrimaryColor,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              5)),
-                                                )
-                                              ],
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                            ),
-                                          ),
-                                          Row(
-                                            children: <Widget>[
-                                              Container(
-                                                height: 70,
-                                                width: 70,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.blue[100],
-                                                  borderRadius:
-                                                      BorderRadius.circular(35),
-                                                ),
-                                                child: Icon(
-                                                  types[index].value,
-                                                  color: Styles.appPrimaryColor,
-                                                ),
-                                              )
-                                            ],
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              children: <Widget>[
-                                                Text(
-                                                  types[index].type,
-                                                  style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.w500),
-                                                )
-                                              ],
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              children: <Widget>[
-                                                Text(
-                                                  types[index].desc,
-                                                  style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w400,
-                                                      color: Styles
-                                                          .appPrimaryColor),
-                                                )
-                                              ],
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              children: <Widget>[
-                                                Text("Base Fare: ",
-                                                    style: TextStyle(
-                                                        fontSize: 16)),
-                                                Expanded(
-                                                    child:
-                                                        Divider(thickness: 2)),
-                                                Text(" ₦ 678 ",
-                                                    style:
-                                                        TextStyle(fontSize: 16))
-                                              ],
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              children: <Widget>[
-                                                Text("Minimun Fare: ",
-                                                    style: TextStyle(
-                                                        fontSize: 16)),
-                                                Expanded(
-                                                    child:
-                                                        Divider(thickness: 2)),
-                                                Expanded(
-                                                    child:
-                                                        Divider(thickness: 2)),
-                                                Text(" ₦ 678 ",
-                                                    style:
-                                                        TextStyle(fontSize: 16))
-                                              ],
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              children: <Widget>[
-                                                Text("Per minute: ",
-                                                    style: TextStyle(
-                                                        fontSize: 16)),
-                                                Expanded(
-                                                    child:
-                                                        Divider(thickness: 2)),
-                                                Expanded(
-                                                    child:
-                                                        Divider(thickness: 2)),
-                                                Text(" ₦678 ",
-                                                    style:
-                                                        TextStyle(fontSize: 16))
-                                              ],
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              children: <Widget>[
-                                                Text("Per Kilometer: ",
-                                                    style: TextStyle(
-                                                        fontSize: 16)),
-                                                Expanded(
-                                                    child:
-                                                        Divider(thickness: 2)),
-                                                Expanded(
-                                                    child:
-                                                        Divider(thickness: 2)),
-                                                Text(" ₦ 678 ",
-                                                    style:
-                                                        TextStyle(fontSize: 16))
-                                              ],
-                                            ),
-                                          ),
-                                          SizedBox(height: 50),
-                                          CustomButton(
-                                              title: "Use ${types[index].type}",
-                                              onPress: () {
-                                                Navigator.pop(context);
-                                                routeType = index;
-                                                setState(() {});
-                                              }),
-                                          SizedBox(height: 10)
+                                          Container(
+                                            height: 8,
+                                            width: 60,
+                                            decoration: BoxDecoration(
+                                                color: Styles.appPrimaryColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(5)),
+                                          )
                                         ],
-                                      ));
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                      ),
+                                    ),
+                                    Row(
+                                      children: <Widget>[
+                                        Container(
+                                          height: 70,
+                                          width: 70,
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue[100],
+                                            borderRadius:
+                                                BorderRadius.circular(35),
+                                          ),
+                                          child: Icon(
+                                            types[index].icon,
+                                            color: Styles.appPrimaryColor,
+                                          ),
+                                        )
+                                      ],
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text(
+                                            types[index].type,
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w500),
+                                          )
+                                        ],
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text(
+                                            types[index].desc,
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w400,
+                                                color: Styles.appPrimaryColor),
+                                          )
+                                        ],
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Base Fare: ",
+                                              style: TextStyle(fontSize: 16)),
+                                          Expanded(
+                                              child: Divider(thickness: 2)),
+                                          Text(
+                                              " ₦ " +
+                                                  types[index]
+                                                      .baseFare
+                                                      .toString(),
+                                              style: TextStyle(fontSize: 16))
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Per Kilometer: ",
+                                              style: TextStyle(fontSize: 16)),
+                                          Expanded(
+                                              child: Divider(thickness: 2)),
+                                          Expanded(
+                                              child: Divider(thickness: 2)),
+                                          Text(
+                                              " ₦ " +
+                                                  types[index]
+                                                      .perKilo
+                                                      .toString(),
+                                              style: TextStyle(fontSize: 16))
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Tax: ",
+                                              style: TextStyle(fontSize: 16)),
+                                          Expanded(
+                                              child: Divider(thickness: 2)),
+                                          Expanded(
+                                              child: Divider(thickness: 2)),
+                                          Text(
+                                              " ₦ " +
+                                                  types[index].tax.toString(),
+                                              style: TextStyle(fontSize: 16))
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(height: 50),
+                                    CustomButton(
+                                        title: "Use ${types[index].type}",
+                                        onPress: () {
+                                          Navigator.pop(context);
+                                          routeType = index;
+                                          setState(() {});
+                                        }),
+                                    SizedBox(height: 10)
+                                  ],
+                                ),
+                              );
                             },
                             child: Padding(
                               padding:
@@ -333,7 +405,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           borderRadius:
                                               BorderRadius.circular(30)),
                                       child: Icon(
-                                        types[index].value,
+                                        types[index].icon,
                                         color: routeType == index
                                             ? Styles.appPrimaryColor
                                             : Colors.grey,
@@ -511,7 +583,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                   hintColor: Styles.commonDarkBackground),
                               child: TextField(
                                 readOnly: true,
-                                controller: couponMode,
+                                controller: validCode,
                                 onTap: () {
                                   scaffoldKey.currentState.showBottomSheet(
                                     (context) => StatefulBuilder(
@@ -592,11 +664,23 @@ class _ModeSelectorState extends State<ModeSelector> {
                                             ),
                                           ),
                                           SizedBox(height: 50),
-                                          CustomButton(
+                                          CustomLoadingButton(
                                               title: "APPLY",
                                               onPress: () {
-                                                setState(() {});
-                                                Navigator.pop(context);
+                                                if (inputCouponCode
+                                                    .text.isEmpty) {
+                                                  showCenterToast(
+                                                      "Code cannot be empty",
+                                                      context);
+                                                  return;
+                                                }
+                                                Future.delayed(
+                                                        Duration(seconds: 3))
+                                                    .then((a) {
+                                                  validCode.text = "-₦ " + "20";
+                                                  setState(() {});
+                                                  Navigator.pop(context);
+                                                });
                                               }),
                                           SizedBox(height: 20)
                                         ],
@@ -635,6 +719,14 @@ class _ModeSelectorState extends State<ModeSelector> {
                     CustomButton(
                         title: "PROCEED",
                         onPress: () {
+                          if (paymentType == null) {
+                            showCenterToast("Choose a payment type", context);
+                            return;
+                          }
+                          if (routeType == null) {
+                            showCenterToast("Choose the Route Type", context);
+                            return;
+                          }
                           scaffoldKey.currentState.showBottomSheet(
                             (context) => StatefulBuilder(
                               builder: (context, _setState) => SolidBottomSheet(
@@ -674,131 +766,35 @@ class _ModeSelectorState extends State<ModeSelector> {
                                 ),
                                 draggableBody: true,
                                 body: Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(18.0),
                                   child: ListView(
                                     children: <Widget>[
                                       Text("Deliver To:",
                                           style: TextStyle(fontSize: 18)),
-                                      Theme(
-                                        data: ThemeData(
-                                            primaryColor:
-                                                Styles.commonDarkBackground,
-                                            hintColor:
-                                                Styles.commonDarkBackground),
-                                        child: TextField(
-                                          onTap: () {},
-                                          decoration: InputDecoration(
-                                              fillColor:
-                                                  Styles.commonDarkBackground,
-                                              filled: true,
-                                              contentPadding:
-                                                  EdgeInsets.all(10),
-                                              hintText: "Reciever's Name",
-                                              hintStyle: TextStyle(
-                                                  color: Colors.grey[500],
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w400),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(5.0),
-                                              )),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w400),
-                                        ),
+                                      CustomTextField(
+                                        controller: receiversName,
+                                        inputType: TextInputType.text,
+                                        text: "Receiver's Name*",
                                       ),
                                       SizedBox(height: 8),
-                                      Theme(
-                                        data: ThemeData(
-                                            primaryColor:
-                                                Styles.commonDarkBackground,
-                                            hintColor:
-                                                Styles.commonDarkBackground),
-                                        child: TextField(
-                                          onTap: () {},
-                                          decoration: InputDecoration(
-                                              fillColor:
-                                                  Styles.commonDarkBackground,
-                                              filled: true,
-                                              contentPadding:
-                                                  EdgeInsets.all(10),
-                                              hintText: "Receiver's Mobile",
-                                              hintStyle: TextStyle(
-                                                  color: Colors.grey[500],
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w400),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(5.0),
-                                              )),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w400),
-                                        ),
+                                      CustomTextField(
+                                        controller: receiversNumber,
+                                        inputType: TextInputType.number,
+                                        text: "Receiver's Number*",
                                       ),
                                       SizedBox(height: 8),
                                       Text("Instructions",
                                           style: TextStyle(fontSize: 18)),
-                                      Theme(
-                                        data: ThemeData(
-                                            primaryColor:
-                                                Styles.commonDarkBackground,
-                                            hintColor:
-                                                Styles.commonDarkBackground),
-                                        child: TextField(
-                                          onTap: () {},
-                                          decoration: InputDecoration(
-                                              fillColor:
-                                                  Styles.commonDarkBackground,
-                                              filled: true,
-                                              hintText: "Pickup Instructions",
-                                              contentPadding:
-                                                  EdgeInsets.all(10),
-                                              hintStyle: TextStyle(
-                                                  color: Colors.grey[500],
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w400),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(5.0),
-                                              )),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w400),
-                                        ),
+                                      CustomTextField(
+                                        controller: pickupInstruct,
+                                        inputType: TextInputType.text,
+                                        text: "Pickup Instructions",
                                       ),
                                       SizedBox(height: 8),
-                                      Theme(
-                                        data: ThemeData(
-                                            primaryColor:
-                                                Styles.commonDarkBackground,
-                                            hintColor:
-                                                Styles.commonDarkBackground),
-                                        child: TextField(
-                                          onTap: () {},
-                                          decoration: InputDecoration(
-                                              fillColor:
-                                                  Styles.commonDarkBackground,
-                                              filled: true,
-                                              hintText: "Delivery Instructions",
-                                              contentPadding:
-                                                  EdgeInsets.all(10),
-                                              hintStyle: TextStyle(
-                                                  color: Colors.grey[500],
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w400),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(5.0),
-                                              )),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w400),
-                                        ),
+                                      CustomTextField(
+                                        controller: deliInstruct,
+                                        inputType: TextInputType.text,
+                                        text: "Delivery Instructions",
                                       ),
                                       SizedBox(height: 8),
                                       Text("Package Details",
@@ -813,7 +809,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           hint: Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 10.0),
-                                            child: Text("Choose Size"),
+                                            child: Text("Choose Size*"),
                                           ),
                                           value: packageSize,
                                           underline: SizedBox(),
@@ -853,7 +849,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           hint: Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 10.0),
-                                            child: Text("Choose Type"),
+                                            child: Text("Choose Type*"),
                                           ),
                                           value: packageType,
                                           underline: SizedBox(),
@@ -895,7 +891,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           hint: Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 10.0),
-                                            child: Text("Choose Size"),
+                                            child: Text("Choose Weight*"),
                                           ),
                                           value: packageWeight,
                                           underline: SizedBox(),
@@ -932,21 +928,34 @@ class _ModeSelectorState extends State<ModeSelector> {
                                       CustomButton(
                                           title: "CONFIRM",
                                           onPress: () {
+                                            if (receiversName.text.isEmpty ||
+                                                receiversNumber.text.isEmpty ||
+                                                packageWeight.isEmpty ||
+                                                packageType.isEmpty ||
+                                                packageSize.isEmpty ||
+                                                receiversName.text.isEmpty) {
+                                              showCenterToast(
+                                                  "Fill important fields",
+                                                  context);
+                                              return;
+                                            }
+
                                             showDialog(
                                                 context: context,
                                                 builder: (_) {
-                                                  // finding nearby courier
                                                   return CustomDialog(
                                                     title:
                                                         "Do you want to proceed with this?",
                                                     includeHeader: true,
                                                     onClicked: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        CupertinoPageRoute(
-                                                            builder: (context) =>
-                                                                NearbyCourier()),
-                                                      );
+                                                      if (paymentType ==
+                                                          "Cash Payment") {
+                                                        compileTransaction(
+                                                            context);
+                                                      } else {
+                                                        processCardTransaction(
+                                                            context);
+                                                      }
                                                     },
                                                   );
                                                 });
@@ -984,5 +993,159 @@ class _ModeSelectorState extends State<ModeSelector> {
         ],
       ),
     );
+  }
+
+  double amount = 200;
+  processCardTransaction(context) async {
+    var initializer = RavePayInitializer(
+        amount: amount, publicKey: ravePublicKey, encryptionKey: raveEncryptKey)
+      ..country = "NG"
+      ..currency = "NGN"
+      ..email = MY_EMAIL
+      ..fName = MY_NAME
+      ..lName = "lName"
+      ..narration = "FVAST"
+      ..txRef = "SCH${DateTime.now().millisecondsSinceEpoch}"
+      ..acceptAccountPayments = false
+      ..acceptCardPayments = true
+      ..acceptAchPayments = false
+      ..acceptGHMobileMoneyPayments = false
+      ..acceptUgMobileMoneyPayments = false
+      ..staging = true
+      ..isPreAuth = true
+      ..displayFee = true;
+
+    RavePayManager()
+        .prompt(context: context, initializer: initializer)
+        .then((result) {
+      Toast.show("err", context,
+          gravity: Toast.TOP, duration: Toast.LENGTH_LONG);
+
+      if (result.status == RaveStatus.success) {
+        doAfterSuccess(result.message);
+      } else if (result.status == RaveStatus.cancelled) {
+        if (mounted) {
+          scaffoldKey.currentState.showSnackBar(
+            SnackBar(
+              content: Text(
+                "Closed!",
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+              backgroundColor: Styles.appPrimaryColor,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else if (result.status == RaveStatus.error) {
+        showDialog(
+            context: context,
+            builder: (_) {
+              return AlertDialog(
+                title: Text(
+                  "Error",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.red, fontSize: 20),
+                ),
+                content: Text(
+                  "An error has occured ",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),
+                ),
+              );
+            });
+      }
+
+      print(result);
+    });
+  }
+
+  compileTransaction(context) {
+    String orderID = "ORD" + DateTime.now().millisecondsSinceEpoch.toString();
+    Map<String, Object> mData = Map();
+    mData.putIfAbsent("Name", () => MY_NAME);
+    mData.putIfAbsent("Date", () => presentDate());
+    mData.putIfAbsent("Amount", () => amount);
+    mData.putIfAbsent("userUid", () => MY_UID);
+    mData.putIfAbsent("fromLat", () => widget.fromLat);
+    mData.putIfAbsent("fromLong", () => widget.fromLong);
+    mData.putIfAbsent("toLat", () => widget.toLat);
+    mData.putIfAbsent("toLong", () => widget.toLong);
+    mData.putIfAbsent("Payment Type", () => paymentType);
+    mData.putIfAbsent("coupon", () => validCode.text);
+    mData.putIfAbsent("Receiver Name", () => receiversName.text);
+    mData.putIfAbsent("Receiver Number", () => receiversNumber.text);
+    mData.putIfAbsent("Pickup Instru", () => pickupInstruct.text);
+    mData.putIfAbsent("Delivery Instru", () => deliInstruct.text);
+    mData.putIfAbsent("Size", () => packageSize);
+    mData.putIfAbsent("Weight", () => packageWeight);
+    mData.putIfAbsent("type", () => packageType);
+    mData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+    mData.putIfAbsent("id", () => orderID);
+
+    showCupertinoDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text(
+              "Almost Done",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.red, fontSize: 20),
+            ),
+            content: CupertinoActivityIndicator(radius: 20),
+          );
+        });
+
+    Firestore.instance
+        .collection("Orders")
+        .document("Pending")
+        .collection(MY_UID)
+        .document(orderID)
+        .setData(mData)
+        .then((a) {
+      setState(() {
+        isLoading = true;
+      });
+
+      Navigator.of(context).pushReplacement(
+        CupertinoPageRoute(
+          builder: (context) {
+            return NearbyCourier();
+          },
+        ),
+      );
+    });
+  }
+
+  bool isLoading = false;
+  void doAfterSuccess(String serverData) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final Map<String, Object> data = Map();
+    data.putIfAbsent("Amount", () => amount);
+    data.putIfAbsent("uid", () => MY_UID);
+    data.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+
+    showCupertinoDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text(
+              "Finishing processing",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.red, fontSize: 20),
+            ),
+            content: CupertinoActivityIndicator(radius: 20),
+          );
+        });
+
+    Firestore.instance
+        .collection("Wallet")
+        .document(MY_UID)
+        .setData(data)
+        .then((a) {
+      compileTransaction(context);
+    });
   }
 }
