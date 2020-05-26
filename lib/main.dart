@@ -52,23 +52,24 @@ class _MyWrapperState extends State<MyWrapper> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String>(
-        future: type,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            String _type = snapshot.data;
-            if (_type == "Dispatcher") {
-              return DisLayoutTemplate();
-            } else if (_type == "User") {
-              return LayoutTemplate();
-            } else if (_type == "Login") {
-              return SigninPage();
-            } else {
-              return WalkthroughPage();
-            }
+      future: type,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          String _type = snapshot.data;
+          if (_type == "Dispatcher") {
+            return DisLayoutTemplate();
+          } else if (_type == "User") {
+            return LayoutTemplate();
+          } else if (_type == "Login") {
+            return SigninPage();
+          } else {
+            return WalkthroughPage();
           }
-          return Scaffold(
-            body: Container(),
-          );
-        });
+        }
+        return Scaffold(
+          body: Container(),
+        );
+      },
+    );
   }
 }

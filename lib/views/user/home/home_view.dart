@@ -2,26 +2,26 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
-import 'package:fvastalpha/views/user/home/create_task.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
+import 'choose_location.dart';
 import 'order_details.dart';
 import 'order_done.dart';
 
 class HomeView extends StatefulWidget {
+  HomeView({@required Key key}) : super(key: key);
   @override
   _HomeMapState createState() => _HomeMapState();
 }
 
 class _HomeMapState extends State<HomeView> {
   GoogleMapController mapController;
+  LatLng _center = const LatLng(7.3034138, 5.143012800000008);
   List<Marker> markers = <Marker>[];
   Position currentLocation;
-
-  LatLng _center = const LatLng(7.3034138, 5.143012800000008);
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -39,6 +39,8 @@ class _HomeMapState extends State<HomeView> {
   }
 
   getUserLocation() async {
+    currentLocation = await locateUser();
+
     List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
         currentLocation.latitude, currentLocation.longitude);
 
@@ -201,7 +203,7 @@ class _HomeMapState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    for (var i = 0; i < 2; i++) {
+    /* for (var i = 0; i < 2; i++) {
       markers.add(
         Marker(
           markerId: MarkerId("Location1"),
@@ -210,7 +212,7 @@ class _HomeMapState extends State<HomeView> {
           onTap: () {},
         ),
       );
-    }
+    }*/
     var height = MediaQuery.of(context).size.height;
     return SafeArea(
         child: Scaffold(
@@ -250,7 +252,6 @@ class _HomeMapState extends State<HomeView> {
                   target: _center,
                   zoom: 10.0,
                 ),
-                markers: Set<Marker>.of(markers),
               ),
               height: MediaQuery.of(context).size.height * .75,
             ),
@@ -297,7 +298,8 @@ class _HomeMapState extends State<HomeView> {
                                 Navigator.push(
                                     context,
                                     CupertinoPageRoute(
-                                        builder: (context) => CreateTask()));
+                                        builder: (context) =>
+                                            ChooseLocation()));
                               },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,

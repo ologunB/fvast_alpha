@@ -33,11 +33,12 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
   }
 
   int _selectedDrawerIndex = 0;
+  final Key _mapKey = UniqueKey();
 
   _getDrawerItemWidget(int pos) {
     switch (pos) {
       case 0:
-        return HomeView();
+        return HomeView(key: _mapKey);
       case 4:
         return ContactUsF();
 

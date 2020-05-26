@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
@@ -41,20 +43,60 @@ String packageSize, packageWeight, packageType;
 
 class _ModeSelectorState extends State<ModeSelector> {
   bool isBottomNav = true;
+  Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
-  List<Marker> markers = <Marker>[];
-  Position currentLocation;
 
-  LatLng _center = const LatLng(7.3034138, 5.143012800000008);
+  final Set<Marker> _markers = {};
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    _controller.complete(controller);
+
+    LatLng latLng_1 = LatLng(40.416775, -3.70379);
+    LatLng latLng_2 = LatLng(41.385064, 2.173403);
+    LatLngBounds bound = LatLngBounds(southwest: latLng_1, northeast: latLng_2);
+
+    setState(() {
+      _markers.clear();
+      addMarker(latLng_1, "From");
+      addMarker(latLng_2, "To");
+    });
+
+    CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
+    this.mapController.animateCamera(u2).then((void v) {
+      check(u2, this.mapController);
+    });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    getUserLocation();
+  void addMarker(LatLng mLatLng, String mTitle) {
+    _markers.add(Marker(
+      // This marker id can be anything that uniquely identifies each marker.
+      markerId:
+          MarkerId((mTitle + "_" + _markers.length.toString()).toString()),
+      position: mLatLng,
+      infoWindow: InfoWindow(
+        title: mTitle,
+      ),
+      icon: BitmapDescriptor.defaultMarker,
+    ));
+  }
+
+  void check(CameraUpdate u, GoogleMapController c) async {
+    c.animateCamera(u);
+    mapController.animateCamera(u);
+    LatLngBounds l1 = await c.getVisibleRegion();
+    LatLngBounds l2 = await c.getVisibleRegion();
+    print(l1.toString());
+    print(l2.toString());
+    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90)
+      check(u, c);
+  }
+
+  LatLng _center = const LatLng(7.3034138, 5.143012800000008);
+  LatLng _lastMapPosition = const LatLng(7.3034138, 5.143012800000008);
+
+  void _onCameraMove(CameraPosition position) {
+    _lastMapPosition = position.target;
   }
 
   Future<Position> locateUser() async {
@@ -65,23 +107,6 @@ class _ModeSelectorState extends State<ModeSelector> {
   TextEditingController payMode = TextEditingController();
   TextEditingController couponMode = TextEditingController();
   TextEditingController inputCouponCode = TextEditingController();
-  getUserLocation() async {
-    List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
-        currentLocation.latitude, currentLocation.longitude);
-
-    setState(() {
-      markers.add(
-        Marker(
-          markerId: MarkerId("Current Location"),
-          position: LatLng(currentLocation.latitude, currentLocation.longitude),
-          infoWindow: InfoWindow(title: "", snippet: placeMark[0].name),
-          icon: BitmapDescriptor.defaultMarkerWithHue(120.0),
-          onTap: () {},
-        ),
-      );
-      _center = LatLng(currentLocation.latitude, currentLocation.longitude);
-    });
-  }
 
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -104,7 +129,8 @@ class _ModeSelectorState extends State<ModeSelector> {
                     target: _center,
                     zoom: 10.0,
                   ),
-                  markers: Set<Marker>.of(markers),
+                  markers: _markers,
+                  onCameraMove: _onCameraMove,
                 ),
               ),
               Container(
