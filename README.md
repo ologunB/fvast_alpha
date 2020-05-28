@@ -1,4 +1,4 @@
-# fvastalpha
+# fvast
 
 A new Flutter application.
 

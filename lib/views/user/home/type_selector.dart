@@ -13,6 +13,7 @@ import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
 import 'package:fvastalpha/views/partials/widgets/text_field.dart';
 import 'package:fvastalpha/views/partials/widgets/toast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:rave_flutter/rave_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
@@ -110,7 +111,7 @@ class _ModeSelectorState extends State<ModeSelector> {
       infoWindow: InfoWindow(
         title: mTitle,
       ),
-      icon: BitmapDescriptor.defaultMarker,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     ));
   }
 
@@ -170,17 +171,37 @@ class _ModeSelectorState extends State<ModeSelector> {
   TextEditingController pickupInstruct = TextEditingController();
   TextEditingController deliInstruct = TextEditingController();
 
+  bool isCouponLoading = false;
+
+  applyCoupon(_setState) {
+    if (inputCouponCode.text.isEmpty) {
+      showCenterToast("Code cannot be empty", context);
+      return;
+    }
+    _setState(() {
+      isCouponLoading = true;
+    });
+    Future.delayed(Duration(seconds: 3)).then((a) {
+      validCode.text = "20";
+      isCouponLoading = false;
+
+      _setState(() {});
+      Navigator.pop(context);
+    });
+  }
+
   @override
   void initState() {
     setPolylines();
     super.initState();
   }
 
+  int distanceBtwn;
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
 
-    int distanceBtwn = calculateDistance(
+    distanceBtwn = calculateDistance(
         widget.toLat, widget.toLong, widget.fromLat, widget.fromLong);
     return Scaffold(
       key: scaffoldKey,
@@ -664,24 +685,22 @@ class _ModeSelectorState extends State<ModeSelector> {
                                             ),
                                           ),
                                           SizedBox(height: 50),
-                                          CustomLoadingButton(
-                                              title: "APPLY",
-                                              onPress: () {
-                                                if (inputCouponCode
-                                                    .text.isEmpty) {
-                                                  showCenterToast(
-                                                      "Code cannot be empty",
-                                                      context);
-                                                  return;
-                                                }
-                                                Future.delayed(
-                                                        Duration(seconds: 3))
-                                                    .then((a) {
-                                                  validCode.text = "-₦ " + "20";
-                                                  setState(() {});
-                                                  Navigator.pop(context);
-                                                });
-                                              }),
+                                          StatefulBuilder(
+                                              builder: (context, _setState) {
+                                            return Padding(
+                                              padding: const EdgeInsets.all(8),
+                                              child: CustomLoadingButton(
+                                                  title: "APPLY",
+                                                  context: context,
+                                                  isLoading: isCouponLoading,
+                                                  onPress: isCouponLoading
+                                                      ? null
+                                                      : () {
+                                                          applyCoupon(
+                                                              _setState);
+                                                        }),
+                                            );
+                                          }),
                                           SizedBox(height: 20)
                                         ],
                                       ),
@@ -699,6 +718,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                     filled: true,
                                     hintText: "Promo Code",
                                     contentPadding: EdgeInsets.all(10),
+                                    prefixText: "- ₦ ",
                                     hintStyle: TextStyle(
                                         color: Colors.grey[500],
                                         fontSize: 16,
@@ -1011,8 +1031,14 @@ class _ModeSelectorState extends State<ModeSelector> {
       ..acceptAchPayments = false
       ..acceptGHMobileMoneyPayments = false
       ..acceptUgMobileMoneyPayments = false
-      ..staging = true
+      ..staging = false
       ..isPreAuth = true
+      ..companyName = Text(
+        "FVast",
+        style: TextStyle(fontSize: 14),
+      )
+      ..companyLogo =
+          Image.asset("assets/images/logo.png", height: 40, width: 40)
       ..displayFee = true;
 
     RavePayManager()
@@ -1032,7 +1058,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                 style: TextStyle(color: Colors.white, fontSize: 18),
               ),
               backgroundColor: Styles.appPrimaryColor,
-              duration: Duration(seconds: 3),
+              duration: Duration(seconds: 1),
             ),
           );
         }
@@ -1079,6 +1105,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     mData.putIfAbsent("Size", () => packageSize);
     mData.putIfAbsent("Weight", () => packageWeight);
     mData.putIfAbsent("type", () => packageType);
+    mData.putIfAbsent("distance", () => distanceBtwn);
     mData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
     mData.putIfAbsent("id", () => orderID);
 
@@ -1105,11 +1132,17 @@ class _ModeSelectorState extends State<ModeSelector> {
       setState(() {
         isLoading = true;
       });
+      _handleSendNotification();
 
+      Navigator.pop(context);
       Navigator.of(context).pushReplacement(
         CupertinoPageRoute(
           builder: (context) {
-            return NearbyCourier();
+            return NearbyCourier(
+                fromLong: widget.fromLong,
+                fromLat: widget.fromLat,
+                toLat: widget.toLat,
+                toLong: widget.toLong);
           },
         ),
       );
@@ -1146,6 +1179,33 @@ class _ModeSelectorState extends State<ModeSelector> {
         .setData(data)
         .then((a) {
       compileTransaction(context);
+    });
+  }
+
+  void _handleSendNotification() async {
+    var status = await OneSignal.shared.getPermissionSubscriptionState();
+
+    var playerId = status.subscriptionStatus.userId;
+    //var playerId = MY_UID;
+
+    var imgUrlString =
+        "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
+
+    var notification = OSCreateNotification(
+        playerIds: ["76652917-a8df-494d-a334-109ef0e686ea"],
+        content: "You just booked for an order, Searching Dispatchers around",
+        heading: "Searching Dispatchers",
+        iosAttachments: {"id1": imgUrlString},
+        bigPicture: imgUrlString,
+        buttons: [
+          OSActionButton(text: "OK", id: "id1"),
+          // OSActionButton(text: "test2", id: "id2")
+        ]);
+
+    await OneSignal.shared.postNotification(notification);
+
+    this.setState(() {
+      //  _debugLabelString = "Sent notification with response: $response";
     });
   }
 }

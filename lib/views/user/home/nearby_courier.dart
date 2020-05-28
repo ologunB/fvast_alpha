@@ -1,42 +1,105 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
-import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class NearbyCourier extends StatefulWidget {
+  final fromLat;
+  final fromLong;
+  final toLat;
+  final toLong;
+
+  const NearbyCourier(
+      {Key key, this.fromLat, this.fromLong, this.toLat, this.toLong})
+      : super(key: key);
   @override
   _NearbyCourierState createState() => _NearbyCourierState();
 }
 
 class _NearbyCourierState extends State<NearbyCourier> {
+  Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
 
-  LatLng _center = const LatLng(7.3034138, 5.143012800000008);
+  final Set<Marker> _markers = {};
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    _controller.complete(controller);
+
+    LatLng fromLatLng = LatLng(widget.fromLat, widget.fromLong);
+    LatLng toLatLng = LatLng(widget.toLat, widget.toLong);
+    LatLngBounds bound =
+        LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
+
+    setState(() {
+      _markers.clear();
+      addMarker(fromLatLng, "From");
+      addMarker(toLatLng, "To");
+    });
+
+    CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
+    this.mapController.animateCamera(u2).then((void v) {
+      check(u2, this.mapController);
+    });
   }
 
-  TextEditingController payMode = TextEditingController();
-  TextEditingController couponMode = TextEditingController();
-  TextEditingController inputCouponCode = TextEditingController();
+  void addMarker(LatLng mLatLng, String mTitle) {
+    _markers.add(Marker(
+      markerId:
+          MarkerId((mTitle + "_" + _markers.length.toString()).toString()),
+      position: mLatLng,
+      infoWindow: InfoWindow(
+        title: mTitle,
+      ),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+    ));
+  }
 
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  void check(CameraUpdate u, GoogleMapController c) async {
+    c.animateCamera(u);
+    mapController.animateCamera(u);
+    LatLngBounds l1 = await c.getVisibleRegion();
+    LatLngBounds l2 = await c.getVisibleRegion();
+    print(l1.toString());
+    print(l2.toString());
+    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90)
+      check(u, c);
+  }
 
-  String paymentType;
-  int routeType = -1;
+  LatLng _center = const LatLng(7.3034138, 5.143012800000008);
 
-  @override
-  void initState() {
-    Future.delayed(Duration(seconds: 3)).then((a) {
-      Navigator.pushAndRemoveUntil(
-          context,
-          CupertinoPageRoute(builder: (context) => LayoutTemplate()),
-          (Route<dynamic> route) => false);
+  void _onCameraMove(CameraPosition position) {
+    _center = position.target;
+  }
+
+  Set<Polyline> _polylines = {};
+  List<LatLng> polylineCoordinates = [];
+  PolylinePoints polylinePoints = PolylinePoints();
+
+  setPolylines() async {
+    List<PointLatLng> result = await polylinePoints?.getRouteBetweenCoordinates(
+        kGoogleMapKey,
+        widget.fromLat,
+        widget.fromLong,
+        widget.toLat,
+        widget.toLong);
+    if (result.isNotEmpty) {
+      result.forEach((PointLatLng point) {
+        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+      });
+    }
+    setState(() {
+      Polyline polyline = Polyline(
+          polylineId: PolylineId('Poly'),
+          color: Color.fromARGB(255, 40, 122, 198),
+          points: polylineCoordinates);
+      _polylines.add(polyline);
     });
-    super.initState();
   }
 
   @override
@@ -48,11 +111,17 @@ class _NearbyCourierState extends State<NearbyCourier> {
             children: <Widget>[
               Expanded(
                 child: GoogleMap(
+                  polylines: _polylines,
+                  tiltGesturesEnabled: true,
+                  myLocationButtonEnabled: true,
+                  myLocationEnabled: true,
                   onMapCreated: _onMapCreated,
                   initialCameraPosition: CameraPosition(
                     target: _center,
                     zoom: 10.0,
                   ),
+                  markers: _markers,
+                  onCameraMove: _onCameraMove,
                 ),
               ),
               Container(

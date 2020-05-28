@@ -7,6 +7,7 @@ import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:fvastalpha/views/user/contact_us/contact_us.dart';
 import 'package:fvastalpha/views/user/home/home_view.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LayoutTemplate extends StatefulWidget {
@@ -62,21 +63,22 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
       return (prefs.getString('uid') ?? "uid");
     });
     phone = _prefs.then((prefs) {
-      return (prefs.getString('phone') ?? "uid");
+      return (prefs.getString('phone') ?? "phone");
     });
     email = _prefs.then((prefs) {
-      return (prefs.getString('email') ?? "uid");
+      return (prefs.getString('email') ?? "email");
     });
     name = _prefs.then((prefs) {
-      return (prefs.getString('name') ?? "uid");
+      return (prefs.getString('name') ?? "name");
     });
     type = _prefs.then((prefs) {
-      return (prefs.getString('type') ?? "uid");
+      return (prefs.getString('type') ?? "type");
     });
     image = _prefs.then((prefs) {
-      return (prefs.getString('image') ?? "uid");
+      return (prefs.getString('image') ?? "image");
     });
     assign();
+    initPlatformState();
   }
 
   void assign() async {
@@ -87,6 +89,159 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
     MY_NAME = await name;
     MY_IMAGE = await image;
     setState(() {});
+  }
+
+  String _debugLabelString = "";
+
+  bool _requireConsent = true;
+  Future<void> initPlatformState() async {
+    if (!mounted) return;
+
+    OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+
+    OneSignal.shared.setRequiresUserPrivacyConsent(_requireConsent);
+
+    var settings = {
+      OSiOSSettings.autoPrompt: false,
+      OSiOSSettings.promptBeforeOpeningPushUrl: true
+    };
+
+    OneSignal.shared
+        .setNotificationReceivedHandler((OSNotification notification) {
+      this.setState(() {
+        _debugLabelString =
+            "Received notification: \n${notification.jsonRepresentation().replaceAll("\\n", "\n")}";
+      });
+    });
+
+    OneSignal.shared
+        .setNotificationOpenedHandler((OSNotificationOpenedResult result) {
+      this.setState(() {
+        _debugLabelString =
+            "Opened notification: \n${result.notification.jsonRepresentation().replaceAll("\\n", "\n")}";
+      });
+    });
+
+    OneSignal.shared
+        .setInAppMessageClickedHandler((OSInAppMessageAction action) {
+      this.setState(() {
+        _debugLabelString =
+            "In App Message Clicked: \n${action.jsonRepresentation().replaceAll("\\n", "\n")}";
+      });
+    });
+
+    OneSignal.shared
+        .setSubscriptionObserver((OSSubscriptionStateChanges changes) {
+      print("SUBSCRIPTION STATE CHANGED: ${changes.jsonRepresentation()}");
+    });
+
+    OneSignal.shared.setPermissionObserver((OSPermissionStateChanges changes) {
+      print("PERMISSION STATE CHANGED: ${changes.jsonRepresentation()}");
+    });
+
+    OneSignal.shared.setEmailSubscriptionObserver(
+        (OSEmailSubscriptionStateChanges changes) {
+      print("EMAIL SUBSCRIPTION STATE CHANGED ${changes.jsonRepresentation()}");
+    });
+
+    // NOTE: Replace with your own app ID from https://www.onesignal.com
+    await OneSignal.shared.init(oneSignalKey, iOSSettings: settings);
+
+    OneSignal.shared
+        .setInFocusDisplayType(OSNotificationDisplayType.notification);
+
+    OneSignal.shared.consentGranted(true);
+    OneSignal.shared.setLocationShared(true);
+    _handleSetExternalUserId();
+
+    // Some examples of how to use In App Messaging public methods with OneSignal SDK
+    // oneSignalInAppMessagingTriggerExamples();
+
+    // Some examples of how to use Outcome Events public methods with OneSignal SDK
+    // oneSignalOutcomeEventsExamples();
+  }
+
+  oneSignalInAppMessagingTriggerExamples() async {
+    /// Example addTrigger call for IAM
+    /// This will add 1 trigger so if there are any IAM satisfying it, it
+    /// will be shown to the user
+    OneSignal.shared.addTrigger("trigger_1", "one");
+
+    /// Example addTriggers call for IAM
+    /// This will add 2 triggers so if there are any IAM satisfying these, they
+    /// will be shown to the user
+    Map<String, Object> triggers = new Map<String, Object>();
+    triggers["trigger_2"] = "two";
+    triggers["trigger_3"] = "three";
+    OneSignal.shared.addTriggers(triggers);
+
+    // Removes a trigger by its key so if any future IAM are pulled with
+    // these triggers they will not be shown until the trigger is added back
+    OneSignal.shared.removeTriggerForKey("trigger_2");
+
+    // Get the value for a trigger by its key
+    Object triggerValue =
+        await OneSignal.shared.getTriggerValueForKey("trigger_3");
+    print("'trigger_3' key trigger value: " + triggerValue);
+
+    // Create a list and bulk remove triggers based on keys supplied
+    List<String> keys = new List<String>();
+    keys.add("trigger_1");
+    keys.add("trigger_3");
+    OneSignal.shared.removeTriggersForKeys(keys);
+
+    // Toggle pausing (displaying or not) of IAMs
+    OneSignal.shared.pauseInAppMessages(false);
+  }
+
+  oneSignalOutcomeEventsExamples() async {
+    // Await example for sending outcomes
+    outcomeAwaitExample();
+
+    // Send a normal outcome and get a reply with the name of the outcome
+    OneSignal.shared.sendOutcome("normal_1");
+    OneSignal.shared.sendOutcome("normal_2").then((outcomeEvent) {
+      print(outcomeEvent.jsonRepresentation());
+    });
+
+    // Send a unique outcome and get a reply with the name of the outcome
+    OneSignal.shared.sendUniqueOutcome("unique_1");
+    OneSignal.shared.sendUniqueOutcome("unique_2").then((outcomeEvent) {
+      print(outcomeEvent.jsonRepresentation());
+    });
+
+    // Send an outcome with a value and get a reply with the name of the outcome
+    OneSignal.shared.sendOutcomeWithValue("value_1", 3.2);
+    OneSignal.shared.sendOutcomeWithValue("value_2", 3.9).then((outcomeEvent) {
+      print(outcomeEvent.jsonRepresentation());
+    });
+  }
+
+  Future<void> outcomeAwaitExample() async {
+    var outcomeEvent = await OneSignal.shared.sendOutcome("await_normal_1");
+    print(outcomeEvent.jsonRepresentation());
+  }
+
+  void _handleSetExternalUserId() {
+    print("Setting external user ID");
+    String _externalUserId = MY_UID;
+    OneSignal.shared.setExternalUserId(_externalUserId).then((results) {
+      if (results == null) return;
+
+      this.setState(() {
+        _debugLabelString = "External user id set: $results";
+      });
+    });
+  }
+
+  void _handleRemoveExternalUserId() {
+    OneSignal.shared.removeExternalUserId().then((results) {
+      if (results == null) return;
+
+      this.setState(() {
+        _debugLabelString = "External user id removed: $results";
+      });
+    });
   }
 
   @override
@@ -266,6 +421,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
                       onClicked: () async {
                         FirebaseAuth.instance.signOut().then((a) {
                           afterLogout();
+                          _handleRemoveExternalUserId();
                           Navigator.pushAndRemoveUntil(
                               context,
                               CupertinoPageRoute(

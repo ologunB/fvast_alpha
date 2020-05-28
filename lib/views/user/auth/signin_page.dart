@@ -344,27 +344,16 @@ class _SigninPageState extends State<SigninPage> {
                                     child: StatefulBuilder(
                                       builder: (context, _setState) =>
                                           CustomLoadingButton(
-                                        title: forgotPassIsLoading
-                                            ? ""
-                                            : "Reset Password",
+                                        context: context,
+                                        title: "Reset Password",
                                         onPress: forgotPassIsLoading
                                             ? null
-                                            : () async {
+                                            : () {
                                                 resetEmail(
                                                     forgetPassController.text,
                                                     _setState);
                                               },
-                                        icon: forgotPassIsLoading
-                                            ? CupertinoActivityIndicator(
-                                                radius: 20)
-                                            : Icon(
-                                                Icons.arrow_forward,
-                                                color: Colors.white,
-                                              ),
-                                        iconLeft: false,
-                                        hasColor:
-                                            forgotPassIsLoading ? true : false,
-                                        bgColor: Colors.blueGrey,
+                                        isLoading: forgotPassIsLoading,
                                       ),
                                     ),
                                   ),

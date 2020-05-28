@@ -23,22 +23,18 @@ dev_dependencies:
   firebase_core: ^0.4.0+9
   firebase_auth: ^0.14.0+5
   cloud_firestore:
-  url_launcher:
-  cached_network_image:
   rave_flutter:   #DONE TODO configure the iOS version later
-  geolocator:  #DONETODO configure the iOS version later
+  geolocator:  #DONE TODO configure the iOS version later
   geocoder: ^0.2.1
   flutter_google_places: ^0.2.5
-  search_map_place:
-  location:
-  provider:
   intl:
   smooth_star_rating:
-  floor: ^0.12.0
   solid_bottom_sheet: ^0.1.9
   eva_icons_flutter:
   flutter_svg:
   flutter_spinkit: ^4.1.2
+  onesignal_flutter:
+  url_launcher:
 
 flutter:
 

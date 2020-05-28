@@ -42,9 +42,12 @@ android {
         minSdkVersion 16
         targetSdkVersion 28
         multiDexEnabled true
-
-        versionCode flutterVersionCode.toInteger()
+          versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        manifestPlaceholders = [
+                onesignal_app_id: 'd3badbf5-4456-41f6-bbae-01b9364e08ce',
+                onesignal_google_project_number: '691882460257'
+        ]
     }
 
     buildTypes {
@@ -74,3 +77,15 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
 }
 apply plugin: 'com.google.gms.google-services'
+
+buildscript {
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2/' } // Gradle Plugin Portal
+    }
+    dependencies {
+        classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:0.12.7'
+    }
+}
+
+apply plugin: 'com.onesignal.androidsdk.onesignal-gradle-plugin'
+//com.google.gms.googleservices.GoogleServicesPlugin.config.disableVersionCheck = true
