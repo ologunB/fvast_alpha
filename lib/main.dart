@@ -516,8 +516,7 @@ class OneSignalButton extends StatefulWidget {
 class OneSignalButtonState extends State<OneSignalButton> {
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return new Table(
+     return new Table(
       children: [
         new TableRow(children: [
           new FlatButton(

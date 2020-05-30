@@ -240,11 +240,11 @@ class _ChooseLocationState extends State<ChooseLocation> {
                 context,
                 CupertinoPageRoute(
                   builder: (context) => ModeSelector(
-                    fromLat: fromLat,
-                    fromLong: fromLong,
-                    toLat: toLat,
-                    toLong: toLong,
-                  ),
+                      fromLat: fromLat,
+                      fromLong: fromLong,
+                      toLat: toLat,
+                      toLong: toLong,
+                      currentAdd: myLocationController.text),
                 ),
               );
             }),

@@ -24,49 +24,19 @@ class ModeSelector extends StatefulWidget {
   final fromLong;
   final toLat;
   final toLong;
+  final currentAdd;
 
   const ModeSelector(
-      {Key key, this.fromLat, this.fromLong, this.toLat, this.toLong})
+      {Key key,
+      this.fromLat,
+      this.fromLong,
+      this.toLat,
+      this.toLong,
+      this.currentAdd})
       : super(key: key);
   @override
   _ModeSelectorState createState() => _ModeSelectorState();
 }
-
-class TypeModel {
-  String type;
-  IconData icon;
-  String desc;
-  int baseFare;
-  int perKilo;
-  int tax;
-
-  TypeModel(
-      {this.type, this.icon, this.desc, this.baseFare, this.perKilo, this.tax});
-}
-
-List<TypeModel> types = [
-  TypeModel(
-      icon: Icons.directions_bike,
-      type: "Bike",
-      desc: "Easy Delivery and Small Packages",
-      baseFare: 20,
-      perKilo: 10,
-      tax: 20),
-  TypeModel(
-      icon: Icons.directions_car,
-      type: "Mini van",
-      desc: "Fast Delivery for Medium Small Packages",
-      baseFare: 30,
-      perKilo: 20,
-      tax: 20),
-  TypeModel(
-      icon: Icons.airport_shuttle,
-      type: "Truck",
-      desc: "Fast Delivery for Heavy Packages",
-      baseFare: 40,
-      perKilo: 20,
-      tax: 20)
-];
 
 class _ModeSelectorState extends State<ModeSelector> {
   Completer<GoogleMapController> _controller = Completer();
@@ -86,16 +56,29 @@ class _ModeSelectorState extends State<ModeSelector> {
     mapController = controller;
     _controller.complete(controller);
 
+    //offerLatLng and currentLatLng are custom
     LatLng fromLatLng = LatLng(widget.fromLat, widget.fromLong);
     LatLng toLatLng = LatLng(widget.toLat, widget.toLong);
-    LatLngBounds bound =
-        LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
-
     setState(() {
       _markers.clear();
       addMarker(fromLatLng, "From");
       addMarker(toLatLng, "To");
     });
+    LatLngBounds bound;
+    if (toLatLng.latitude > fromLatLng.latitude &&
+        toLatLng.longitude > fromLatLng.longitude) {
+      bound = LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
+    } else if (toLatLng.longitude > fromLatLng.longitude) {
+      bound = LatLngBounds(
+          southwest: LatLng(toLatLng.latitude, fromLatLng.longitude),
+          northeast: LatLng(fromLatLng.latitude, toLatLng.longitude));
+    } else if (toLatLng.latitude > fromLatLng.latitude) {
+      bound = LatLngBounds(
+          southwest: LatLng(fromLatLng.latitude, toLatLng.longitude),
+          northeast: LatLng(toLatLng.latitude, fromLatLng.longitude));
+    } else {
+      bound = LatLngBounds(southwest: toLatLng, northeast: fromLatLng);
+    }
 
     CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
     this.mapController.animateCamera(u2).then((void v) {
@@ -111,7 +94,9 @@ class _ModeSelectorState extends State<ModeSelector> {
       infoWindow: InfoWindow(
         title: mTitle,
       ),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      icon: BitmapDescriptor.defaultMarkerWithHue(mTitle == "From"
+          ? BitmapDescriptor.hueRed
+          : BitmapDescriptor.hueGreen),
     ));
   }
 
@@ -157,7 +142,6 @@ class _ModeSelectorState extends State<ModeSelector> {
     });
   }
 
-  int timeFactor = 50;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   String packageSize, packageWeight, packageType;
 
@@ -183,8 +167,12 @@ class _ModeSelectorState extends State<ModeSelector> {
     });
     Future.delayed(Duration(seconds: 3)).then((a) {
       validCode.text = "20";
+      int coupounAmount = 20;
       isCouponLoading = false;
+      totalAmount = totalAmount - coupounAmount;
 
+      makeCouponClick = false;
+      setState(() {});
       _setState(() {});
       Navigator.pop(context);
     });
@@ -197,6 +185,20 @@ class _ModeSelectorState extends State<ModeSelector> {
   }
 
   int distanceBtwn;
+  int timeFactor = 50;
+
+  void routeSelector(context, index) {
+    Navigator.pop(context);
+    routeType = index;
+    timeFactor = routeTypes[index].kmPerHr;
+    int baseFare = routeTypes[index].baseFare;
+    int tax = routeTypes[index].tax;
+    double distanceAmount = routeTypes[index].perKilo * distanceBtwn / 10;
+    totalAmount = baseFare + tax + distanceAmount;
+    setState(() {});
+  }
+
+  bool makeCouponClick = true;
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
@@ -228,22 +230,48 @@ class _ModeSelectorState extends State<ModeSelector> {
                     Positioned.fill(
                       child: Align(
                           child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                        //   mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          Text(
-                            timeConvert(distanceBtwn / timeFactor),
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 20),
+                          SizedBox(height: 40),
+                          Container(
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                      spreadRadius: 2,
+                                      blurRadius: 11,
+                                      color: Colors.black26)
+                                ],
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Text(
+                                  distanceBtwn.toString() + " KM",
+                                  style: TextStyle(
+                                      color: Colors.black54,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 18),
+                                ),
+                                Text(
+                                  "₦ " + commaFormat.format(totalAmount),
+                                  style: TextStyle(
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 20),
+                                ),
+                                Text(
+                                  timeConvert(distanceBtwn / timeFactor),
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 20),
+                                ),
+                              ],
+                              mainAxisAlignment: MainAxisAlignment.center,
+                            ),
                           ),
-                          Text(
-                            distanceBtwn.toString() + " KM",
-                            style: TextStyle(
-                                color: Colors.black54,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18),
-                          )
                         ],
                       )),
                     )
@@ -303,7 +331,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                 BorderRadius.circular(35),
                                           ),
                                           child: Icon(
-                                            types[index].icon,
+                                            routeTypes[index].icon,
                                             color: Styles.appPrimaryColor,
                                           ),
                                         )
@@ -316,7 +344,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                       child: Row(
                                         children: <Widget>[
                                           Text(
-                                            types[index].type,
+                                            routeTypes[index].type,
                                             style: TextStyle(
                                                 fontSize: 20,
                                                 fontWeight: FontWeight.w500),
@@ -331,7 +359,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                       child: Row(
                                         children: <Widget>[
                                           Text(
-                                            types[index].desc,
+                                            routeTypes[index].desc,
                                             style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w400,
@@ -352,7 +380,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                               child: Divider(thickness: 2)),
                                           Text(
                                               " ₦ " +
-                                                  types[index]
+                                                  routeTypes[index]
                                                       .baseFare
                                                       .toString(),
                                               style: TextStyle(fontSize: 16))
@@ -371,7 +399,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                               child: Divider(thickness: 2)),
                                           Text(
                                               " ₦ " +
-                                                  types[index]
+                                                  routeTypes[index]
                                                       .perKilo
                                                       .toString(),
                                               style: TextStyle(fontSize: 16))
@@ -390,18 +418,18 @@ class _ModeSelectorState extends State<ModeSelector> {
                                               child: Divider(thickness: 2)),
                                           Text(
                                               " ₦ " +
-                                                  types[index].tax.toString(),
+                                                  routeTypes[index]
+                                                      .tax
+                                                      .toString(),
                                               style: TextStyle(fontSize: 16))
                                         ],
                                       ),
                                     ),
                                     SizedBox(height: 50),
                                     CustomButton(
-                                        title: "Use ${types[index].type}",
+                                        title: "Use ${routeTypes[index].type}",
                                         onPress: () {
-                                          Navigator.pop(context);
-                                          routeType = index;
-                                          setState(() {});
+                                          routeSelector(context, index);
                                         }),
                                     SizedBox(height: 10)
                                   ],
@@ -426,7 +454,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           borderRadius:
                                               BorderRadius.circular(30)),
                                       child: Icon(
-                                        types[index].icon,
+                                        routeTypes[index].icon,
                                         color: routeType == index
                                             ? Styles.appPrimaryColor
                                             : Colors.grey,
@@ -437,7 +465,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                     children: <Widget>[
                                       Center(
                                         child: Text(
-                                          types[index].type,
+                                          routeTypes[index].type,
                                           style: TextStyle(
                                               fontSize: 17,
                                               color: routeType == index
@@ -605,114 +633,134 @@ class _ModeSelectorState extends State<ModeSelector> {
                               child: TextField(
                                 readOnly: true,
                                 controller: validCode,
-                                onTap: () {
-                                  scaffoldKey.currentState.showBottomSheet(
-                                    (context) => StatefulBuilder(
-                                      builder: (context, _setState) => ListView(
-                                        shrinkWrap: true,
-                                        children: <Widget>[
-                                          Padding(
-                                            padding: const EdgeInsets.all(12.0),
-                                            child: Row(
+                                onTap: !makeCouponClick
+                                    ? null
+                                    : () {
+                                        scaffoldKey.currentState
+                                            .showBottomSheet(
+                                          (context) => StatefulBuilder(
+                                            builder: (context, _setState) =>
+                                                ListView(
+                                              shrinkWrap: true,
                                               children: <Widget>[
-                                                Container(
-                                                  height: 8,
-                                                  width: 60,
-                                                  decoration: BoxDecoration(
-                                                      color: Styles
-                                                          .appPrimaryColor,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              5)),
-                                                )
-                                              ],
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                            ),
-                                          ),
-                                          Row(
-                                            children: <Widget>[
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(10.0),
-                                                child: Text(
-                                                  "Apply Coupon",
-                                                  style: TextStyle(
-                                                      fontSize: 20,
-                                                      color: Styles
-                                                          .appPrimaryColor),
+                                                Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      12.0),
+                                                  child: Row(
+                                                    children: <Widget>[
+                                                      Container(
+                                                        height: 8,
+                                                        width: 60,
+                                                        decoration: BoxDecoration(
+                                                            color: Styles
+                                                                .appPrimaryColor,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        5)),
+                                                      )
+                                                    ],
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                  ),
                                                 ),
-                                              )
-                                            ],
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10),
-                                            child: Theme(
-                                              data: ThemeData(
-                                                  primaryColor: Styles
-                                                      .commonDarkBackground,
-                                                  hintColor: Styles
-                                                      .commonDarkBackground),
-                                              child: TextField(
-                                                autofocus: true,
-                                                controller: inputCouponCode,
-                                                decoration: InputDecoration(
-                                                    fillColor: Styles
-                                                        .commonDarkBackground,
-                                                    filled: true,
-                                                    hintText: "Coupon code",
-                                                    contentPadding:
-                                                        EdgeInsets.all(10),
-                                                    hintStyle: TextStyle(
-                                                        color: Colors.grey[500],
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w400),
-                                                    border: OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              5.0),
-                                                    )),
-                                                style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 18,
-                                                    fontWeight:
-                                                        FontWeight.w400),
-                                              ),
+                                                Row(
+                                                  children: <Widget>[
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              10.0),
+                                                      child: Text(
+                                                        "Apply Coupon",
+                                                        style: TextStyle(
+                                                            fontSize: 20,
+                                                            color: Styles
+                                                                .appPrimaryColor),
+                                                      ),
+                                                    )
+                                                  ],
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets
+                                                          .symmetric(
+                                                      horizontal: 10),
+                                                  child: Theme(
+                                                    data: ThemeData(
+                                                        primaryColor: Styles
+                                                            .commonDarkBackground,
+                                                        hintColor: Styles
+                                                            .commonDarkBackground),
+                                                    child: TextField(
+                                                      autofocus: true,
+                                                      controller:
+                                                          inputCouponCode,
+                                                      decoration:
+                                                          InputDecoration(
+                                                              fillColor: Styles
+                                                                  .commonDarkBackground,
+                                                              filled: true,
+                                                              hintText:
+                                                                  "Coupon code",
+                                                              contentPadding:
+                                                                  EdgeInsets
+                                                                      .all(10),
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      500],
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w400),
+                                                              border:
+                                                                  OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            5.0),
+                                                              )),
+                                                      style: TextStyle(
+                                                          color: Colors.black,
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.w400),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(height: 50),
+                                                StatefulBuilder(builder:
+                                                    (context, _setState) {
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(8),
+                                                    child: CustomLoadingButton(
+                                                        title: "APPLY",
+                                                        context: context,
+                                                        isLoading:
+                                                            isCouponLoading,
+                                                        onPress: isCouponLoading
+                                                            ? null
+                                                            : () {
+                                                                applyCoupon(
+                                                                    _setState);
+                                                              }),
+                                                  );
+                                                }),
+                                                SizedBox(height: 20)
+                                              ],
                                             ),
                                           ),
-                                          SizedBox(height: 50),
-                                          StatefulBuilder(
-                                              builder: (context, _setState) {
-                                            return Padding(
-                                              padding: const EdgeInsets.all(8),
-                                              child: CustomLoadingButton(
-                                                  title: "APPLY",
-                                                  context: context,
-                                                  isLoading: isCouponLoading,
-                                                  onPress: isCouponLoading
-                                                      ? null
-                                                      : () {
-                                                          applyCoupon(
-                                                              _setState);
-                                                        }),
-                                            );
-                                          }),
-                                          SizedBox(height: 20)
-                                        ],
-                                      ),
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(30),
-                                        topRight: Radius.circular(30),
-                                      ),
-                                    ),
-                                  );
-                                },
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(30),
+                                              topRight: Radius.circular(30),
+                                            ),
+                                          ),
+                                        );
+                                      },
                                 decoration: InputDecoration(
                                     fillColor: Styles.commonDarkBackground,
                                     filled: true,
@@ -747,6 +795,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                             showCenterToast("Choose the Route Type", context);
                             return;
                           }
+                          amountBefore = totalAmount;
                           scaffoldKey.currentState.showBottomSheet(
                             (context) => StatefulBuilder(
                               builder: (context, _setState) => SolidBottomSheet(
@@ -789,7 +838,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                   padding: const EdgeInsets.all(18.0),
                                   child: ListView(
                                     children: <Widget>[
-                                      Text("Deliver To:",
+                                      Text("Deliver To*",
                                           style: TextStyle(fontSize: 18)),
                                       CustomTextField(
                                         controller: receiversName,
@@ -817,7 +866,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                         text: "Delivery Instructions",
                                       ),
                                       SizedBox(height: 8),
-                                      Text("Package Details",
+                                      Text("Package Details*",
                                           style: TextStyle(fontSize: 18)),
                                       Container(
                                         decoration: BoxDecoration(
@@ -852,6 +901,18 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           isExpanded: true,
                                           onChanged: (value) {
                                             packageSize = value;
+                                            totalAmount = amountBefore;
+                                            if (value == "Medium") {
+                                              sizeCharge = 5;
+                                            } else if (value == "Large") {
+                                              sizeCharge = 10;
+                                            } else if (value == "Small") {
+                                              sizeCharge = 0;
+                                            }
+                                            totalAmount = totalAmount +
+                                                sizeCharge +
+                                                weightCharge +
+                                                packageCharge;
 
                                             setState(() {});
                                             FocusScope.of(context).unfocus();
@@ -894,6 +955,18 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           isExpanded: true,
                                           onChanged: (value) {
                                             packageType = value;
+
+                                            totalAmount = amountBefore;
+                                            if (value == "Glass Packing") {
+                                              packageCharge = 10;
+                                            } else {
+                                              packageCharge = 0;
+                                            }
+
+                                            totalAmount = totalAmount +
+                                                sizeCharge +
+                                                weightCharge +
+                                                packageCharge;
 
                                             setState(() {});
                                             FocusScope.of(context).unfocus();
@@ -939,6 +1012,21 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           onChanged: (value) {
                                             packageWeight = value;
 
+                                            totalAmount = amountBefore;
+                                            if (value == "1 - 3kg") {
+                                              weightCharge = 5;
+                                            } else if (value == "3 - 8kg") {
+                                              weightCharge = 10;
+                                            } else if (value ==
+                                                "Greater than 8kg") {
+                                              weightCharge = 15;
+                                            } else {
+                                              weightCharge = 1;
+                                            }
+                                            totalAmount = totalAmount +
+                                                sizeCharge +
+                                                weightCharge +
+                                                packageCharge;
                                             setState(() {});
                                             FocusScope.of(context).unfocus();
                                           },
@@ -1015,10 +1103,16 @@ class _ModeSelectorState extends State<ModeSelector> {
     );
   }
 
-  double amount = 200;
+  double totalAmount = 0;
+  double amountBefore = 0;
+  double sizeCharge = 0;
+  double weightCharge = 0;
+  double packageCharge = 0;
   processCardTransaction(context) async {
     var initializer = RavePayInitializer(
-        amount: amount, publicKey: ravePublicKey, encryptionKey: raveEncryptKey)
+        amount: totalAmount,
+        publicKey: ravePublicKey,
+        encryptionKey: raveEncryptKey)
       ..country = "NG"
       ..currency = "NGN"
       ..email = MY_EMAIL
@@ -1089,14 +1183,16 @@ class _ModeSelectorState extends State<ModeSelector> {
     String orderID = "ORD" + DateTime.now().millisecondsSinceEpoch.toString();
     Map<String, Object> mData = Map();
     mData.putIfAbsent("Name", () => MY_NAME);
-    mData.putIfAbsent("Date", () => presentDate());
-    mData.putIfAbsent("Amount", () => amount);
+    mData.putIfAbsent("startDate", () => presentDateTime());
+    mData.putIfAbsent("endDate", () => "--");
+    mData.putIfAbsent("Amount", () => totalAmount);
     mData.putIfAbsent("userUid", () => MY_UID);
     mData.putIfAbsent("fromLat", () => widget.fromLat);
     mData.putIfAbsent("fromLong", () => widget.fromLong);
     mData.putIfAbsent("toLat", () => widget.toLat);
     mData.putIfAbsent("toLong", () => widget.toLong);
     mData.putIfAbsent("Payment Type", () => paymentType);
+    mData.putIfAbsent("Route Type", () => routeType);
     mData.putIfAbsent("coupon", () => validCode.text);
     mData.putIfAbsent("Receiver Name", () => receiversName.text);
     mData.putIfAbsent("Receiver Number", () => receiversNumber.text);
@@ -1106,6 +1202,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     mData.putIfAbsent("Weight", () => packageWeight);
     mData.putIfAbsent("type", () => packageType);
     mData.putIfAbsent("distance", () => distanceBtwn);
+    mData.putIfAbsent("status", () => "Pending");
     mData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
     mData.putIfAbsent("id", () => orderID);
 
@@ -1139,10 +1236,12 @@ class _ModeSelectorState extends State<ModeSelector> {
         CupertinoPageRoute(
           builder: (context) {
             return NearbyCourier(
-                fromLong: widget.fromLong,
-                fromLat: widget.fromLat,
-                toLat: widget.toLat,
-                toLong: widget.toLong);
+              fromLong: widget.fromLong,
+              fromLat: widget.fromLat,
+              toLat: widget.toLat,
+              toLong: widget.toLong,
+              currentAdd: widget.currentAdd,
+            );
           },
         ),
       );
@@ -1156,7 +1255,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     });
 
     final Map<String, Object> data = Map();
-    data.putIfAbsent("Amount", () => amount);
+    data.putIfAbsent("Amount", () => totalAmount);
     data.putIfAbsent("uid", () => MY_UID);
     data.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
 
@@ -1173,9 +1272,13 @@ class _ModeSelectorState extends State<ModeSelector> {
           );
         });
 
+    String orderID = "WAL" + DateTime.now().millisecondsSinceEpoch.toString();
+
     Firestore.instance
-        .collection("Wallet")
-        .document(MY_UID)
+        .collection("Utils")
+        .document("Wallet")
+        .collection(MY_UID)
+        .document(orderID)
         .setData(data)
         .then((a) {
       compileTransaction(context);

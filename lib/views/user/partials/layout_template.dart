@@ -7,6 +7,8 @@ import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:fvastalpha/views/user/contact_us/contact_us.dart';
 import 'package:fvastalpha/views/user/home/home_view.dart';
+import 'package:fvastalpha/views/user/task_history/order_view.dart';
+import 'package:fvastalpha/views/user/wallet/each_wallet.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,6 +42,10 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
     switch (pos) {
       case 0:
         return HomeView(key: _mapKey);
+      case 1:
+        return OrdersView();
+      case 2:
+        return WalletView();
       case 4:
         return ContactUsF();
 

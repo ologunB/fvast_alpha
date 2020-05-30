@@ -110,3 +110,49 @@ Future<String> uploadImage(File file) async {
   }
   return url;
 }
+
+class RouteModel {
+  String type;
+  IconData icon;
+  String desc;
+  int baseFare;
+  int perKilo;
+  int tax;
+  int kmPerHr;
+
+  RouteModel(
+      {this.type,
+      this.icon,
+      this.desc,
+      this.baseFare,
+      this.perKilo,
+      this.tax,
+      this.kmPerHr});
+}
+
+List<RouteModel> routeTypes = [
+  RouteModel(
+      icon: Icons.directions_bike,
+      type: "Bike",
+      desc: "Easy Delivery and Small Packages",
+      baseFare: 20,
+      kmPerHr: 50,
+      perKilo: 10,
+      tax: 20),
+  RouteModel(
+      icon: Icons.directions_car,
+      type: "Mini van",
+      desc: "Fast Delivery for Medium Small Packages",
+      baseFare: 30,
+      kmPerHr: 60,
+      perKilo: 20,
+      tax: 20),
+  RouteModel(
+      icon: Icons.airport_shuttle,
+      type: "Truck",
+      desc: "Fast Delivery for Heavy Packages",
+      baseFare: 40,
+      kmPerHr: 70,
+      perKilo: 20,
+      tax: 20)
+];

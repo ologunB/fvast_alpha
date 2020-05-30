@@ -88,4 +88,4 @@ buildscript {
 }
 
 apply plugin: 'com.onesignal.androidsdk.onesignal-gradle-plugin'
-//com.google.gms.googleservices.GoogleServicesPlugin.config.disableVersionCheck = true
+ com.google.gms.googleservices.GoogleServicesPlugin.config.disableVersionCheck = true

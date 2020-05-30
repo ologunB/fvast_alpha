@@ -1,7 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fvastalpha/models/task.dart';
+import 'package:fvastalpha/views/partials/utils/constants.dart';
 
 class OrderDetails extends StatefulWidget {
+  final Task task;
+
+  const OrderDetails({Key key, this.task}) : super(key: key);
   @override
   _OrderDetailsState createState() => _OrderDetailsState();
 }
@@ -11,13 +16,13 @@ class _OrderDetailsState extends State<OrderDetails> {
         margin: EdgeInsets.only(top: 10),
         child: Stepper(
           physics: ClampingScrollPhysics(),
-          currentStep: 2,
+          currentStep: 1,
           steps: [
             Step(
               title: Column(
                 children: <Widget>[
                   Text(
-                    "Yesteday, 12th May, 2020",
+                    widget.task.startDate,
                     style: TextStyle(color: Colors.grey),
                   ),
                   Container(
@@ -38,28 +43,7 @@ class _OrderDetailsState extends State<OrderDetails> {
               title: Column(
                 children: <Widget>[
                   Text(
-                    "Yesteday, 12th May, 2020",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * .70,
-                    child: Text(
-                      "12, Koforidua Street, Wuse zone 2, Abuja.",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  )
-                ],
-                crossAxisAlignment: CrossAxisAlignment.start,
-              ),
-              content: Text(" "),
-            ),
-            Step(
-              title: Column(
-                children: <Widget>[
-                  Text(
-                    "Yesteday, 12th May, 2020",
+                    widget.task.endDate ?? "--",
                     style: TextStyle(color: Colors.grey),
                   ),
                   Container(
@@ -82,8 +66,16 @@ class _OrderDetailsState extends State<OrderDetails> {
               Container(),
         ),
       );
+
   @override
   Widget build(BuildContext context) {
+    int routeType = widget.task.routeType;
+
+    int baseFare = routeTypes[routeType].baseFare;
+    int distance = widget.task.distance;
+    int tax = routeTypes[routeType].tax;
+    int perKiloCharge = (routeTypes[routeType].perKilo * distance / 10).round();
+    int total = baseFare + perKiloCharge + tax;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -95,7 +87,7 @@ class _OrderDetailsState extends State<OrderDetails> {
               }),
           title: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text("Task #0023"),
+            child: Text(widget.task.id),
           ),
           actions: <Widget>[
             Padding(
@@ -157,8 +149,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500),
                                 ),
-                                Text("efe"),
-                                Text("efe"),
+                                Text("Dis Number"),
+                                Text("Dis Address"),
                               ],
                             ),
                           ),
@@ -200,7 +192,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                             children: <Widget>[
                               Text("Route: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("Bike ", style: TextStyle(fontSize: 16))
+                              Text(routeTypes[routeType].type,
+                                  style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -211,7 +204,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                               Text("Payment Type: ",
                                   style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("Cash", style: TextStyle(fontSize: 16))
+                              Text(widget.task.paymentType ?? "r",
+                                  style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -232,7 +226,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                               Text("Receiver's Name: ",
                                   style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("Richard Ray",
+                              Text(widget.task.reName ?? "r",
                                   style: TextStyle(fontSize: 16))
                             ],
                           ),
@@ -244,7 +238,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                               Text("Receiver's  Mobile",
                                   style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("08173893833",
+                              Text(widget.task.reNum ?? "r",
                                   style: TextStyle(fontSize: 16))
                             ],
                           ),
@@ -256,7 +250,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                               Text("Package Size/Weight",
                                   style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("Medium/<2kg",
+                              Text(widget.task.size ?? "r",
                                   style: TextStyle(fontSize: 16))
                             ],
                           ),
@@ -268,7 +262,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                               Text("Package Type ",
                                   style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(" Loads ", style: TextStyle(fontSize: 16))
+                              Text(widget.task.type ?? "r",
+                                  style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -293,9 +288,23 @@ class _OrderDetailsState extends State<OrderDetails> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Charge: ", style: TextStyle(fontSize: 16)),
+                              Text("Base Fare: ",
+                                  style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("\₦ 678 ", style: TextStyle(fontSize: 16))
+                              Text("\₦ " + commaFormat.format((baseFare)),
+                                  style: TextStyle(fontSize: 16))
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: <Widget>[
+                              Text("Distance charge: ",
+                                  style: TextStyle(fontSize: 16)),
+                              Expanded(child: Divider(thickness: 2)),
+                              Text("\₦ " + commaFormat.format(perKiloCharge),
+                                  style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -305,18 +314,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                             children: <Widget>[
                               Text("Tax: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(" ₦ 678 ", style: TextStyle(fontSize: 16))
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: <Widget>[
-                              Text("Sub-total: ",
-                                  style: TextStyle(fontSize: 16)),
-                              Expanded(child: Divider(thickness: 2)),
-                              Text(" ₦678 ", style: TextStyle(fontSize: 16))
+                              Text("\₦ " + commaFormat.format(tax),
+                                  style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -326,7 +325,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                             children: <Widget>[
                               Text("Total: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(" ₦ 678 ", style: TextStyle(fontSize: 16))
+                              Text("\₦ " + commaFormat.format(total),
+                                  style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),

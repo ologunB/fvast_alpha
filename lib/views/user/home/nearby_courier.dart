@@ -13,9 +13,15 @@ class NearbyCourier extends StatefulWidget {
   final fromLong;
   final toLat;
   final toLong;
+  final currentAdd;
 
   const NearbyCourier(
-      {Key key, this.fromLat, this.fromLong, this.toLat, this.toLong})
+      {Key key,
+      this.fromLat,
+      this.fromLong,
+      this.toLat,
+      this.toLong,
+      this.currentAdd})
       : super(key: key);
   @override
   _NearbyCourierState createState() => _NearbyCourierState();
@@ -31,16 +37,29 @@ class _NearbyCourierState extends State<NearbyCourier> {
     mapController = controller;
     _controller.complete(controller);
 
+    //offerLatLng and currentLatLng are custom
     LatLng fromLatLng = LatLng(widget.fromLat, widget.fromLong);
     LatLng toLatLng = LatLng(widget.toLat, widget.toLong);
-    LatLngBounds bound =
-        LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
-
     setState(() {
       _markers.clear();
       addMarker(fromLatLng, "From");
       addMarker(toLatLng, "To");
     });
+    LatLngBounds bound;
+    if (toLatLng.latitude > fromLatLng.latitude &&
+        toLatLng.longitude > fromLatLng.longitude) {
+      bound = LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
+    } else if (toLatLng.longitude > fromLatLng.longitude) {
+      bound = LatLngBounds(
+          southwest: LatLng(toLatLng.latitude, fromLatLng.longitude),
+          northeast: LatLng(fromLatLng.latitude, toLatLng.longitude));
+    } else if (toLatLng.latitude > fromLatLng.latitude) {
+      bound = LatLngBounds(
+          southwest: LatLng(fromLatLng.latitude, toLatLng.longitude),
+          northeast: LatLng(toLatLng.latitude, fromLatLng.longitude));
+    } else {
+      bound = LatLngBounds(southwest: toLatLng, northeast: fromLatLng);
+    }
 
     CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
     this.mapController.animateCamera(u2).then((void v) {
@@ -56,7 +75,9 @@ class _NearbyCourierState extends State<NearbyCourier> {
       infoWindow: InfoWindow(
         title: mTitle,
       ),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      icon: BitmapDescriptor.defaultMarkerWithHue(mTitle == "From"
+          ? BitmapDescriptor.hueRed
+          : BitmapDescriptor.hueGreen),
     ));
   }
 
@@ -100,6 +121,12 @@ class _NearbyCourierState extends State<NearbyCourier> {
           points: polylineCoordinates);
       _polylines.add(polyline);
     });
+  }
+
+  @override
+  void initState() {
+    setPolylines();
+    super.initState();
   }
 
   @override
@@ -157,7 +184,7 @@ class _NearbyCourierState extends State<NearbyCourier> {
                                   fontSize: 18, fontWeight: FontWeight.w700),
                             ),
                             Text(
-                              "21, Koforidua Street, Wuse 2, Abuja",
+                              widget.currentAdd,
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.w500),
                             )
