@@ -4,14 +4,14 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
 import 'package:fvastalpha/views/partials/widgets/text_field.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:rave_flutter/rave_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
@@ -42,13 +42,13 @@ class ModeSelector extends StatefulWidget {
 double balance = 0;
 
 class _ModeSelectorState extends State<ModeSelector> {
-
   void getBalance() async {
     DocumentSnapshot doc =
         await Firestore.instance.collection('All').document(MY_UID).get();
 
     balance = doc.data["Balance"];
   }
+
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
 

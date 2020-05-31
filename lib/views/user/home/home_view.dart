@@ -26,27 +26,19 @@ class _HomeMapState extends State<HomeView> {
   GoogleMapController mapController;
 
   final Set<Marker> _markers = {};
-  static int calculateDistance(lat1, lon1, lat2, lon2) {
-    var p = 0.017453292519943295;
-    var c = cos;
-    var a = 0.5 -
-        c((lat2 - lat1) * p) / 2 +
-        c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
-    return (12742 * asin(sqrt(a))).toInt();
-  }
 
   void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
+
+  void _onFilledMapCreated(GoogleMapController controller) {
     mapController = controller;
     _controller.complete(controller);
 
     //offerLatLng and currentLatLng are custom
-    LatLng fromLatLng = LatLng(widget.fromLat, widget.fromLong);
-    LatLng toLatLng = LatLng(widget.toLat, widget.toLong);
-    setState(() {
-      _markers.clear();
-      addMarker(fromLatLng, "From");
-      addMarker(toLatLng, "To");
-    });
+    LatLng fromLatLng = LatLng(fromLats.reduce(max), fromLongs.reduce(max));
+    LatLng toLatLng = LatLng(toLats.reduce(max), toLongs.reduce(max));
+
     LatLngBounds bound;
     if (toLatLng.latitude > fromLatLng.latitude &&
         toLatLng.longitude > fromLatLng.longitude) {
@@ -104,18 +96,16 @@ class _HomeMapState extends State<HomeView> {
   List<LatLng> polylineCoordinates = [];
   PolylinePoints polylinePoints = PolylinePoints();
 
-  setPolylines() async {
+  setPolylines(l1, l2, l3, l4) async {
     List<PointLatLng> result = await polylinePoints?.getRouteBetweenCoordinates(
-        kGoogleMapKey,
-        widget.fromLat,
-        widget.fromLong,
-        widget.toLat,
-        widget.toLong);
+        kGoogleMapKey, l1, l2, l3, l4);
     if (result.isNotEmpty) {
       result.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
       });
     }
+    addMarker(LatLng(l1, l2), "From");
+    addMarker(LatLng(l3, l4), "To");
     setState(() {
       Polyline polyline = Polyline(
           polylineId: PolylineId('Poly'),
@@ -128,6 +118,10 @@ class _HomeMapState extends State<HomeView> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget taskItem({context, Task task}) {
+    var color = Colors.blue[200];
+    if (task.status == "Accepted") {
+      color = Colors.green[200];
+    }
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -156,9 +150,7 @@ class _HomeMapState extends State<HomeView> {
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                        color: Colors.blue[200],
-                      ),
+                          borderRadius: BorderRadius.circular(5), color: color),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
@@ -264,16 +256,6 @@ class _HomeMapState extends State<HomeView> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   CupertinoActivityIndicator(),
-                  /*        SizedBox(height: 30),
-           Text(
-                    "Getting Data",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 20),
-                  ),
-                  SizedBox(height: 30),*/
                 ],
               ),
               height: 300,
@@ -317,18 +299,42 @@ class _HomeMapState extends State<HomeView> {
     );
   }
 
+  List<double> toLats = List();
+  List<double> toLongs = List();
+  List<double> fromLats = List();
+  List<double> fromLongs = List();
+
+  getAndDraw() async {
+    Firestore.instance
+        .collection("Orders")
+        .document("Pending")
+        .collection(MY_UID)
+        .getDocuments()
+        .then((doc) {
+      doc.documents.map((document) {
+        Task task = Task.map(document);
+        double l1 = task.fromLat;
+        double l2 = task.fromLong;
+        double l3 = task.toLat;
+        double l4 = task.toLong;
+        fromLats.add(l1);
+        fromLongs.add(l2);
+        toLats.add(l3);
+        toLongs.add(l4);
+
+        setPolylines(l1, l2, l3, l4);
+      }).toList();
+    });
+  }
+
+  @override
+  void initState() {
+    getAndDraw();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    /* for (var i = 0; i < 2; i++) {
-      markers.add(
-        Marker(
-          markerId: MarkerId("Location1"),
-          position: _center,
-          infoWindow: InfoWindow(title: "My Location", snippet: "Street name"),
-          onTap: () {},
-        ),
-      );
-    }*/
     var height = MediaQuery.of(context).size.height;
     return SafeArea(
         child: Scaffold(
@@ -361,14 +367,62 @@ class _HomeMapState extends State<HomeView> {
       body: Container(
         child: Stack(
           children: <Widget>[
-            Container(
-              child: GoogleMap(
-                onMapCreated: _onMapCreated,
-                myLocationEnabled: true,
-                initialCameraPosition:
-                    CameraPosition(zoom: 10.0, target: _center),
-              ),
-              height: MediaQuery.of(context).size.height * .75,
+            StreamBuilder<QuerySnapshot>(
+              stream: Firestore.instance
+                  .collection("Orders")
+                  .document("Pending")
+                  .collection(MY_UID)
+                  .orderBy("Timestamp", descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError)
+                  return new Text('Error: ${snapshot.error}');
+                switch (snapshot.connectionState) {
+                  case ConnectionState.waiting:
+                    return GoogleMap(
+                      onMapCreated: _onMapCreated,
+                      myLocationEnabled: true,
+                      initialCameraPosition:
+                          CameraPosition(zoom: 10.0, target: _center),
+                    );
+                  default:
+                    if (snapshot.data.documents.isNotEmpty) {
+                      snapshot.data.documents.map((document) {
+                        Task task = Task.map(document);
+                        double l1 = task.fromLat;
+                        double l2 = task.fromLong;
+                        double l3 = task.toLat;
+                        double l4 = task.toLong;
+                        fromLats.add(l1);
+                        fromLongs.add(l2);
+                        toLats.add(l3);
+                        toLongs.add(l4);
+
+                        //setPolylines(l1, l2, l3, l4);
+                      }).toList();
+                      return GoogleMap(
+                        polylines: _polylines,
+                        tiltGesturesEnabled: true,
+                        myLocationButtonEnabled: true,
+                        myLocationEnabled: true,
+                        onMapCreated: _onFilledMapCreated,
+                        initialCameraPosition: CameraPosition(
+                          target: _center,
+                          zoom: 10.0,
+                        ),
+                        markers: _markers,
+                        onCameraMove: _onCameraMove,
+                      );
+                    } else {
+                      return GoogleMap(
+                        onMapCreated: _onMapCreated,
+                        myLocationEnabled: true,
+                        initialCameraPosition:
+                            CameraPosition(zoom: 10.0, target: _center),
+                      );
+                    }
+                }
+              },
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
