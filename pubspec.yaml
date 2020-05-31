@@ -35,6 +35,7 @@ dev_dependencies:
   flutter_spinkit: ^4.1.2
   onesignal_flutter:
   url_launcher:
+  cached_network_image:
 
 flutter:
 

@@ -109,14 +109,13 @@ class _SigninPageState extends State<SigninPage> {
             .get()
             .then((document) {
           String type = document.data["Type"];
-          Navigator.of(context).pushReplacement(
-            CupertinoPageRoute(
-              fullscreenDialog: true,
-              builder: (context) {
-                return type == "User" ? LayoutTemplate() : DisLayoutTemplate();
-              },
-            ),
-          );
+
+          Navigator.pushAndRemoveUntil(
+              context,
+              CupertinoPageRoute(
+                  builder: (context) =>
+                      type == "User" ? LayoutTemplate() : DisLayoutTemplate()),
+              (Route<dynamic> route) => false);
 
           putInDB(
               type,

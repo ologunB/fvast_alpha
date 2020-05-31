@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
+import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class NearbyCourier extends StatefulWidget {
@@ -197,15 +199,30 @@ class _NearbyCourierState extends State<NearbyCourier> {
               ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 25),
-            child: IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                }),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  CupertinoPageRoute(builder: (context) => LayoutTemplate()),
+                  (Route<dynamic> route) => false);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(top: 25),
+              child: Row(
+                children: <Widget>[
+                  IconButton(
+                      icon: Icon(EvaIcons.home, size: 28, color: Colors.blue),
+                      onPressed: () {}),
+                  Text(
+                    "Go Home",
+                    style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700),
+                  )
+                ],
+              ),
+            ),
           )
         ],
       ),

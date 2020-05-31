@@ -18,9 +18,9 @@ class ChooseLocation extends StatefulWidget {
 }
 
 class _ChooseLocationState extends State<ChooseLocation> {
-  TextEditingController myLocationController =
+  TextEditingController fromLocController =
       TextEditingController(text: "Current Location");
-  TextEditingController theirController = TextEditingController();
+  TextEditingController toLocController = TextEditingController();
 
   var theAddress = "---";
 
@@ -47,7 +47,7 @@ class _ChooseLocationState extends State<ChooseLocation> {
 
       setState(() {
         theAddress = placeMark[0].name + ", " + placeMark[0].locality;
-        myLocationController.text = theAddress;
+        fromLocController.text = theAddress;
       });
     } catch (e) {
       showCupertinoDialog(
@@ -136,10 +136,10 @@ class _ChooseLocationState extends State<ChooseLocation> {
                     fromLat = detail.result.geometry.location.lat;
                     fromLong = detail.result.geometry.location.lng;
                   }).then((a) {
-                    myLocationController.text = p.description;
+                    fromLocController.text = p.description;
                   });
                 },
-                controller: myLocationController,
+                controller: fromLocController,
                 decoration: InputDecoration(
                     fillColor: Styles.commonDarkBackground,
                     filled: true,
@@ -192,10 +192,10 @@ class _ChooseLocationState extends State<ChooseLocation> {
                     toLat = detail.result.geometry.location.lat;
                     toLong = detail.result.geometry.location.lng;
                   }).then((a) {
-                    theirController.text = p.description;
+                    toLocController.text = p.description;
                   });
                 },
-                controller: theirController,
+                controller: toLocController,
                 decoration: InputDecoration(
                     fillColor: Styles.commonDarkBackground,
                     filled: true,
@@ -240,11 +240,13 @@ class _ChooseLocationState extends State<ChooseLocation> {
                 context,
                 CupertinoPageRoute(
                   builder: (context) => ModeSelector(
-                      fromLat: fromLat,
-                      fromLong: fromLong,
-                      toLat: toLat,
-                      toLong: toLong,
-                      currentAdd: myLocationController.text),
+                    fromLat: fromLat,
+                    fromLong: fromLong,
+                    toLat: toLat,
+                    toLong: toLong,
+                    from: fromLocController.text,
+                    to: toLocController.text,
+                  ),
                 ),
               );
             }),

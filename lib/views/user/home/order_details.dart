@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/models/task.dart';
@@ -28,7 +29,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                   Container(
                     width: MediaQuery.of(context).size.width * .70,
                     child: Text(
-                      "12, Koforidua Street, Wuse zone 2, Abuja.",
+                      widget.task.from,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                       style: TextStyle(fontSize: 16),
@@ -49,7 +50,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                   Container(
                     width: MediaQuery.of(context).size.width * .70,
                     child: Text(
-                      "12, Koforidua Street, Wuse zone 2, Abuja.",
+                      widget.task.to,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                       style: TextStyle(fontSize: 16),
@@ -58,7 +59,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                 ],
                 crossAxisAlignment: CrossAxisAlignment.start,
               ),
-              content: Text(" "),
+              content: SizedBox(),
             ),
           ],
           controlsBuilder: (BuildContext context,
@@ -100,7 +101,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    "Accepted",
+                    widget.task.status,
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
@@ -132,10 +133,21 @@ class _OrderDetailsState extends State<OrderDetails> {
                       children: <Widget>[
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(30),
-                              child: Image.asset("assets/images/person.png",
-                                  height: 70, width: 70)),
+                          child: CachedNetworkImage(
+                            imageUrl: widget.task.disImage ?? "--",
+                            height: 70,
+                            width: 70,
+                            placeholder: (context, url) => Image(
+                                image: AssetImage("assets/images/person.png"),
+                                height: 70,
+                                width: 70,
+                                fit: BoxFit.contain),
+                            errorWidget: (context, url, error) => Image(
+                                image: AssetImage("assets/images/person.png"),
+                                height: 70,
+                                width: 70,
+                                fit: BoxFit.contain),
+                          ),
                         ),
                         Expanded(
                           child: Padding(
@@ -144,13 +156,18 @@ class _OrderDetailsState extends State<OrderDetails> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  "Audu Daniel",
+                                  widget.task.disName ?? "--",
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500),
                                 ),
-                                Text("Dis Number"),
-                                Text("Dis Address"),
+                                Text(
+                                  widget.task.disNumber ?? "--",
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                // Text( widget.task.disImage ?? "--"),
                               ],
                             ),
                           ),
@@ -291,7 +308,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                               Text("Base Fare: ",
                                   style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("\₦ " + commaFormat.format((baseFare)),
+                              Text(" \₦ " + commaFormat.format((baseFare)),
                                   style: TextStyle(fontSize: 16))
                             ],
                           ),
@@ -303,7 +320,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                               Text("Distance charge: ",
                                   style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("\₦ " + commaFormat.format(perKiloCharge),
+                              Text(" \₦ " + commaFormat.format(perKiloCharge),
                                   style: TextStyle(fontSize: 16))
                             ],
                           ),
@@ -314,7 +331,21 @@ class _OrderDetailsState extends State<OrderDetails> {
                             children: <Widget>[
                               Text("Tax: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("\₦ " + commaFormat.format(tax),
+                              Text(" \₦ " + commaFormat.format(tax),
+                                  style: TextStyle(fontSize: 16))
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: <Widget>[
+                              Text("Others: ", style: TextStyle(fontSize: 16)),
+                              Expanded(child: Divider(thickness: 2)),
+                              Text(
+                                  " \₦ " +
+                                      commaFormat
+                                          .format(widget.task.amount - total),
                                   style: TextStyle(fontSize: 16))
                             ],
                           ),
@@ -325,7 +356,9 @@ class _OrderDetailsState extends State<OrderDetails> {
                             children: <Widget>[
                               Text("Total: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text("\₦ " + commaFormat.format(total),
+                              Text(
+                                  " \₦ " +
+                                      commaFormat.format(widget.task.amount),
                                   style: TextStyle(fontSize: 16))
                             ],
                           ),

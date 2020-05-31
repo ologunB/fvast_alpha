@@ -4,15 +4,14 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
 import 'package:fvastalpha/views/partials/widgets/text_field.dart';
-import 'package:fvastalpha/views/partials/widgets/toast.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:rave_flutter/rave_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
@@ -24,21 +23,32 @@ class ModeSelector extends StatefulWidget {
   final fromLong;
   final toLat;
   final toLong;
-  final currentAdd;
+  final from;
+  final to;
 
   const ModeSelector(
       {Key key,
       this.fromLat,
       this.fromLong,
+      this.to,
       this.toLat,
       this.toLong,
-      this.currentAdd})
+      this.from})
       : super(key: key);
   @override
   _ModeSelectorState createState() => _ModeSelectorState();
 }
 
+double balance = 0;
+
 class _ModeSelectorState extends State<ModeSelector> {
+
+  void getBalance() async {
+    DocumentSnapshot doc =
+        await Firestore.instance.collection('All').document(MY_UID).get();
+
+    balance = doc.data["Balance"];
+  }
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
 
@@ -182,6 +192,7 @@ class _ModeSelectorState extends State<ModeSelector> {
   void initState() {
     setPolylines();
     super.initState();
+    getBalance();
   }
 
   int distanceBtwn;
@@ -1128,19 +1139,15 @@ class _ModeSelectorState extends State<ModeSelector> {
       ..staging = false
       ..isPreAuth = true
       ..companyName = Text(
-        "FVast",
+        "FVast Payment",
         style: TextStyle(fontSize: 14),
       )
-      ..companyLogo =
-          Image.asset("assets/images/logo.png", height: 40, width: 40)
+      ..companyLogo = Image.asset("assets/images/logo.png")
       ..displayFee = true;
 
     RavePayManager()
         .prompt(context: context, initializer: initializer)
         .then((result) {
-      Toast.show("err", context,
-          gravity: Toast.TOP, duration: Toast.LENGTH_LONG);
-
       if (result.status == RaveStatus.success) {
         doAfterSuccess(result.message);
       } else if (result.status == RaveStatus.cancelled) {
@@ -1199,6 +1206,8 @@ class _ModeSelectorState extends State<ModeSelector> {
     mData.putIfAbsent("Pickup Instru", () => pickupInstruct.text);
     mData.putIfAbsent("Delivery Instru", () => deliInstruct.text);
     mData.putIfAbsent("Size", () => packageSize);
+    mData.putIfAbsent("fromAdd", () => widget.from);
+    mData.putIfAbsent("toAdd", () => widget.to);
     mData.putIfAbsent("Weight", () => packageWeight);
     mData.putIfAbsent("type", () => packageType);
     mData.putIfAbsent("distance", () => distanceBtwn);
@@ -1231,25 +1240,24 @@ class _ModeSelectorState extends State<ModeSelector> {
       });
       _handleSendNotification();
 
-      Navigator.pop(context);
-      Navigator.of(context).pushReplacement(
-        CupertinoPageRoute(
-          builder: (context) {
-            return NearbyCourier(
-              fromLong: widget.fromLong,
-              fromLat: widget.fromLat,
-              toLat: widget.toLat,
-              toLong: widget.toLong,
-              currentAdd: widget.currentAdd,
-            );
-          },
-        ),
-      );
+      Navigator.pushAndRemoveUntil(
+          context,
+          CupertinoPageRoute(
+              builder: (context) => NearbyCourier(
+                    fromLong: widget.fromLong,
+                    fromLat: widget.fromLat,
+                    toLat: widget.toLat,
+                    toLong: widget.toLong,
+                    currentAdd: widget.from,
+                  )),
+          (Route<dynamic> route) => false);
     });
   }
 
   bool isLoading = false;
   void doAfterSuccess(String serverData) async {
+    String orderID = "WAL" + DateTime.now().millisecondsSinceEpoch.toString();
+
     setState(() {
       isLoading = true;
     });
@@ -1257,6 +1265,9 @@ class _ModeSelectorState extends State<ModeSelector> {
     final Map<String, Object> data = Map();
     data.putIfAbsent("Amount", () => totalAmount);
     data.putIfAbsent("uid", () => MY_UID);
+    data.putIfAbsent("date", () => presentDateTime());
+    data.putIfAbsent("id", () => orderID);
+    data.putIfAbsent("type", () => "Deposit");
     data.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
 
     showCupertinoDialog(
@@ -1271,8 +1282,6 @@ class _ModeSelectorState extends State<ModeSelector> {
             content: CupertinoActivityIndicator(radius: 20),
           );
         });
-
-    String orderID = "WAL" + DateTime.now().millisecondsSinceEpoch.toString();
 
     Firestore.instance
         .collection("Utils")
