@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,6 +18,7 @@ import 'package:rave_flutter/rave_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
 import 'nearby_courier.dart';
+import 'package:http/http.dart' as http;
 
 class ModeSelector extends StatefulWidget {
   final fromLat;
@@ -35,6 +37,7 @@ class ModeSelector extends StatefulWidget {
       this.toLong,
       this.from})
       : super(key: key);
+
   @override
   _ModeSelectorState createState() => _ModeSelectorState();
 }
@@ -53,6 +56,7 @@ class _ModeSelectorState extends State<ModeSelector> {
   GoogleMapController mapController;
 
   final Set<Marker> _markers = {};
+
   static int calculateDistance(lat1, lon1, lat2, lon2) {
     var p = 0.017453292519943295;
     var c = cos;
@@ -210,6 +214,7 @@ class _ModeSelectorState extends State<ModeSelector> {
   }
 
   bool makeCouponClick = true;
+
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
@@ -463,7 +468,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                               ? Colors.blue[100]
                                               : Colors.grey[200],
                                           borderRadius:
-                                              BorderRadius.circular(30)),
+                                              BorderRadius.circular(30),),
                                       child: Icon(
                                         routeTypes[index].icon,
                                         color: routeType == index
@@ -800,6 +805,8 @@ class _ModeSelectorState extends State<ModeSelector> {
                         onPress: () {
                           if (paymentType == null) {
                             showCenterToast("Choose a payment type", context);
+                            _handleSendNotification();
+
                             return;
                           }
                           if (routeType == null) {
@@ -1119,6 +1126,7 @@ class _ModeSelectorState extends State<ModeSelector> {
   double sizeCharge = 0;
   double weightCharge = 0;
   double packageCharge = 0;
+
   processCardTransaction(context) async {
     var initializer = RavePayInitializer(
         amount: totalAmount,
@@ -1255,6 +1263,7 @@ class _ModeSelectorState extends State<ModeSelector> {
   }
 
   bool isLoading = false;
+
   void doAfterSuccess(String serverData) async {
     String orderID = "WAL" + DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -1295,6 +1304,43 @@ class _ModeSelectorState extends State<ModeSelector> {
   }
 
   void _handleSendNotification() async {
+    String url = "https://onesignal.com/api/v1/notifications";
+
+    var client = http.Client();
+
+    var headers = {
+      "Content-Type": "application/json; charset=utf-8",
+      "Authorization": "Basic YTZlNmY2MWItMmEzMi00ZWI0LTk4MjQtYzc4NjUxMGE5OWQ5"
+    };
+
+    var body = {
+      "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
+      "filters": [
+        {"field": "tag", "key": "status", "relation": "=", "value": "online"}/*,
+        {"operator": "OR"},
+        {"field": "amount_spent", "relation": ">", "value": "0"}*/
+      ],
+      "contents": {"en": "Content of Message"},
+      "headings": {"en": "Header of Message"}
+    };
+    await client.post(url, headers: headers, body: jsonEncode(body)).then((value) => (res) {
+          String body = res.body;
+          print(body);
+          int code = jsonDecode(body)["statusCode"];
+          print(code);
+    });
+
+/*   header = {"Content-Type": "application/json; charset=utf-8",
+      "Authorization": "Basic NGEwMGZmMjItY2NkNy0xMWUzLTk5ZDUtMDAwYzI5NDBlNjJj"}
+
+    payload = {"app_id": "5eb5a37e-b458-11e3-ac11-000c2940e62c",
+      "filters": [
+        {"field": "tag", "key": "level", "relation": "=", "value": "10"},
+        {"operator": "OR"}, {"field": "amount_spent", "relation": ">", "value": "0"}
+      ],
+      "contents": {"en": "English Message"}}
+
+
     var status = await OneSignal.shared.getPermissionSubscriptionState();
 
     var playerId = status.subscriptionStatus.userId;
@@ -1303,8 +1349,9 @@ class _ModeSelectorState extends State<ModeSelector> {
     var imgUrlString =
         "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
 
+    var id = "76652917-a8df-494d-a334-109ef0e686ea";
     var notification = OSCreateNotification(
-        playerIds: ["76652917-a8df-494d-a334-109ef0e686ea"],
+        playerIds: [id],
         content: "You just booked for an order, Searching Dispatchers around",
         heading: "Searching Dispatchers",
         iosAttachments: {"id1": imgUrlString},
@@ -1318,6 +1365,6 @@ class _ModeSelectorState extends State<ModeSelector> {
 
     this.setState(() {
       //  _debugLabelString = "Sent notification with response: $response";
-    });
+    });*/
   }
 }

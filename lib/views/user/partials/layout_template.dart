@@ -165,6 +165,11 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
 
     // Some examples of how to use Outcome Events public methods with OneSignal SDK
     // oneSignalOutcomeEventsExamples();
+    OneSignal.shared.sendTag("status", "online").then((response) {
+      print("Successfully sent tags with response: $response");
+    }).catchError((error) {
+      print("Encountered an error sending tags: $error");
+    });
   }
 
   oneSignalInAppMessagingTriggerExamples() async {

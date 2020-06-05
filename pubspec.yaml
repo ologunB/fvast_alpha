@@ -3,7 +3,7 @@ description: A new Flutter application.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -16,15 +16,15 @@ dev_dependencies:
     sdk: flutter
   shared_preferences:
   flutter_polyline_points: ^0.1.0
-  image_picker:  #DONE TODO configure for iOS later
-  google_maps_flutter:   #DONE TODO configure for iOS later
-  google_maps_webservice:   #DONE TODO configure for iOS later
+  image_picker:  # TODO configure for iOS
+  google_maps_flutter:   # TODO configure for iOS
+  google_maps_webservice:   # TODO configure for iOS
   firebase_storage:
   firebase_core: ^0.4.0+9
   firebase_auth: ^0.14.0+5
   cloud_firestore:
-  rave_flutter:   #DONE TODO configure the iOS version later
-  geolocator:  #DONE TODO configure the iOS version later
+  rave_flutter:   # TODO configure the iOS version
+  geolocator:  # TODO configure the iOS version
   geocoder: ^0.2.1
   flutter_google_places: ^0.2.5
   intl:
@@ -36,6 +36,7 @@ dev_dependencies:
   onesignal_flutter:
   url_launcher:
   cached_network_image:
+  http:
 
 flutter:
 
