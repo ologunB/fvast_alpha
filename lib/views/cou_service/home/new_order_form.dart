@@ -5,6 +5,10 @@ import 'package:fvastalpha/views/cou_service/home/task_detail.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 
 class NewTaskRequest extends StatefulWidget {
+  final String cusUid, transId;
+
+  const NewTaskRequest({Key key, this.cusUid, this.transId}) : super(key: key);
+
   @override
   _NewTaskRequestState createState() => _NewTaskRequestState();
 }

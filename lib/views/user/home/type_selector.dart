@@ -464,11 +464,11 @@ class _ModeSelectorState extends State<ModeSelector> {
                                       height: 60,
                                       width: 60,
                                       decoration: BoxDecoration(
-                                          color: routeType == index
-                                              ? Colors.blue[100]
-                                              : Colors.grey[200],
-                                          borderRadius:
-                                              BorderRadius.circular(30),),
+                                        color: routeType == index
+                                            ? Colors.blue[100]
+                                            : Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
                                       child: Icon(
                                         routeTypes[index].icon,
                                         color: routeType == index
@@ -805,11 +805,8 @@ class _ModeSelectorState extends State<ModeSelector> {
                         onPress: () {
                           if (paymentType == null) {
                             showCenterToast("Choose a payment type", context);
-                            _handleSendNotification();
-
                             return;
-                          }
-                          if (routeType == null) {
+                          } else if (routeType == null) {
                             showCenterToast("Choose the Route Type", context);
                             return;
                           }
@@ -1194,7 +1191,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     });
   }
 
-  compileTransaction(context) {
+  compileTransaction(context) async {
     String orderID = "ORD" + DateTime.now().millisecondsSinceEpoch.toString();
     Map<String, Object> mData = Map();
     mData.putIfAbsent("Name", () => MY_NAME);
@@ -1236,30 +1233,30 @@ class _ModeSelectorState extends State<ModeSelector> {
           );
         });
 
-    Firestore.instance
+    DocumentReference docRef = await Firestore.instance
         .collection("Orders")
         .document("Pending")
         .collection(MY_UID)
-        .document(orderID)
-        .setData(mData)
-        .then((a) {
-      setState(() {
-        isLoading = true;
-      });
-      _handleSendNotification();
+        .document(orderID);
 
-      Navigator.pushAndRemoveUntil(
-          context,
-          CupertinoPageRoute(
-              builder: (context) => NearbyCourier(
-                    fromLong: widget.fromLong,
-                    fromLat: widget.fromLat,
-                    toLat: widget.toLat,
-                    toLong: widget.toLong,
-                    currentAdd: widget.from,
-                  )),
-          (Route<dynamic> route) => false);
-    });
+    docRef.setData(mData).then((value) => () {
+          setState(() {
+            isLoading = true;
+          });
+          _handleSendNotification(docRef.documentID);
+
+          Navigator.pushAndRemoveUntil(
+              context,
+              CupertinoPageRoute(
+                  builder: (context) => NearbyCourier(
+                        fromLong: widget.fromLong,
+                        fromLat: widget.fromLat,
+                        toLat: widget.toLat,
+                        toLong: widget.toLong,
+                        currentAdd: widget.from,
+                      )),
+              (Route<dynamic> route) => false);
+        });
   }
 
   bool isLoading = false;
@@ -1303,8 +1300,10 @@ class _ModeSelectorState extends State<ModeSelector> {
     });
   }
 
-  void _handleSendNotification() async {
+  void _handleSendNotification(String id) async {
     String url = "https://onesignal.com/api/v1/notifications";
+    var imgUrlString =
+        "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
 
     var client = http.Client();
 
@@ -1316,18 +1315,38 @@ class _ModeSelectorState extends State<ModeSelector> {
     var body = {
       "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
       "filters": [
-        {"field": "tag", "key": "status", "relation": "=", "value": "online"}/*,
+        {
+          "field": "tag",
+          "key": "status",
+          "relation": "=",
+          "value": "online"
+        } /*,
         {"operator": "OR"},
         {"field": "amount_spent", "relation": ">", "value": "0"}*/
       ],
-      "contents": {"en": "Content of Message"},
-      "headings": {"en": "Header of Message"}
+      "headings": {"en": "Searching Dispatchers around"},
+      "contents": {"en": "You just booked for a task"},
+      "data": {
+        "cus_uid": MY_UID,
+        "trans_id": id,
+      },
+      "android_background_layout": {
+        "image": imgUrlString,
+        "headings_color": "ff000000",
+        "contents_color": "ff0000FF"
+      }
     };
-    await client.post(url, headers: headers, body: jsonEncode(body)).then((value) => (res) {
-          String body = res.body;
-          print(body);
-          int code = jsonDecode(body)["statusCode"];
-          print(code);
+    await client
+        .post(url, headers: headers, body: jsonEncode(body))
+        .then((value) => (res) {
+              String body = res.body;
+              //  print(body);
+              int code = jsonDecode(body)["statusCode"];
+              //print(code);
+            })
+        .catchError((a) {
+      print(a.toString());
+      showCenterToast("Error: " + a.toString(), context);
     });
 
 /*   header = {"Content-Type": "application/json; charset=utf-8",

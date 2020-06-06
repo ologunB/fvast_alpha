@@ -18,46 +18,11 @@ class DispatchHomeView extends StatefulWidget {
 class _HomeMapState extends State<DispatchHomeView> {
   GoogleMapController mapController;
   List<Marker> markers = <Marker>[];
-  Position currentLocation;
 
   LatLng _center = const LatLng(7.3034138, 5.143012800000008);
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getUserLocation();
-
-    Future.delayed(Duration(seconds: 2)).then((a) {
-      Navigator.push(
-          context, CupertinoPageRoute(builder: (context) => NewTaskRequest()));
-    });
-  }
-
-  Future<Position> locateUser() async {
-    return Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  }
-
-  getUserLocation() async {
-    List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
-        currentLocation.latitude, currentLocation.longitude);
-
-    setState(() {
-      markers.add(
-        Marker(
-          markerId: MarkerId("Current Location"),
-          position: LatLng(currentLocation.latitude, currentLocation.longitude),
-          infoWindow: InfoWindow(title: "", snippet: placeMark[0].name),
-          icon: BitmapDescriptor.defaultMarkerWithHue(120.0),
-          onTap: () {},
-        ),
-      );
-      _center = LatLng(currentLocation.latitude, currentLocation.longitude);
-    });
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();

@@ -1,12 +1,16 @@
+import 'dart:convert';
+
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/cou_service/home/dis_home_view.dart';
+import 'package:fvastalpha/views/cou_service/home/new_order_form.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class DisLayoutTemplate extends StatefulWidget {
   @override
@@ -17,6 +21,7 @@ final GlobalKey<ScaffoldState> disMainScaffoldKey = GlobalKey<ScaffoldState>();
 
 class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
   Future afterLogout() async {
     final SharedPreferences prefs = await _prefs;
 
@@ -51,6 +56,140 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
   Future<String> uid, name, phone, email, type, image;
   bool isActive = false;
 
+  String _debugLabelString = "";
+
+  bool _requireConsent = true;
+
+  Future<void> initPlatformState() async {
+    if (!mounted) return;
+
+    //   OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+
+    OneSignal.shared.setRequiresUserPrivacyConsent(_requireConsent);
+
+    var settings = {
+      OSiOSSettings.autoPrompt: false,
+      OSiOSSettings.promptBeforeOpeningPushUrl: true
+    };
+
+    OneSignal.shared
+        .setNotificationReceivedHandler((OSNotification notification) {
+      print("starting here");
+      print(jsonDecode(notification.payload.rawPayload["custom"])["a"]
+          ["cus_uid"]);
+
+      print(jsonDecode(notification.payload.rawPayload["custom"])["a"]
+          ["trans_id"]);
+
+      String uid =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]["cus_uid"];
+      String id = jsonDecode(notification.payload.rawPayload["custom"])["a"]
+          ["trans_id"];
+      setState(() {
+        if (notification.appInFocus) {
+          Future.delayed(Duration(milliseconds: 100)).then((a) {
+            Navigator.push(
+                context,
+                CupertinoPageRoute(
+                    builder: (context) =>
+                        NewTaskRequest(cusUid: uid, transId: id)));
+          });
+        } else {
+          Future.delayed(Duration(milliseconds: 100)).then((a) {
+            Navigator.push(
+                context,
+                CupertinoPageRoute(
+                    builder: (context) =>
+                        NewTaskRequest(cusUid: uid, transId: id)));
+          });
+        }
+      });
+    });
+
+    OneSignal.shared
+        .setNotificationOpenedHandler((OSNotificationOpenedResult result) {
+      String uid =
+          jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
+              ["cus_uid"];
+      String id =
+          jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
+              ["trans_id"];
+
+      Future.delayed(Duration(milliseconds: 100)).then((a) {
+        Navigator.push(
+            context,
+            CupertinoPageRoute(
+                builder: (context) =>
+                    NewTaskRequest(cusUid: uid, transId: id)));
+      });
+    });
+
+    OneSignal.shared
+        .setInAppMessageClickedHandler((OSInAppMessageAction action) {
+      this.setState(() {
+        _debugLabelString =
+            "In App Message Clicked: \n${action.jsonRepresentation().replaceAll("\\n", "\n")}";
+      });
+    });
+
+    OneSignal.shared
+        .setSubscriptionObserver((OSSubscriptionStateChanges changes) {
+      print("SUBSCRIPTION STATE CHANGED: ${changes.jsonRepresentation()}");
+    });
+
+    OneSignal.shared.setPermissionObserver((OSPermissionStateChanges changes) {
+      print("PERMISSION STATE CHANGED: ${changes.jsonRepresentation()}");
+    });
+
+    OneSignal.shared.setEmailSubscriptionObserver(
+        (OSEmailSubscriptionStateChanges changes) {
+      print("EMAIL SUBSCRIPTION STATE CHANGED ${changes.jsonRepresentation()}");
+    });
+
+    // NOTE: Replace with your own app ID from https://www.onesignal.com
+    await OneSignal.shared.init(oneSignalKey, iOSSettings: settings);
+
+    OneSignal.shared
+        .setInFocusDisplayType(OSNotificationDisplayType.notification);
+
+    OneSignal.shared.consentGranted(true);
+    OneSignal.shared.setLocationShared(true);
+    _handleSetExternalUserId();
+
+    // Some examples of how to use In App Messaging public methods with OneSignal SDK
+    // oneSignalInAppMessagingTriggerExamples();
+
+    // Some examples of how to use Outcome Events public methods with OneSignal SDK
+    //   oneSignalOutcomeEventsExamples();
+    OneSignal.shared.sendTag("status", "online").then((response) {
+      print("Successfully sent tags with response: $response");
+    }).catchError((error) {
+      print("Encountered an error sending tags: $error");
+    });
+  }
+
+  void _handleSetExternalUserId() {
+    print("Setting external user ID");
+    String _externalUserId = MY_UID;
+    OneSignal.shared.setExternalUserId(_externalUserId).then((results) {
+      if (results == null) return;
+
+      this.setState(() {
+        _debugLabelString = "External user id set: $results";
+      });
+    });
+  }
+
+  void _handleRemoveExternalUserId() {
+    OneSignal.shared.removeExternalUserId().then((results) {
+      if (results == null) return;
+
+      this.setState(() {
+        _debugLabelString = "External user id removed: $results";
+      });
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +213,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
       return (prefs.getString('image') ?? "uid");
     });
     assign();
+    initPlatformState();
   }
 
   void assign() async {
