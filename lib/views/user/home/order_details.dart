@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:fvastalpha/models/task.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 
+import 'home_view.dart';
+
 class OrderDetails extends StatefulWidget {
   final Task task;
 
@@ -29,7 +31,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                   Container(
                     width: MediaQuery.of(context).size.width * .70,
                     child: Text(
-                      widget.task.from,
+                      widget.task.from + " - " + todo1(widget.task.status),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                       style: TextStyle(fontSize: 16),
@@ -44,13 +46,13 @@ class _OrderDetailsState extends State<OrderDetails> {
               title: Column(
                 children: <Widget>[
                   Text(
-                    widget.task.endDate ?? "--",
+                    widget.task.acceptedDate ?? "--",
                     style: TextStyle(color: Colors.grey),
                   ),
                   Container(
                     width: MediaQuery.of(context).size.width * .70,
                     child: Text(
-                      widget.task.to,
+                      widget.task.to + " - " + todo2(widget.task.status),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                       style: TextStyle(fontSize: 16),
@@ -101,7 +103,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    widget.task.status,
+                    todoNext(widget.task.status),
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
@@ -134,7 +137,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: CachedNetworkImage(
-                            imageUrl: widget.task.disImage ?? "--",
+                            imageUrl: widget.task.disImage ?? "img",
                             height: 70,
                             width: 70,
                             placeholder: (context, url) => Image(

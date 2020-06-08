@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,7 +14,6 @@ import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
 import 'choose_location.dart';
 import 'order_details.dart';
-import 'package:http/http.dart' as http;
 
 class HomeView extends StatefulWidget {
   HomeView({@required Key key}) : super(key: key);
@@ -121,14 +119,14 @@ class _HomeMapState extends State<HomeView> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget taskItem({context, Task task}) {
-    var color = Colors.blue[200];
-    if (task.status == "Accepted") {
-      color = Colors.green[200];
-    }
     return GestureDetector(
       onTap: () {
         Navigator.push(
-            context, CupertinoPageRoute(builder: (context) => OrderDetails()));
+            context,
+            CupertinoPageRoute(
+                builder: (context) => OrderDetails(
+                      task: task,
+                    )));
       },
       child: Column(
         children: <Widget>[
@@ -153,13 +151,13 @@ class _HomeMapState extends State<HomeView> {
                     ),
                     Container(
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5), color: color),
+                          borderRadius: BorderRadius.circular(5),
+                          color: widgetColor),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          "  Task ${task.status}",
-                          style: TextStyle(fontSize: 16),
-                        ),
+                        child: Text(todoNext(task.status),
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 16)),
                       ),
                     )
                   ],
@@ -169,10 +167,6 @@ class _HomeMapState extends State<HomeView> {
                   child: Stepper(
                       physics: ClampingScrollPhysics(),
                       onStepTapped: (a) {
-                        /*     Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (context) => OrderCompletedPage()));*/
                         Navigator.push(
                             context,
                             CupertinoPageRoute(
@@ -192,7 +186,7 @@ class _HomeMapState extends State<HomeView> {
                                   width:
                                       MediaQuery.of(context).size.width * .70,
                                   child: Text(
-                                    task.from,
+                                    task.from + " - " + todo1(task.status),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 2,
                                     style: TextStyle(fontSize: 16),
@@ -206,13 +200,13 @@ class _HomeMapState extends State<HomeView> {
                           title: Column(
                             children: <Widget>[
                               Text(
-                                task.endDate,
+                                task.acceptedDate,
                                 style: TextStyle(color: Colors.grey),
                               ),
                               Container(
                                 width: MediaQuery.of(context).size.width * .70,
                                 child: Text(
-                                  task.to,
+                                  task.to + " - " + todo2(task.status),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 2,
                                   style: TextStyle(fontSize: 16),
@@ -467,7 +461,7 @@ class _HomeMapState extends State<HomeView> {
                             ),
                             child: FlatButton(
                               onPressed: () {
-                                     Navigator.push(
+                                Navigator.push(
                                     context,
                                     CupertinoPageRoute(
                                         builder: (context) =>
@@ -496,7 +490,7 @@ class _HomeMapState extends State<HomeView> {
                           ),
                         ),
                       ),
-                     ],
+                    ],
                   ),
                 ),
               ],
@@ -506,123 +500,46 @@ class _HomeMapState extends State<HomeView> {
       ),
     ));
   }
-
-  void _handleSendNotification(String id) async {
-    String url = "https://onesignal.com/api/v1/notifications";
-    var imgUrlString =
-        "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
-
-    var client = http.Client();
-
-    var headers = {
-      "Content-Type": "application/json; charset=utf-8",
-      "Authorization": "Basic YTZlNmY2MWItMmEzMi00ZWI0LTk4MjQtYzc4NjUxMGE5OWQ5"
-    };
-
-    var body = {
-      "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
-      "filters": [
-        {
-          "field": "tag",
-          "key": "status",
-          "relation": "=",
-          "value": "online"
-        } /*,
-        {"operator": "OR"},
-        {"field": "amount_spent", "relation": ">", "value": "0"}*/
-      ],
-      "headings": {"en": "Searching Dispatchers around"},
-      "contents": {"en": "You just booked for a task"},
-      "data": {
-        "cus_uid": MY_UID,
-        "trans_id": id,
-      },
-      "android_background_layout": {
-        "image": imgUrlString,
-        "headings_color": "ff000000",
-        "contents_color": "ff0000FF"
-      }
-    };
-    await client
-        .post(url, headers: headers, body: jsonEncode(body))
-        .then((value) => (res) {
-              String body = res.body;
-              //  print(body);
-              int code = jsonDecode(body)["statusCode"];
-              //print(code);
-            })
-        .catchError((a) {
-      print(a.toString());
-      showCenterToast("Error: " + a.toString(), context);
-    });
-    client.close();
-
-/*   header = {"Content-Type": "application/json; charset=utf-8",
-      "Authorization": "Basic NGEwMGZmMjItY2NkNy0xMWUzLTk5ZDUtMDAwYzI5NDBlNjJj"}
-
-    payload = {"app_id": "5eb5a37e-b458-11e3-ac11-000c2940e62c",
-      "filters": [
-        {"field": "tag", "key": "level", "relation": "=", "value": "10"},
-        {"operator": "OR"}, {"field": "amount_spent", "relation": ">", "value": "0"}
-      ],
-      "contents": {"en": "English Message"}}
-
-
-    var status = await OneSignal.shared.getPermissionSubscriptionState();
-
-    var playerId = status.subscriptionStatus.userId;
-    //var playerId = MY_UID;
-
-    var imgUrlString =
-        "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
-
-    var id = "76652917-a8df-494d-a334-109ef0e686ea";
-    var notification = OSCreateNotification(
-        playerIds: [id],
-        content: "You just booked for an order, Searching Dispatchers around",
-        heading: "Searching Dispatchers",
-        iosAttachments: {"id1": imgUrlString},
-        bigPicture: imgUrlString,
-        buttons: [
-          OSActionButton(text: "OK", id: "id1"),
-          // OSActionButton(text: "test2", id: "id2")
-        ]);
-
-    await OneSignal.shared.postNotification(notification);
-
-    this.setState(() {
-      //  _debugLabelString = "Sent notification with response: $response";
-    });*/
-  }
 }
 
+var widgetColor = Colors.blue[200];
 
+String todoNext(status) {
+  String todo = "";
 
-var data = {
-  "payload": {
-    "google.delivered_priority": "normal",
-    "google.sent_time": 1591454068581,
-    "google.ttl": 259200,
-    "google.original_priority": "normal",
-    "bg_img": {
-      "bc": "ff0000FF",
-      "img":
-          "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8",
-      "tc": "ff000000"
-    },
-    "custom": {
-      "a": {"cus_uid": "Yzx0RnhWBMWhQiibh3I0cS8G43f2", "trans_id": "bsshhs"},
-      "i": "34f777d3-17fc-4d3a-97ae-7de82a683f8a"
-    },
-    "from": "691882460257",
-    "alert": "You just booked for a task",
-    "title": "Searching Dispatchers around",
-    "google.message_id": "0:1591454068584321%4acd3053f9fd7ecd",
-    "google.c.sender.id": "691882460257",
-    "notificationId": 2136058561
-  },
-  "displayType": 2,
-  "shown": true,
-  "appInFocus": true,
-  "silent": null
-};
+  if (status == "Accepted") {
+    todo = "Task Accepted";
+    widgetColor = Colors.lightBlueAccent[200];
+  } else if (status == "Start Arrival") {
+    todo = "Arrival Started";
+    widgetColor = Colors.greenAccent[200];
+  } else if (status == "Arrived") {
+    todo = "Dispatcher Present";
+    widgetColor = Colors.lightBlueAccent[200];
+  } else if (status == "Start Delivery") {
+    todo = "Delivery Task Started";
+  } else if (status == "Complete Delivery Task") {
+    widgetColor = Colors.greenAccent[200];
+
+    todo = "Completed";
+  }
+  return todo;
+}
+
+String todo1(status) {
+  String fromStatus = "Pending";
+
+  if (status == "Start Arrival") {
+    fromStatus = "Completed";
+  }
+  return fromStatus;
+}
+
+String todo2(status) {
+  String toStatus = "Pending";
+
+  if (status == "Start Arrival") {
+    toStatus = "Completed";
+  }
+  return toStatus;
+}

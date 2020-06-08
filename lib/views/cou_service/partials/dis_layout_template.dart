@@ -42,7 +42,6 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     switch (pos) {
       case 0:
         return DispatchHomeView();
-
       default:
         return new Text("Error");
     }
@@ -74,13 +73,6 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
 
     OneSignal.shared
         .setNotificationReceivedHandler((OSNotification notification) {
-      print("starting here");
-      print(jsonDecode(notification.payload.rawPayload["custom"])["a"]
-          ["cus_uid"]);
-
-      print(jsonDecode(notification.payload.rawPayload["custom"])["a"]
-          ["trans_id"]);
-
       String uid =
           jsonDecode(notification.payload.rawPayload["custom"])["a"]["cus_uid"];
       String id = jsonDecode(notification.payload.rawPayload["custom"])["a"]
@@ -161,11 +153,6 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
 
     // Some examples of how to use Outcome Events public methods with OneSignal SDK
     //   oneSignalOutcomeEventsExamples();
-    OneSignal.shared.sendTag("status", "online").then((response) {
-      print("Successfully sent tags with response: $response");
-    }).catchError((error) {
-      print("Encountered an error sending tags: $error");
-    });
   }
 
   void _handleSetExternalUserId() {
@@ -225,6 +212,25 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     MY_IMAGE = await image;
     setState(() {});
   }
+
+  addTags(){
+    OneSignal.shared.sendTag("dispatcher", "online").then((response) {
+      print("Successfully sent tags with response: $response");
+      showCenterToast("You are online", context);
+    }).catchError((error) {
+      print("Encountered an error sending tags: $error");
+    });
+  }
+  removeTags(){
+    OneSignal.shared.deleteTag("dispatcher").then((response) {
+      print("Successfully deleted tag with response: $response");
+      showCenterToast("You are offline", context);
+
+    }).catchError((error) {
+      print("Encountered an error sending tags: $error");
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -319,8 +325,14 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
                           Switch(
                               value: isActive,
                               onChanged: (a) {
+                                if(a == true){
+                                  addTags();
+                                }else{
+                                  removeTags();
+                                }
                                 isActive = a;
                                 setState(() {});
+
                               })
                         ],
                       ),

@@ -853,34 +853,6 @@ class _ModeSelectorState extends State<ModeSelector> {
                                   padding: const EdgeInsets.all(18.0),
                                   child: ListView(
                                     children: <Widget>[
-                                      Text("Deliver To*",
-                                          style: TextStyle(fontSize: 18)),
-                                      CustomTextField(
-                                        controller: receiversName,
-                                        inputType: TextInputType.text,
-                                        text: "Receiver's Name*",
-                                      ),
-                                      SizedBox(height: 8),
-                                      CustomTextField(
-                                        controller: receiversNumber,
-                                        inputType: TextInputType.number,
-                                        text: "Receiver's Number*",
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text("Instructions",
-                                          style: TextStyle(fontSize: 18)),
-                                      CustomTextField(
-                                        controller: pickupInstruct,
-                                        inputType: TextInputType.text,
-                                        text: "Pickup Instructions",
-                                      ),
-                                      SizedBox(height: 8),
-                                      CustomTextField(
-                                        controller: deliInstruct,
-                                        inputType: TextInputType.text,
-                                        text: "Delivery Instructions",
-                                      ),
-                                      SizedBox(height: 8),
                                       Text("Package Details*",
                                           style: TextStyle(fontSize: 18)),
                                       Container(
@@ -1048,6 +1020,34 @@ class _ModeSelectorState extends State<ModeSelector> {
                                         ),
                                       ),
                                       SizedBox(height: 8),
+                                      Text("Deliver To*",
+                                          style: TextStyle(fontSize: 18)),
+                                      CustomTextField(
+                                        controller: receiversName,
+                                        inputType: TextInputType.text,
+                                        text: "Receiver's Name*",
+                                      ),
+                                      SizedBox(height: 8),
+                                      CustomTextField(
+                                        controller: receiversNumber,
+                                        inputType: TextInputType.number,
+                                        text: "Receiver's Number*",
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text("Instructions",
+                                          style: TextStyle(fontSize: 18)),
+                                      CustomTextField(
+                                        controller: pickupInstruct,
+                                        inputType: TextInputType.text,
+                                        text: "Pickup Instructions",
+                                      ),
+                                      SizedBox(height: 8),
+                                      CustomTextField(
+                                        controller: deliInstruct,
+                                        inputType: TextInputType.text,
+                                        text: "Delivery Instructions",
+                                      ),
+                                      SizedBox(height: 8),
                                       CustomButton(
                                           title: "CONFIRM",
                                           onPress: () {
@@ -1199,6 +1199,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     mData.putIfAbsent("endDate", () => "--");
     mData.putIfAbsent("Amount", () => totalAmount);
     mData.putIfAbsent("userUid", () => MY_UID);
+    mData.putIfAbsent("userPhone", () => MY_NUMBER);
     mData.putIfAbsent("fromLat", () => widget.fromLat);
     mData.putIfAbsent("fromLong", () => widget.fromLong);
     mData.putIfAbsent("toLat", () => widget.toLat);
@@ -1215,6 +1216,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     mData.putIfAbsent("toAdd", () => widget.to);
     mData.putIfAbsent("Weight", () => packageWeight);
     mData.putIfAbsent("type", () => packageType);
+    mData.putIfAbsent("assigned", () => false);
     mData.putIfAbsent("distance", () => distanceBtwn);
     mData.putIfAbsent("status", () => "Pending");
     mData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
@@ -1239,24 +1241,24 @@ class _ModeSelectorState extends State<ModeSelector> {
         .collection(MY_UID)
         .document(orderID);
 
-    docRef.setData(mData).then((value) => () {
-          setState(() {
-            isLoading = true;
-          });
-          _handleSendNotification(docRef.documentID);
-
-          Navigator.pushAndRemoveUntil(
+    docRef.setData(mData).then((value) {
+      setState(() {
+        isLoading = true;
+      });
+      _handleSendNotification(docRef.documentID)
+          .then((value) => Navigator.pushAndRemoveUntil(
               context,
               CupertinoPageRoute(
-                  builder: (context) => NearbyCourier(
-                        fromLong: widget.fromLong,
-                        fromLat: widget.fromLat,
-                        toLat: widget.toLat,
-                        toLong: widget.toLong,
-                        currentAdd: widget.from,
-                      )),
-              (Route<dynamic> route) => false);
-        });
+                builder: (context) => NearbyCourier(
+                  fromLong: widget.fromLong,
+                  fromLat: widget.fromLat,
+                  toLat: widget.toLat,
+                  toLong: widget.toLong,
+                  currentAdd: widget.from,
+                ),
+              ),
+              (Route<dynamic> route) => false));
+    });
   }
 
   bool isLoading = false;
@@ -1300,7 +1302,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     });
   }
 
-  void _handleSendNotification(String id) async {
+  Future _handleSendNotification(String id) async {
     String url = "https://onesignal.com/api/v1/notifications";
     var imgUrlString =
         "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
@@ -1317,15 +1319,15 @@ class _ModeSelectorState extends State<ModeSelector> {
       "filters": [
         {
           "field": "tag",
-          "key": "status",
+          "key": "dispatcher",
           "relation": "=",
           "value": "online"
         } /*,
         {"operator": "OR"},
         {"field": "amount_spent", "relation": ">", "value": "0"}*/
       ],
-      "headings": {"en": "Searching Dispatchers around"},
-      "contents": {"en": "You just booked for a task"},
+      "headings": {"en": "New task available at"},
+      "contents": {"en": widget.from},
       "data": {
         "cus_uid": MY_UID,
         "trans_id": id,
@@ -1348,42 +1350,5 @@ class _ModeSelectorState extends State<ModeSelector> {
       print(a.toString());
       showCenterToast("Error: " + a.toString(), context);
     });
-
-/*   header = {"Content-Type": "application/json; charset=utf-8",
-      "Authorization": "Basic NGEwMGZmMjItY2NkNy0xMWUzLTk5ZDUtMDAwYzI5NDBlNjJj"}
-
-    payload = {"app_id": "5eb5a37e-b458-11e3-ac11-000c2940e62c",
-      "filters": [
-        {"field": "tag", "key": "level", "relation": "=", "value": "10"},
-        {"operator": "OR"}, {"field": "amount_spent", "relation": ">", "value": "0"}
-      ],
-      "contents": {"en": "English Message"}}
-
-
-    var status = await OneSignal.shared.getPermissionSubscriptionState();
-
-    var playerId = status.subscriptionStatus.userId;
-    //var playerId = MY_UID;
-
-    var imgUrlString =
-        "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
-
-    var id = "76652917-a8df-494d-a334-109ef0e686ea";
-    var notification = OSCreateNotification(
-        playerIds: [id],
-        content: "You just booked for an order, Searching Dispatchers around",
-        heading: "Searching Dispatchers",
-        iosAttachments: {"id1": imgUrlString},
-        bigPicture: imgUrlString,
-        buttons: [
-          OSActionButton(text: "OK", id: "id1"),
-          // OSActionButton(text: "test2", id: "id2")
-        ]);
-
-    await OneSignal.shared.postNotification(notification);
-
-    this.setState(() {
-      //  _debugLabelString = "Sent notification with response: $response";
-    });*/
   }
 }
