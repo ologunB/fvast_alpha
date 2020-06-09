@@ -34,6 +34,9 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
       prefs.remove("phone");
       prefs.remove("image");
     });
+
+    _handleRemoveExternalUserId();
+    removeTags();
   }
 
   int _selectedDrawerIndex = 0;
@@ -77,6 +80,14 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
           jsonDecode(notification.payload.rawPayload["custom"])["a"]["cus_uid"];
       String id = jsonDecode(notification.payload.rawPayload["custom"])["a"]
           ["trans_id"];
+
+      String from =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]["from"];
+      String fromTime =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]
+              ["fromTime"];
+      String to =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]["to"];
       setState(() {
         if (notification.appInFocus) {
           Future.delayed(Duration(milliseconds: 100)).then((a) {
@@ -84,7 +95,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
                 context,
                 CupertinoPageRoute(
                     builder: (context) =>
-                        NewTaskRequest(cusUid: uid, transId: id)));
+                        NewTaskRequest(cusUid: uid, transId: id, from: from, fromTime: fromTime, to: to)));
           });
         } else {
           Future.delayed(Duration(milliseconds: 100)).then((a) {
@@ -92,7 +103,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
                 context,
                 CupertinoPageRoute(
                     builder: (context) =>
-                        NewTaskRequest(cusUid: uid, transId: id)));
+                        NewTaskRequest(cusUid: uid, transId: id, from: from, fromTime: fromTime, to: to)));
           });
         }
       });
@@ -107,12 +118,19 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
           jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
               ["trans_id"];
 
+      String from =
+      jsonDecode(result.notification.payload.rawPayload["custom"])["a"]["from"];
+      String fromTime =
+      jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
+      ["fromTime"];
+      String to =
+      jsonDecode(result.notification.payload.rawPayload["custom"])["a"]["to"];
       Future.delayed(Duration(milliseconds: 100)).then((a) {
         Navigator.push(
             context,
             CupertinoPageRoute(
                 builder: (context) =>
-                    NewTaskRequest(cusUid: uid, transId: id)));
+                    NewTaskRequest(cusUid: uid, transId: id, from: from, fromTime: fromTime, to: to)));
       });
     });
 
@@ -213,7 +231,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     setState(() {});
   }
 
-  addTags(){
+  addTags() {
     OneSignal.shared.sendTag("dispatcher", "online").then((response) {
       print("Successfully sent tags with response: $response");
       showCenterToast("You are online", context);
@@ -221,16 +239,15 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
       print("Encountered an error sending tags: $error");
     });
   }
-  removeTags(){
+
+  removeTags() {
     OneSignal.shared.deleteTag("dispatcher").then((response) {
       print("Successfully deleted tag with response: $response");
       showCenterToast("You are offline", context);
-
     }).catchError((error) {
       print("Encountered an error sending tags: $error");
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -325,14 +342,13 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
                           Switch(
                               value: isActive,
                               onChanged: (a) {
-                                if(a == true){
+                                if (a == true) {
                                   addTags();
-                                }else{
+                                } else {
                                   removeTags();
                                 }
                                 isActive = a;
                                 setState(() {});
-
                               })
                         ],
                       ),

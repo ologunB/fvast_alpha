@@ -3,13 +3,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/models/task.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
+import 'package:fvastalpha/views/partials/utils/styles.dart';
+import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 
 import 'home_view.dart';
+import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class OrderDetails extends StatefulWidget {
   final Task task;
 
   const OrderDetails({Key key, this.task}) : super(key: key);
+
   @override
   _OrderDetailsState createState() => _OrderDetailsState();
 }
@@ -69,6 +73,7 @@ class _OrderDetailsState extends State<OrderDetails> {
               Container(),
         ),
       );
+  double ratingNum = 2;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +103,7 @@ class _OrderDetailsState extends State<OrderDetails> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
-                  color: Colors.blue[200],
+                  color: widgetColor,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -357,18 +362,30 @@ class _OrderDetailsState extends State<OrderDetails> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Total: ", style: TextStyle(fontSize: 16)),
+                              Text("Total: ",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600)),
                               Expanded(child: Divider(thickness: 2)),
                               Text(
                                   " \₦ " +
                                       commaFormat.format(widget.task.amount),
-                                  style: TextStyle(fontSize: 16))
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600))
                             ],
                           ),
                         ),
                       ],
                     ),
-                  )
+                  ),
+                  widget.task.status == "Completed"
+                      ? CustomButton(
+                          title: "Rate Dispatcher",
+                          onPress: () {
+                            reviewFromCustomer(context);
+                          })
+                      : SizedBox()
                 ],
               ),
             )
@@ -376,5 +393,157 @@ class _OrderDetailsState extends State<OrderDetails> {
         ),
       ),
     );
+  }
+
+  void reviewFromCustomer(context) {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) => StatefulBuilder(
+              builder: (context, _setState) => Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          height: 8,
+                          width: 60,
+                          decoration: BoxDecoration(
+                              color: Styles.appPrimaryColor,
+                              borderRadius: BorderRadius.circular(5)),
+                        )
+                      ],
+                      mainAxisAlignment: MainAxisAlignment.center,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      "Please select some stars and give some feedback based on the task",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 20, color: Colors.black),
+                    ),
+                  ),
+                  StatefulBuilder(
+                    builder: (context, _setState) => SmoothStarRating(
+                        allowHalfRating: true,
+                        onRatingChanged: (val) {
+                          _setState(() {
+                            ratingNum = val;
+                          });
+                        },
+                        starCount: 5,
+                        rating: ratingNum,
+                        size: 50.0,
+                        filledIconData: Icons.star,
+                        halfFilledIconData: Icons.star_half,
+                        color: Styles.appPrimaryColor,
+                        borderColor: Styles.appPrimaryColor,
+                        spacing: 0.0),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Theme(
+                      data: ThemeData(
+                          primaryColor: Colors.grey[100],
+                          hintColor: Styles.commonDarkBackground),
+                      child: TextField(
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                            fillColor: Colors.grey[50],
+                            filled: true,
+                            hintText: "Type feedback",
+                            contentPadding: EdgeInsets.all(10),
+                            hintStyle: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                            )),
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 50),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: FlatButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Text(
+                                    "CANCEL",
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Styles.appPrimaryColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: FlatButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Text(
+                                    "RATE",
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20)
+                ],
+              ),
+            ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        elevation: 20,
+        backgroundColor: Colors.grey[200]);
   }
 }

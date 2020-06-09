@@ -1331,6 +1331,10 @@ class _ModeSelectorState extends State<ModeSelector> {
       "data": {
         "cus_uid": MY_UID,
         "trans_id": id,
+        "from": widget.from,
+        "fromTime": presentDateTime(),
+        "to": widget.to,
+        "toTime": "---",
       },
       "android_background_layout": {
         "image": imgUrlString,

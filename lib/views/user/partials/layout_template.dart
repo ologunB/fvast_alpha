@@ -10,6 +10,7 @@ import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:fvastalpha/views/user/contact_us/contact_us.dart';
 import 'package:fvastalpha/views/user/home/home_view.dart';
+import 'package:fvastalpha/views/user/home/order_done.dart';
 import 'package:fvastalpha/views/user/task_history/order_view.dart';
 import 'package:fvastalpha/views/user/wallet/wallet_screen.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -110,7 +111,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
   Future<void> initPlatformState() async {
     if (!mounted) return;
 
-    //   OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+    OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
 
     OneSignal.shared.setRequiresUserPrivacyConsent(_requireConsent);
 
@@ -121,12 +122,33 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
 
     OneSignal.shared
         .setNotificationReceivedHandler((OSNotification notification) {
-      print("starting here");
-      print(jsonDecode(notification.payload.rawPayload["custom"])["a"]
-          ["cus_uid"]);
-
+      String routeType =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]
+              ["routeType"];
+      String type =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]["type"];
+      String paymentType =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]
+              ["paymentType"];
+      String reName =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]["reName"];
+      String reNum =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]["reNum"];
+      String amount =
+          jsonDecode(notification.payload.rawPayload["custom"])["a"]["amount"];
       setState(() {
         if (notification.appInFocus) {
+          Navigator.push(
+              context,
+              CupertinoPageRoute(
+                  fullscreenDialog: true,
+                  builder: (context) => OrderCompletedPage(
+                      payment: paymentType,
+                      type: type,
+                      route: routeType,
+                      receiversName: reName,
+                      receiversNumber: reNum,
+                      amount: amount, from: "Customer")));
         } else {}
         _debugLabelString =
             "Received notification: \n${notification.jsonRepresentation().replaceAll("\\n", "\n")}";
@@ -135,7 +157,12 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
 
     OneSignal.shared
         .setNotificationOpenedHandler((OSNotificationOpenedResult result) {
-
+      String from =
+          jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
+              ["from"];
+      String fromTime =
+          jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
+              ["fromTime"];
     });
 
     OneSignal.shared
@@ -160,7 +187,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
       print("EMAIL SUBSCRIPTION STATE CHANGED ${changes.jsonRepresentation()}");
     });
 
-     await OneSignal.shared.init(oneSignalKey, iOSSettings: settings);
+    await OneSignal.shared.init(oneSignalKey, iOSSettings: settings);
 
     OneSignal.shared
         .setInFocusDisplayType(OSNotificationDisplayType.notification);

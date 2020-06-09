@@ -7,10 +7,12 @@ import 'package:fvastalpha/models/task.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
+import 'package:fvastalpha/views/user/home/order_done.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+
 class DisTaskDetail extends StatefulWidget {
   final Task task;
 
@@ -69,7 +71,6 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                     .collection("Orders")
                     .document("Pending")
                     .collection(MY_UID)
-                    .orderBy("Timestamp", descending: true)
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError)
@@ -96,7 +97,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                             );
                           },
                           child: CustomLoadingButton(
-                              title: todoNext(status) ,
+                              title: todoNext(status),
                               onPress: () {
                                 processTask(context, todoNext(status));
                               },
@@ -104,8 +105,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                               context: context));
                   }
                 },
-              )
-,
+              ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Container(
@@ -115,11 +115,11 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                       borderRadius: BorderRadius.circular(5)),
                   child: Row(
                     children: <Widget>[
-                      Text(task.acceptedDate + " PICKUP",
+                      Text(task.acceptedDate,
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w600)),
-                      Text(status ?? task.status,                    overflow: TextOverflow.ellipsis,
-
+                      Text(status ?? task.status,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -469,12 +469,56 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
   bool isLoading = false;
 
   processTask(context, next) async {
-   setState(() {
+/*    setState(() {
       isLoading = true;
-    });
+    });*/
     Map<String, String> toDispatchData = Map();
     toDispatchData.putIfAbsent("status", () => next);
 
+    if (next == "Completed") {
+      Firestore.instance
+          .collection("Orders")
+          .document("Completed") //update for dispatcher
+          .collection(MY_UID)
+          .document(widget.task.id)
+          .setData(toDispatchData)
+          .then((value) {
+        Firestore.instance
+            .collection("Orders")
+            .document("Completed") //update the customer
+            .collection(widget.task.userUid)
+            .document(widget.task.id)
+            .setData(toDispatchData)
+            .then((value) {
+          Firestore.instance
+              .collection("Orders")
+              .document("Pending") //delete the customer
+              .collection(widget.task.userUid)
+              .document(widget.task.id)
+              .delete();
+          Firestore.instance
+              .collection("Orders")
+              .document("Completed") //delete for dispatcher
+              .collection(MY_UID)
+              .document(widget.task.id)
+              .delete();
+          _handleSendNotification(status);
+          Navigator.pop(context);
+          Navigator.push(
+              context,
+              CupertinoPageRoute(
+                  builder: (context) => OrderCompletedPage(
+                        payment: widget.task.paymentType,
+                        type: widget.task.type,
+                        route: widget.task.routeType,
+                        receiversName: widget.task.reName,
+                        receiversNumber: widget.task.reNum,
+                        amount: widget.task.amount,from: "dis"
+                      )));
+        });
+      });
+      return;
+    }
     Firestore.instance
         .collection("Orders")
         .document("Pending") //update for dispatcher
@@ -504,7 +548,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
   }
 
   String todoNext(status) {
-    String todo = "Start Task";
+    String todo = ""; //= "Start Task";
     if (status == "Accepted") {
       todo = "Start Arrival";
     } else if (status == "Start Arrival") {
@@ -512,8 +556,8 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
     } else if (status == "Arrived") {
       todo = "Start Delivery";
     } else if (status == "Start Delivery") {
-      todo = "Complete Delivery Task";
-    }else if (status == "Complete Delivery Task") {
+      todo = "Completed";
+    } else if (status == "Completed") {
       todo = "Completed";
     }
     return todo;
@@ -531,33 +575,63 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
       "Authorization": "Basic YTZlNmY2MWItMmEzMi00ZWI0LTk4MjQtYzc4NjUxMGE5OWQ5"
     };
 
-    var body = {
-      "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
-      "include_external_user_ids": [widget.task.userUid],
-      "headings": {"en": "Searching Dispatchers around"},
-      "contents": {"en": "You just booked for a task"},
-      "data": {
-         "type": "customer"
-      },
-      "android_background_layout": {
-        "image": imgUrlString,
-        "headings_color": "ff000000",
-        "contents_color": "ff0000FF"
-      }
-    };
+    String desc = "";
+    if (status == "Start Arrival") {
+      desc = "Dispatcher will arrive soon at your pickup point";
+    } else if (status == "Arrived") {
+      desc = "Dispatcher will arrived at your pickup Location";
+    } else if (status == "Start Delivery") {
+      desc = "Dispatcher will soon arrived at your delivery Location";
+    } else if (status == "Completed") {
+      desc = "Task Completed";
+    }
+
+    var body = {};
+    if (status == "Completed") {
+      body = {
+        "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
+        "include_external_user_ids": [widget.task.userUid],
+        "headings": {"en": status},
+        "contents": {"en": desc},
+        "data": {
+           "routeType": widget.task.routeType,
+          "type": widget.task.type,
+          "paymentType": widget.task.paymentType,
+          "reName": widget.task.reName,
+          "reNum": widget.task.reNum,
+          "amount": widget.task.amount,
+        },
+        "android_background_layout": {
+          "image": imgUrlString,
+          "headings_color": "ff000000",
+          "contents_color": "ff0000FF"
+        }
+      };
+    } else {
+      body = {
+        "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
+        "include_external_user_ids": [widget.task.userUid],
+        "headings": {"en": status},
+        "contents": {"en": desc},
+        "data": {"type": "customer"},
+        "android_background_layout": {
+          "image": imgUrlString,
+          "headings_color": "ff000000",
+          "contents_color": "ff0000FF"
+        }
+      };
+    }
     await client
         .post(url, headers: headers, body: jsonEncode(body))
         .then((value) => (res) {
-      String body = res.body;
-      //  print(body);
-      int code = jsonDecode(body)["statusCode"];
-      //print(code);
-    })
+              String body = res.body;
+              //  print(body);
+              int code = jsonDecode(body)["statusCode"];
+              //print(code);
+            })
         .catchError((a) {
       print(a.toString());
       showCenterToast("Error: " + a.toString(), context);
     });
-
   }
-
 }

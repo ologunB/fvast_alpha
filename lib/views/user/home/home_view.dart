@@ -142,13 +142,7 @@ class _HomeMapState extends State<HomeView> {
                       padding: const EdgeInsets.all(8.0),
                       child: Icon(Icons.location_searching),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "${task.id}  ",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
+
                     Container(
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(5),
@@ -159,7 +153,13 @@ class _HomeMapState extends State<HomeView> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 16)),
                       ),
-                    )
+                    ),   Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "${task.id.substring(0, 12)}",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
                   ],
                 ),
                 Container(
@@ -200,7 +200,7 @@ class _HomeMapState extends State<HomeView> {
                           title: Column(
                             children: <Widget>[
                               Text(
-                                task.acceptedDate,
+                                task.acceptedDate ?? "--",
                                 style: TextStyle(color: Colors.grey),
                               ),
                               Container(
@@ -514,14 +514,16 @@ String todoNext(status) {
     todo = "Arrival Started";
     widgetColor = Colors.greenAccent[200];
   } else if (status == "Arrived") {
-    todo = "Dispatcher Present";
+    todo = "Dispatcher Arrived";
     widgetColor = Colors.lightBlueAccent[200];
   } else if (status == "Start Delivery") {
-    todo = "Delivery Task Started";
-  } else if (status == "Complete Delivery Task") {
+    todo = "Delivery Started";
+  } else if (status == "Completed") {
     widgetColor = Colors.greenAccent[200];
-
     todo = "Completed";
+  }else if (status == "Pending") {
+    widgetColor = Colors.redAccent[200];
+    todo = "Awaiting";
   }
   return todo;
 }
