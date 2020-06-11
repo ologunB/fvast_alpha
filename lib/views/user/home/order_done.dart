@@ -79,7 +79,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                             children: <Widget>[
                               Text("Route: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(widget.route, style: TextStyle(fontSize: 16))
+                              Text(widget.route.toString(), style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),

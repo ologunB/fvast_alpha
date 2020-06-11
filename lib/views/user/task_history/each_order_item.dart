@@ -66,7 +66,7 @@ class _EachOrderItemState extends State<EachOrderItem> {
               children: <Widget>[
                 Icon(Icons.label, color: color),
                 SizedBox(width: 10),
-                Text(widget.type == "Pending" ? "--" : "--",
+                Text(widget.task.reName ?? "--",
                     style: TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w300,

@@ -122,48 +122,49 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
 
     OneSignal.shared
         .setNotificationReceivedHandler((OSNotification notification) {
-      String routeType =
-          jsonDecode(notification.payload.rawPayload["custom"])["a"]
-              ["routeType"];
-      String type =
-          jsonDecode(notification.payload.rawPayload["custom"])["a"]["type"];
-      String paymentType =
-          jsonDecode(notification.payload.rawPayload["custom"])["a"]
-              ["paymentType"];
-      String reName =
-          jsonDecode(notification.payload.rawPayload["custom"])["a"]["reName"];
-      String reNum =
-          jsonDecode(notification.payload.rawPayload["custom"])["a"]["reNum"];
-      String amount =
-          jsonDecode(notification.payload.rawPayload["custom"])["a"]["amount"];
       setState(() {
         if (notification.appInFocus) {
-          Navigator.push(
-              context,
-              CupertinoPageRoute(
-                  fullscreenDialog: true,
-                  builder: (context) => OrderCompletedPage(
-                      payment: paymentType,
-                      type: type,
-                      route: routeType,
-                      receiversName: reName,
-                      receiversNumber: reNum,
-                      amount: amount, from: "Customer")));
+          String routeType =
+              jsonDecode(notification.payload.rawPayload["custom"])["a"]
+                  ["routeType"];
+          String type =
+              jsonDecode(notification.payload.rawPayload["custom"])["a"]
+                  ["type"];
+          String paymentType =
+              jsonDecode(notification.payload.rawPayload["custom"])["a"]
+                  ["paymentType"];
+          String reName =
+              jsonDecode(notification.payload.rawPayload["custom"])["a"]
+                  ["reName"];
+          String reNum =
+              jsonDecode(notification.payload.rawPayload["custom"])["a"]
+                  ["reNum"];
+          String amount =
+              jsonDecode(notification.payload.rawPayload["custom"])["a"]
+                  ["amount"];
+          if (paymentType != "em") {
+            Navigator.push(
+                context,
+                CupertinoPageRoute(
+                    fullscreenDialog: true,
+                    builder: (context) => OrderCompletedPage(
+                        payment: paymentType,
+                        type: type,
+                        route: routeType,
+                        receiversName: reName,
+                        receiversNumber: reNum,
+                        amount: amount,
+                        from: "Customer")));
+          }
         } else {}
         _debugLabelString =
             "Received notification: \n${notification.jsonRepresentation().replaceAll("\\n", "\n")}";
       });
+      setState(() {});
     });
 
     OneSignal.shared
-        .setNotificationOpenedHandler((OSNotificationOpenedResult result) {
-      String from =
-          jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
-              ["from"];
-      String fromTime =
-          jsonDecode(result.notification.payload.rawPayload["custom"])["a"]
-              ["fromTime"];
-    });
+        .setNotificationOpenedHandler((OSNotificationOpenedResult result) {});
 
     OneSignal.shared
         .setInAppMessageClickedHandler((OSInAppMessageAction action) {

@@ -45,7 +45,6 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
       showCenterToast("Job has been assigned", context);
       Navigator.pop(context);
     } else {
-
       Map toDispatchData = doc.data;
       toDispatchData.putIfAbsent("Dis Uid", () => MY_UID);
       toDispatchData.putIfAbsent("Dis Name", () => MY_NAME);
@@ -68,9 +67,6 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
             .document(widget.transId)
             .setData(toDispatchData)
             .then((value) {
-          setState(() {
-            isLoading = false;
-          });
           _handleSendNotification();
           Navigator.pop(context);
           Task task = Task.map(toDispatchData);
@@ -120,7 +116,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
                   Container(
                     width: MediaQuery.of(context).size.width * .70,
                     child: Text(
-                      widget.fromTime,
+                      widget.from,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                       style: TextStyle(fontSize: 16),
@@ -310,7 +306,14 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
         "en":
             "Your task has been accepted and we will reach you as soon as possible."
       },
-      "data": {"type": "customer"},
+      "data": {
+        "routeType": "em",
+        "type": "em",
+        "paymentType": "em",
+        "reName": "em",
+        "reNum": "em",
+        "amount": "em",
+      },
       "android_background_layout": {
         "image": imgUrlString,
         "headings_color": "ff000000",

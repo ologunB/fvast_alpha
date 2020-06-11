@@ -65,7 +65,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
   Future<void> initPlatformState() async {
     if (!mounted) return;
 
-    //   OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+     OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
 
     OneSignal.shared.setRequiresUserPrivacyConsent(_requireConsent);
 

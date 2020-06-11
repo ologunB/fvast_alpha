@@ -23,6 +23,12 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeMapState extends State<HomeView> {
+
+  List<double> toLats = List();
+  List<double> toLongs = List();
+  List<double> fromLats = List();
+  List<double> fromLongs = List();
+
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
 
@@ -115,6 +121,30 @@ class _HomeMapState extends State<HomeView> {
       _polylines.add(polyline);
     });
   }
+
+  getAndDraw() async {
+    Firestore.instance
+        .collection("Orders")
+        .document("Pending")
+        .collection(MY_UID)
+        .getDocuments()
+        .then((doc) {
+      doc.documents.map((document) {
+        Task task = Task.map(document);
+        double l1 = task.fromLat;
+        double l2 = task.fromLong;
+        double l3 = task.toLat;
+        double l4 = task.toLong;
+        fromLats.add(l1);
+        fromLongs.add(l2);
+        toLats.add(l3);
+        toLongs.add(l4);
+
+        setPolylines(l1, l2, l3, l4);
+      }).toList();
+    });
+  }
+
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -296,34 +326,6 @@ class _HomeMapState extends State<HomeView> {
     );
   }
 
-  List<double> toLats = List();
-  List<double> toLongs = List();
-  List<double> fromLats = List();
-  List<double> fromLongs = List();
-
-  getAndDraw() async {
-    Firestore.instance
-        .collection("Orders")
-        .document("Pending")
-        .collection(MY_UID)
-        .getDocuments()
-        .then((doc) {
-      doc.documents.map((document) {
-        Task task = Task.map(document);
-        double l1 = task.fromLat;
-        double l2 = task.fromLong;
-        double l3 = task.toLat;
-        double l4 = task.toLong;
-        fromLats.add(l1);
-        fromLongs.add(l2);
-        toLats.add(l3);
-        toLongs.add(l4);
-
-        setPolylines(l1, l2, l3, l4);
-      }).toList();
-    });
-  }
-
   @override
   void initState() {
     getAndDraw();
@@ -415,7 +417,7 @@ class _HomeMapState extends State<HomeView> {
                         onMapCreated: _onMapCreated,
                         myLocationEnabled: true,
                         initialCameraPosition:
-                            CameraPosition(zoom: 10.0, target: _center),
+                            CameraPosition(zoom: 20.0, target: _center),
                       );
                     }
                 }
