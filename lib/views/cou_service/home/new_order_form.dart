@@ -24,6 +24,7 @@ class NewTaskRequest extends StatefulWidget {
 }
 
 class _NewTaskRequestState extends State<NewTaskRequest> {
+
   getOrder(context) async {
     setState(() {
       isLoading = true;
@@ -86,15 +87,16 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
 
   bool isLoading = false;
 
+
   @override
   void initState() {
-    Future.delayed(Duration(seconds: 30)).then((a) {
+    Future.delayed(Duration(seconds: 60)).then((a) {
       Navigator.pushAndRemoveUntil(
           context,
           CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
           (Route<dynamic> route) => false);
     });
-    super.initState();
+     super.initState();
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();

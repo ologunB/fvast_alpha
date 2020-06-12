@@ -585,7 +585,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
           .get();
 
       Map data = doc.data;
-      data.update("status", (a) => next);
+      data.update("status", (a) => next, ifAbsent: () => next);
 
       Firestore.instance
           .collection("Orders")
@@ -617,7 +617,6 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
           _handleSendNotification(next, context);
         });
       });
-      return;
     } else {
       Firestore.instance
           .collection("Orders")
@@ -678,7 +677,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
     } else if (mStatus == "Start Delivery") {
       desc = "Dispatcher will soon arrived at your delivery Location";
     } else if (mStatus == "Completed") {
-      desc = "Task Completed";
+      desc = "Completed";
     }
 
     var body = {};
@@ -725,31 +724,33 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
     }
     await client
         .post(url, headers: headers, body: jsonEncode(body))
-        .then((value) => (res) {
-              showCenterToast(mStatus, context);
+        .then((http.Response value) {
+      showCenterToast(mStatus, _scaffoldKey.currentContext);
 
-              setState(() {
-                isLoading = false;
-              });
+      setState(() {
+        isLoading = false;
+      });
 
-              if (mStatus == "Completed") {
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                        builder: (context) => OrderCompletedPage(
-                            payment: widget.task.paymentType,
-                            type: widget.task.type,
-                            route: widget.task.routeType,
-                            receiversName: widget.task.reName,
-                            receiversNumber: widget.task.reNum,
-                            amount: widget.task.amount,
-                            from: "dis")));
-              }
-            })
-        .catchError((a) {
+      if (mStatus == "Completed") {
+        Navigator.pop(_scaffoldKey.currentContext);
+        Navigator.push(
+          _scaffoldKey.currentContext,
+          CupertinoPageRoute(
+            fullscreenDialog: true,
+            builder: (context) => OrderCompletedPage(
+                payment: widget.task.paymentType,
+                type: widget.task.type,
+                route: widget.task.routeType,
+                receiversName: widget.task.reName,
+                receiversNumber: widget.task.reNum,
+                amount: widget.task.amount,
+                from: "dis"),
+          ),
+        );
+      }
+    }).catchError((a) {
       print(a.toString());
-      showCenterToast("Error: " + a.toString(), context);
+      showCenterToast("Error: " + a.toString(), _scaffoldKey.currentContext);
     });
   }
 }

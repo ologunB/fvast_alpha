@@ -27,7 +27,7 @@ class OrderCompletedPage extends StatefulWidget {
 class _OrderCompletedPageState extends State<OrderCompletedPage> {
   @override
   void initState() {
-    Future.delayed(Duration(seconds: 6)).then((a) {
+    Future.delayed(Duration(seconds: 10)).then((a) {
       Navigator.pop(context);
     });
     super.initState();
@@ -79,7 +79,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                             children: <Widget>[
                               Text("Route: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(widget.route.toString(), style: TextStyle(fontSize: 16))
+                              Text(routeTypes[widget.route].toString(), style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),

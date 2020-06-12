@@ -144,7 +144,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
                   ["amount"];
           if (paymentType != "em") {
             Navigator.push(
-                context,
+                cusMainScaffoldKey.currentContext,
                 CupertinoPageRoute(
                     fullscreenDialog: true,
                     builder: (context) => OrderCompletedPage(
