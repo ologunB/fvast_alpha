@@ -55,7 +55,6 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
         return Text("Settings");
       case 4:
         return ContactUsF();
-
       default:
         return new Text("Error");
     }
@@ -71,7 +70,6 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
   @override
   void initState() {
     super.initState();
-
     uid = _prefs.then((prefs) {
       return (prefs.getString('uid') ?? "uid");
     });
@@ -154,7 +152,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
                         receiversName: reName,
                         receiversNumber: reNum,
                         amount: amount,
-                        from: "Customer")));
+                        from: "Customer"),),);
           }
         } else {}
         _debugLabelString =
@@ -188,7 +186,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
       print("EMAIL SUBSCRIPTION STATE CHANGED ${changes.jsonRepresentation()}");
     });
 
-    await OneSignal.shared.init(oneSignalKey, iOSSettings: settings);
+    await OneSignal.shared.init(oneOnlineSignalKey, iOSSettings: settings);
 
     OneSignal.shared
         .setInFocusDisplayType(OSNotificationDisplayType.notification);

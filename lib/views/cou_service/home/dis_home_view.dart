@@ -11,7 +11,8 @@ import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
- import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+
 class DispatchHomeView extends StatefulWidget {
   @override
   _HomeMapState createState() => _HomeMapState();

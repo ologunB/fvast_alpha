@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:fvastalpha/models/task.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
+import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
+import 'package:fvastalpha/views/user/home/home_view.dart';
 import 'package:fvastalpha/views/user/home/order_done.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
@@ -194,7 +196,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                           child: CustomLoadingButton(
                               title: todoNext(status),
                               onPress: () {
-                                processTask(context, todoNext(status));
+                                processTask(_scaffoldKey.currentContext, todoNext(status));
                               },
                               isLoading: isLoading,
                               context: context));
@@ -213,7 +215,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                       Text(task.acceptedDate,
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w600)),
-                      Text(status ?? task.status,
+                      Text(userHomeNext(status) ?? userHomeNext(task.status),
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                               fontSize: 16,
@@ -576,47 +578,69 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
     Map<String, String> toDispatchData = Map();
     toDispatchData.putIfAbsent("status", () => next);
 
-    if (next == "Completed") {
-      DocumentSnapshot doc = await Firestore.instance
-          .collection("Orders")
-          .document("Pending")
-          .collection(widget.task.userUid)
-          .document(widget.task.id)
-          .get();
+    if (next == "Mark Completed") {
+      showDialog(
+        context: context,
+        builder: (_) => CustomDialog(
+          title: "Are you sure you have completed the task?",
+          isLoading: isLoading,
+          onClicked: () async {
+            Navigator.pop(context);
+            showCupertinoDialog(
+                context: context,
+                builder: (_) {
+                  return AlertDialog(
+                    title: Text(
+                      "Almost Done",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.red, fontSize: 20),
+                    ),
+                    content: CupertinoActivityIndicator(radius: 20),
+                  );
+                });
+            DocumentSnapshot doc = await Firestore.instance
+                .collection("Orders")
+                .document("Pending")
+                .collection(widget.task.userUid)
+                .document(widget.task.id)
+                .get();
 
-      Map data = doc.data;
-      data.update("status", (a) => next, ifAbsent: () => next);
+            Map data = doc.data;
+            data.update("status", (a) => next, ifAbsent: () => next);
 
-      Firestore.instance
-          .collection("Orders")
-          .document("Completed") //create for dispatcher
-          .collection(MY_UID)
-          .document(widget.task.id)
-          .setData(data)
-          .then((value) {
-        Firestore.instance
-            .collection("Orders")
-            .document("Completed") //create the customer
-            .collection(widget.task.userUid)
-            .document(widget.task.id)
-            .setData(data)
-            .then((value) {
-          Firestore.instance
-              .collection("Orders")
-              .document("Pending") //delete the customer
-              .collection(widget.task.userUid)
-              .document(widget.task.id)
-              .delete();
-          Firestore.instance
-              .collection("Orders")
-              .document("Pending") //delete for dispatcher
-              .collection(MY_UID)
-              .document(widget.task.id)
-              .delete();
-
-          _handleSendNotification(next, context);
-        });
-      });
+            Firestore.instance
+                .collection("Orders")
+                .document("Completed") //create for dispatcher
+                .collection(MY_UID)
+                .document(widget.task.id)
+                .setData(data)
+                .then((value) {
+              Firestore.instance
+                  .collection("Orders")
+                  .document("Completed") //create the customer
+                  .collection(widget.task.userUid)
+                  .document(widget.task.id)
+                  .setData(data)
+                  .then((value) {
+                Firestore.instance
+                    .collection("Orders")
+                    .document("Pending") //delete the customer
+                    .collection(widget.task.userUid)
+                    .document(widget.task.id)
+                    .delete();
+                Firestore.instance
+                    .collection("Orders")
+                    .document("Pending") //delete for dispatcher
+                    .collection(MY_UID)
+                    .document(widget.task.id)
+                    .delete();
+                _handleSendNotification(next, context);
+              });
+            });
+           },
+          includeHeader: true,
+        ),
+      );
     } else {
       Firestore.instance
           .collection("Orders")
@@ -644,14 +668,14 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
   String todoNext(status) {
     String todo = ""; //= "Start Task";
     if (status == "Accepted") {
-      todo = "Start Arrival";
-    } else if (status == "Start Arrival") {
-      todo = "Arrived";
-    } else if (status == "Arrived") {
+      todo = "Start Task";
+    } else if (status == "Start Task") {
+      todo = "Mark Arrived";
+    } else if (status == "Mark Arrived") {
       todo = "Start Delivery";
     } else if (status == "Start Delivery") {
-      todo = "Completed";
-    } else if (status == "Completed") {
+      todo = "Mark Completed";
+    } else if (status == "Mark Completed") {
       todo = "Completed";
     }
     return todo;
@@ -661,29 +685,28 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
     String url = "https://onesignal.com/api/v1/notifications";
     var imgUrlString =
         "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
-
     var client = http.Client();
 
     var headers = {
       "Content-Type": "application/json; charset=utf-8",
-      "Authorization": "Basic YTZlNmY2MWItMmEzMi00ZWI0LTk4MjQtYzc4NjUxMGE5OWQ5"
+      "Authorization": "Basic NDA4Mjc0MGUtMTMxYS00YjFlLTgwZTktMmRiYmVmYjRjZWFj"
     };
 
     String desc = "";
-    if (mStatus == "Start Arrival") {
+    if (mStatus == "Start Task") {
       desc = "Dispatcher will arrive soon at your pickup point";
-    } else if (mStatus == "Arrived") {
-      desc = "Dispatcher will arrived at your pickup Location";
+    } else if (mStatus == "Mark Arrived") {
+      desc = "Dispatcher has arrived at your pickup Location";
     } else if (mStatus == "Start Delivery") {
-      desc = "Dispatcher will soon arrived at your delivery Location";
-    } else if (mStatus == "Completed") {
-      desc = "Completed";
+      desc = "Delivery started and will soon arrived at your delivery Location";
+    } else if (mStatus == "Mark Completed") {
+      desc = "Delivery Completed";
     }
 
     var body = {};
     if (mStatus == "Completed") {
       body = {
-        "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
+        "app_id": oneOnlineSignalKey,
         "include_external_user_ids": [widget.task.userUid],
         "headings": {"en": "Completed"},
         "contents": {"en": "Task Completed"},
@@ -703,7 +726,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
       };
     } else {
       body = {
-        "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
+        "app_id": oneOnlineSignalKey,
         "include_external_user_ids": [widget.task.userUid],
         "headings": {"en": mStatus},
         "contents": {"en": desc},
@@ -726,13 +749,13 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
         .post(url, headers: headers, body: jsonEncode(body))
         .then((http.Response value) {
       showCenterToast(mStatus, _scaffoldKey.currentContext);
-
       setState(() {
         isLoading = false;
       });
 
-      if (mStatus == "Completed") {
+      if (mStatus == "Mark Completed") {
         Navigator.pop(_scaffoldKey.currentContext);
+        Navigator.pop(context);
         Navigator.push(
           _scaffoldKey.currentContext,
           CupertinoPageRoute(

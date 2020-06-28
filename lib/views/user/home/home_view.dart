@@ -23,7 +23,6 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeMapState extends State<HomeView> {
-
   List<double> toLats = List();
   List<double> toLongs = List();
   List<double> fromLats = List();
@@ -145,7 +144,6 @@ class _HomeMapState extends State<HomeView> {
     });
   }
 
-
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget taskItem({context, Task task}) {
@@ -172,18 +170,18 @@ class _HomeMapState extends State<HomeView> {
                       padding: const EdgeInsets.all(8.0),
                       child: Icon(Icons.location_searching),
                     ),
-
                     Container(
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(5),
                           color: widgetColor),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(todoNext(task.status),
+                        child: Text(userHomeNext(task.status),
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 16)),
                       ),
-                    ),   Padding(
+                    ),
+                    Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         "${task.id.substring(0, 12)}",
@@ -506,16 +504,16 @@ class _HomeMapState extends State<HomeView> {
 
 var widgetColor = Colors.blue[200];
 
-String todoNext(status) {
+String userHomeNext(status) {
   String todo = "";
 
   if (status == "Accepted") {
     todo = "Task Accepted";
     widgetColor = Colors.lightBlueAccent[200];
-  } else if (status == "Start Arrival") {
+  } else if (status == "Start Task") {
     todo = "Arrival Started";
     widgetColor = Colors.greenAccent[200];
-  } else if (status == "Arrived") {
+  } else if (status == "Mark Arrived") {
     todo = "Dispatcher Arrived";
     widgetColor = Colors.lightBlueAccent[200];
   } else if (status == "Start Delivery") {
@@ -523,7 +521,7 @@ String todoNext(status) {
   } else if (status == "Completed") {
     widgetColor = Colors.greenAccent[200];
     todo = "Completed";
-  }else if (status == "Pending") {
+  } else if (status == "Pending") {
     widgetColor = Colors.redAccent[200];
     todo = "Awaiting";
   }

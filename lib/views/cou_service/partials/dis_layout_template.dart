@@ -97,14 +97,6 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
                     builder: (context) =>
                         NewTaskRequest(cusUid: uid, transId: id, from: from, fromTime: fromTime, to: to)));
           });
-        } else {
-          Future.delayed(Duration(milliseconds: 100)).then((a) {
-            Navigator.push(
-                context,
-                CupertinoPageRoute(
-                    builder: (context) =>
-                        NewTaskRequest(cusUid: uid, transId: id, from: from, fromTime: fromTime, to: to)));
-          });
         }
       });
     });
@@ -157,7 +149,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     });
 
     // NOTE: Replace with your own app ID from https://www.onesignal.com
-    await OneSignal.shared.init(oneSignalKey, iOSSettings: settings);
+    await OneSignal.shared.init(oneOnlineSignalKey, iOSSettings: settings);
 
     OneSignal.shared
         .setInFocusDisplayType(OSNotificationDisplayType.notification);

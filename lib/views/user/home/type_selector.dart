@@ -13,7 +13,6 @@ import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
 import 'package:fvastalpha/views/partials/widgets/text_field.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:rave_flutter/rave_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
@@ -1311,11 +1310,11 @@ class _ModeSelectorState extends State<ModeSelector> {
 
     var headers = {
       "Content-Type": "application/json; charset=utf-8",
-      "Authorization": "Basic YTZlNmY2MWItMmEzMi00ZWI0LTk4MjQtYzc4NjUxMGE5OWQ5"
+      "Authorization": "Basic NDA4Mjc0MGUtMTMxYS00YjFlLTgwZTktMmRiYmVmYjRjZWFj"
     };
 
     var body = {
-      "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
+      "app_id": oneOnlineSignalKey,
       "filters": [
         {
           "field": "tag",

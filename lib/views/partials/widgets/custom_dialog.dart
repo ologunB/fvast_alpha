@@ -4,17 +4,19 @@ import 'package:fvastalpha/views/partials/utils/styles.dart';
 
 class CustomDialog extends StatefulWidget {
   final String title;
-  final bool includeHeader;
+  final bool includeHeader, isLoading;
   final void Function() onClicked;
   final BuildContext context;
 
   CustomDialog(
       {Key key,
       this.title,
+      this.isLoading,
       this.onClicked,
       this.includeHeader = false,
       this.context})
       : super(key: key);
+
   @override
   _CustomDialogState createState() => _CustomDialogState();
 }
@@ -63,14 +65,16 @@ class _CustomDialogState extends State<CustomDialog> {
                 onPressed: () {
                   widget.onClicked();
                 },
-                child: Text(
-                  "YES",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white),
-                ),
+                child: widget.isLoading ?? false
+                    ? CupertinoActivityIndicator()
+                    : Text(
+                        "YES",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white),
+                      ),
               ),
             ),
           ),

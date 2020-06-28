@@ -284,24 +284,24 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
                 )
               ],
             ),
-          )),
+          ),),
     );
   }
 
-  void _handleSendNotification() async {
-    String url = "https://onesignal.com/api/v1/notifications";
-    var imgUrlString =
-        "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
+    void _handleSendNotification() async {
+      String url = "https://onesignal.com/api/v1/notifications";
+      var imgUrlString =
+          "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
 
     var client = http.Client();
 
     var headers = {
       "Content-Type": "application/json; charset=utf-8",
-      "Authorization": "Basic YTZlNmY2MWItMmEzMi00ZWI0LTk4MjQtYzc4NjUxMGE5OWQ5"
+      "Authorization": "Basic NDA4Mjc0MGUtMTMxYS00YjFlLTgwZTktMmRiYmVmYjRjZWFj"
     };
 
     var body = {
-      "app_id": "28154149-7e50-4f2c-b6e8-299293dffb33",
+      "app_id": oneOnlineSignalKey,
       "include_external_user_ids": [widget.cusUid],
       "headings": {"en": "En route"},
       "contents": {

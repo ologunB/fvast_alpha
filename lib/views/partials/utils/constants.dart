@@ -35,7 +35,7 @@ String validateEmail(value) {
 String kGoogleMapKey = "AIzaSyD4XcMQdkcBpG-nrLPwUK7kzywq-DtepzI";
 String ravePublicKey = "FLWPUBK_TEST-4775239fc89f256ef2f24cddcebc17e1-X";
 String raveEncryptKey = "FLWSECK_TEST079f656d190b";
-String oneSignalKey = "28154149-7e50-4f2c-b6e8-299293dffb33";
+String oneOnlineSignalKey = "c25d99bb-1ab2-462f-a7b3-827ac97c7563";
 
 String greeting() {
   var hour = DateTime.now().hour;

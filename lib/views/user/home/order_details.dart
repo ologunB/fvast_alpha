@@ -108,7 +108,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    todoNext(widget.task.status),
+                    userHomeNext(widget.task.status),
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 16),
                   ),

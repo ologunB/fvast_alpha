@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        fontFamily: 'Raleway',
+        fontFamily: 'ProximaNova',
         primaryColor: Styles.appPrimaryColor,
       ),
       debugShowCheckedModeBanner: false,

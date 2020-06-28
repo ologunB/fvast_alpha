@@ -66,7 +66,7 @@ class _EachOrderItemState extends State<EachOrderItem> {
               children: <Widget>[
                 Icon(Icons.label, color: color),
                 SizedBox(width: 10),
-                Text(widget.task.reName ?? "--",
+                Text(widget.task.disName ?? "--",
                     style: TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w300,
@@ -108,7 +108,7 @@ class _EachOrderItemState extends State<EachOrderItem> {
                           fontSize: 20,
                           fontWeight: FontWeight.w600),
                     ),
-                  ),
+                  )
                 )
               ],
             ),

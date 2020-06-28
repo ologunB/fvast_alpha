@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
@@ -39,117 +40,135 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        key: _scaffoldKey,
-        body: ListView(
-          children: [
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(height: 20),
-                  Text(
-                    "TASK COMPLETED",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+    return WillPopScope(
+        onWillPop: () async {
+          Navigator.pushAndRemoveUntil(
+              context,
+              CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
+              (Route<dynamic> route) => false);
+          return false;
+        },
+        child: Scaffold(
+            key: _scaffoldKey,
+            body: ListView(
+              children: [
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox(height: 20),
+                      Text(
+                        "TASK COMPLETED",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w800),
+                      ),
+                      SizedBox(height: 10),
+                      Center(
+                        child: SvgPicture.asset(
+                          "assets/images/complete.svg",
+                          semanticsLabel: 'Acme Logo',
+                          height: 150,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "₦ ${widget.amount}",
+                        style: TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.w600),
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15)),
+                        child: Column(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Route: ",
+                                      style: TextStyle(fontSize: 16)),
+                                  Expanded(child: Divider(thickness: 2)),
+                                  Text(routeTypes[widget.route].type,
+                                      style: TextStyle(fontSize: 16))
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Payment Type: ",
+                                      style: TextStyle(fontSize: 16)),
+                                  Expanded(child: Divider(thickness: 2)),
+                                  Text(widget.payment,
+                                      style: TextStyle(fontSize: 16))
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Receiver's Name: ",
+                                      style: TextStyle(fontSize: 16)),
+                                  Expanded(child: Divider(thickness: 2)),
+                                  Text(widget.receiversName,
+                                      style: TextStyle(fontSize: 16))
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Receiver's  Mobile",
+                                      style: TextStyle(fontSize: 16)),
+                                  Expanded(child: Divider(thickness: 2)),
+                                  Text(widget.receiversNumber,
+                                      style: TextStyle(fontSize: 16))
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Package Type ",
+                                      style: TextStyle(fontSize: 16)),
+                                  Expanded(child: Divider(thickness: 2)),
+                                  Text(widget.type,
+                                      style: TextStyle(fontSize: 16))
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(18.0),
+                        child: CustomButton(
+                            title: "DONE",
+                            onPress: () {
+                              if (widget.from == "Customer") {
+                                reviewFromCustomer(context);
+                              } else {
+                                Navigator.pushAndRemoveUntil(
+                                    context,
+                                    CupertinoPageRoute(
+                                        builder: (context) =>
+                                            DisLayoutTemplate()),
+                                    (Route<dynamic> route) => false);
+                              }
+                            }),
+                      )
+                    ],
                   ),
-                  SizedBox(height: 10),
-                  Center(
-                    child: SvgPicture.asset(
-                      "assets/images/complete.svg",
-                      semanticsLabel: 'Acme Logo',
-                      height: 150,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "₦ ${widget.amount}",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15)),
-                    child: Column(
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: <Widget>[
-                              Text("Route: ", style: TextStyle(fontSize: 16)),
-                              Expanded(child: Divider(thickness: 2)),
-                              Text(routeTypes[widget.route].toString(), style: TextStyle(fontSize: 16))
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: <Widget>[
-                              Text("Payment Type: ",
-                                  style: TextStyle(fontSize: 16)),
-                              Expanded(child: Divider(thickness: 2)),
-                              Text(widget.payment,
-                                  style: TextStyle(fontSize: 16))
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: <Widget>[
-                              Text("Receiver's Name: ",
-                                  style: TextStyle(fontSize: 16)),
-                              Expanded(child: Divider(thickness: 2)),
-                              Text(widget.receiversName,
-                                  style: TextStyle(fontSize: 16))
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: <Widget>[
-                              Text("Receiver's  Mobile",
-                                  style: TextStyle(fontSize: 16)),
-                              Expanded(child: Divider(thickness: 2)),
-                              Text(widget.receiversNumber,
-                                  style: TextStyle(fontSize: 16))
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: <Widget>[
-                              Text("Package Type ",
-                                  style: TextStyle(fontSize: 16)),
-                              Expanded(child: Divider(thickness: 2)),
-                              Text(widget.type, style: TextStyle(fontSize: 16))
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(18.0),
-                    child: CustomButton(
-                        title: "DONE",
-                        onPress: () {
-                          if (widget.from == "Customer") {
-                            reviewFromCustomer(context);
-                          }else{
-                            Navigator.pop(context);
-                          }
-                        }),
-                  )
-                ],
-              ),
-            )
-          ],
-        ));
+                )
+              ],
+            )));
   }
 
   void reviewFromCustomer(context) {
