@@ -24,7 +24,6 @@ class NewTaskRequest extends StatefulWidget {
 }
 
 class _NewTaskRequestState extends State<NewTaskRequest> {
-
   getOrder(context) async {
     setState(() {
       isLoading = true;
@@ -87,7 +86,6 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
 
   bool isLoading = false;
 
-
   @override
   void initState() {
     Future.delayed(Duration(seconds: 60)).then((a) {
@@ -96,7 +94,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
           CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
           (Route<dynamic> route) => false);
     });
-     super.initState();
+    super.initState();
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -181,117 +179,118 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
         return false;
       },
       child: Scaffold(
-          appBar: AppBar(
-            leading: Container(),
-            title: Text("New Task Request"),
-            actions: <Widget>[
-              IconButton(
-                  icon: Icon(Icons.close),
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (context) => DisLayoutTemplate()),
-                        (Route<dynamic> route) => false);
-                  })
+        appBar: AppBar(
+          leading: Container(),
+          title: Text("New Task Request"),
+          actions: <Widget>[
+            IconButton(
+                icon: Icon(Icons.close),
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      CupertinoPageRoute(
+                          builder: (context) => DisLayoutTemplate()),
+                      (Route<dynamic> route) => false);
+                })
+          ],
+          backgroundColor: Colors.white,
+          elevation: 0.0,
+        ),
+        key: _scaffoldKey,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              SizedBox(height: 20),
+              Center(
+                child: SvgPicture.asset(
+                  "assets/images/location.svg",
+                  semanticsLabel: 'Acme Logo',
+                  height: 150,
+                ),
+              ),
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: _tabStep(),
+              ),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                      child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FlatButton(
+                        onPressed: () {
+                          Navigator.pushAndRemoveUntil(
+                              context,
+                              CupertinoPageRoute(
+                                  builder: (context) => DisLayoutTemplate()),
+                              (Route<dynamic> route) => false);
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              "DECLINE",
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.red),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  )),
+                  Expanded(
+                      child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Styles.appPrimaryColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FlatButton(
+                        onPressed: () {
+                          getOrder(disMainScaffoldKey.currentContext);
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            !isLoading
+                                ? Text(
+                                    "ACCEPT",
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white),
+                                  )
+                                : CupertinoActivityIndicator()
+                          ],
+                        ),
+                      ),
+                    ),
+                  )),
+                ],
+              )
             ],
-            backgroundColor: Colors.white,
-            elevation: 0.0,
           ),
-          key: _scaffoldKey,
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                SizedBox(height: 20),
-                Center(
-                  child: SvgPicture.asset(
-                    "assets/images/location.svg",
-                    semanticsLabel: 'Acme Logo',
-                    height: 150,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: _tabStep(),
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                        child: Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: FlatButton(
-                          onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                                context,
-                                CupertinoPageRoute(
-                                    builder: (context) => DisLayoutTemplate()),
-                                (Route<dynamic> route) => false);
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "DECLINE",
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.red),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    )),
-                    Expanded(
-                        child: Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Styles.appPrimaryColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: FlatButton(
-                          onPressed: () {
-                            getOrder(context);
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              !isLoading
-                                  ? Text(
-                                      "ACCEPT",
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white),
-                                    )
-                                  : CupertinoActivityIndicator()
-                            ],
-                          ),
-                        ),
-                      ),
-                    )),
-                  ],
-                )
-              ],
-            ),
-          ),),
+        ),
+      ),
     );
   }
 
-    void _handleSendNotification() async {
-      String url = "https://onesignal.com/api/v1/notifications";
-      var imgUrlString =
-          "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
+  void _handleSendNotification() async {
+    String url = "https://onesignal.com/api/v1/notifications";
+    var imgUrlString =
+        "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
 
     var client = http.Client();
 
@@ -315,6 +314,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
         "reName": "em",
         "reNum": "em",
         "amount": "em",
+        "status": "new order",
       },
       "android_background_layout": {
         "image": imgUrlString,

@@ -122,7 +122,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
         .setNotificationReceivedHandler((OSNotification notification) {
       setState(() {
         if (notification.appInFocus) {
-          String routeType =
+          int routeType =
               jsonDecode(notification.payload.rawPayload["custom"])["a"]
                   ["routeType"];
           String type =
@@ -137,22 +137,30 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
           String reNum =
               jsonDecode(notification.payload.rawPayload["custom"])["a"]
                   ["reNum"];
-          String amount =
+          String status =
+              jsonDecode(notification.payload.rawPayload["custom"])["a"]
+                  ["status"];
+
+          showCenterToast(status, context);
+          double amount =
               jsonDecode(notification.payload.rawPayload["custom"])["a"]
                   ["amount"];
-          if (paymentType != "em") {
+
+          if (status == "Mark Completed") {
             Navigator.push(
-                cusMainScaffoldKey.currentContext,
-                CupertinoPageRoute(
-                    fullscreenDialog: true,
-                    builder: (context) => OrderCompletedPage(
-                        payment: paymentType,
-                        type: type,
-                        route: routeType,
-                        receiversName: reName,
-                        receiversNumber: reNum,
-                        amount: amount,
-                        from: "Customer"),),);
+              context,
+              CupertinoPageRoute(
+                fullscreenDialog: true,
+                builder: (context) => OrderCompletedPage(
+                    payment: paymentType,
+                    type: type,
+                    route: routeType,
+                    receiversName: reName,
+                    receiversNumber: reNum,
+                    amount: amount,
+                    from: "Customer"),
+              ),
+            );
           }
         } else {}
         _debugLabelString =

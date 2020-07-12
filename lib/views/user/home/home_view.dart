@@ -263,7 +263,7 @@ class _HomeMapState extends State<HomeView> {
     );
   }
 
-  Widget createTasks(context) {
+  Widget createdTasks(context) {
     return StreamBuilder<QuerySnapshot>(
       stream: Firestore.instance
           .collection("Orders")
@@ -316,6 +316,7 @@ class _HomeMapState extends State<HomeView> {
                 : ListView(
                     children: snapshot.data.documents.map((document) {
                       Task task = Task.map(document);
+
                       return taskItem(task: task, context: context);
                     }).toList(),
                   );
@@ -357,7 +358,7 @@ class _HomeMapState extends State<HomeView> {
         ),
         autoSwiped: false,
         draggableBody: true,
-        body: createTasks(context),
+        body: createdTasks(context),
         maxHeight: height * .6,
         minHeight: height * .25,
       ),

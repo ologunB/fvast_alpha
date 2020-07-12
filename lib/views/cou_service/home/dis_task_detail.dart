@@ -196,7 +196,8 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                           child: CustomLoadingButton(
                               title: todoNext(status),
                               onPress: () {
-                                processTask(_scaffoldKey.currentContext, todoNext(status));
+                                processTask(_scaffoldKey.currentContext,
+                                    todoNext(status));
                               },
                               isLoading: isLoading,
                               context: context));
@@ -622,6 +623,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                   .document(widget.task.id)
                   .setData(data)
                   .then((value) {
+                _handleSendNotification(next, context);
                 Firestore.instance
                     .collection("Orders")
                     .document("Pending") //delete the customer
@@ -634,10 +636,9 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                     .collection(MY_UID)
                     .document(widget.task.id)
                     .delete();
-                _handleSendNotification(next, context);
               });
             });
-           },
+          },
           includeHeader: true,
         ),
       );
@@ -682,12 +683,12 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
   }
 
   void _handleSendNotification(mStatus, context) async {
-    String url = "https://onesignal.com/api/v1/notifications";
-    var imgUrlString =
+    const url = "https://onesignal.com/api/v1/notifications";
+    const imgUrlString =
         "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
     var client = http.Client();
 
-    var headers = {
+    const headers = {
       "Content-Type": "application/json; charset=utf-8",
       "Authorization": "Basic NDA4Mjc0MGUtMTMxYS00YjFlLTgwZTktMmRiYmVmYjRjZWFj"
     };
@@ -703,8 +704,9 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
       desc = "Delivery Completed";
     }
 
+    //showCenterToast(mStatus, context);
     var body = {};
-    if (mStatus == "Completed") {
+    if (mStatus == "Mark Completed") {
       body = {
         "app_id": oneOnlineSignalKey,
         "include_external_user_ids": [widget.task.userUid],
@@ -717,6 +719,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
           "reName": widget.task.reName,
           "reNum": widget.task.reNum,
           "amount": widget.task.amount,
+          "status": mStatus,
         },
         "android_background_layout": {
           "image": imgUrlString,
@@ -737,6 +740,7 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
           "reName": "em",
           "reNum": "em",
           "amount": "em",
+          "status": mStatus,
         },
         "android_background_layout": {
           "image": imgUrlString,
