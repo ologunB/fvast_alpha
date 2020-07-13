@@ -341,20 +341,56 @@ class _SigninPageState extends State<SigninPage> {
                                 actions: <Widget>[
                                   Center(
                                     child: StatefulBuilder(
-                                      builder: (context, _setState) =>
-                                          CustomLoadingButton(
-                                        context: context,
-                                        title: "Reset Password",
-                                        onPress: forgotPassIsLoading
-                                            ? null
-                                            : () {
-                                                resetEmail(
-                                                    forgetPassController.text,
-                                                    _setState);
-                                              },
-                                        isLoading: forgotPassIsLoading,
-                                      ),
-                                    ),
+                                        builder: (context, _setState) =>
+                                            Padding(
+                                              padding: EdgeInsets.all(5.0),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.deepOrange,
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                child: FlatButton(
+                                                  onPressed: forgotPassIsLoading
+                                                      ? null
+                                                      : () {
+                                                          resetEmail(
+                                                              forgetPassController
+                                                                  .text,
+                                                              _setState);
+                                                        },
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    mainAxisSize:
+                                                        MainAxisSize.max,
+                                                    children: <Widget>[
+                                                      Padding(
+                                                        padding:
+                                                            EdgeInsets.all(5.0),
+                                                        child: forgotPassIsLoading
+                                                            ? CupertinoActivityIndicator()
+                                                            : Text(
+                                                                "Reset Password",
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        20,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w900,
+                                                                    color: Colors
+                                                                        .white),
+                                                              ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            )),
                                   ),
                                 ],
                               ),
@@ -369,44 +405,42 @@ class _SigninPageState extends State<SigninPage> {
                       ),
                     ],
                   ),
-                  Row(children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.all(5.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.deepOrange,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: FlatButton(
-                          onPressed: isLoading
-                              ? null
-                              : () {
-                                  signIn(emailController.text,
-                                      passwordController.text, context);
-                                },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.max,
-                            children: <Widget>[
-                              Padding(
-                                padding: EdgeInsets.all(5.0),
-                                child: isLoading
-                                    ? CupertinoActivityIndicator()
-                                    : Text(
-                                        "SIGN IN",
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white),
-                                      ),
-                              ),
-                            ],
-                          ),
+                  Padding(
+                    padding: EdgeInsets.all(5.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.deepOrange,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FlatButton(
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                signIn(emailController.text,
+                                    passwordController.text, context);
+                              },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.max,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(5.0),
+                              child: isLoading
+                                  ? CupertinoActivityIndicator()
+                                  : Text(
+                                      "SIGN IN",
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white),
+                                    ),
+                            ),
+                          ],
                         ),
                       ),
-                    )
-                  ]),
+                    ),
+                  ),
                   Row(
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.end,

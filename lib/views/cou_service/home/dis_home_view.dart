@@ -12,7 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoder/geocoder.dart';
 class DispatchHomeView extends StatefulWidget {
   @override
   _HomeMapState createState() => _HomeMapState();
@@ -56,6 +57,25 @@ class _HomeMapState extends State<DispatchHomeView> {
     CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
     this.mapController.animateCamera(u2).then((void v) {
       check(u2, this.mapController);
+    });
+  }
+
+
+  getUserLocation() async {
+    List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
+        currentLocation.latitude, currentLocation.longitude);
+
+    setState(() {
+      _markers.add(
+        Marker(
+          markerId: MarkerId("Current Location"),
+          position: LatLng(currentLocation.latitude, currentLocation.longitude),
+          infoWindow: InfoWindow(title: "mName", snippet: placeMark[0].name),
+          icon: BitmapDescriptor.defaultMarkerWithHue(120.0),
+          onTap: () {},
+        ),
+      );
+      _center = LatLng(currentLocation.latitude, currentLocation.longitude);
     });
   }
 
@@ -136,6 +156,11 @@ class _HomeMapState extends State<DispatchHomeView> {
     });
   }
 
+  @override
+  void initState() {
+    getUserLocation();
+    super.initState();
+  }
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<double> toLats = List();
   List<double> toLongs = List();

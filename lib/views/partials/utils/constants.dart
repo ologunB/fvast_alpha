@@ -6,8 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/widgets/toast.dart';
 import 'package:intl/intl.dart';
-
+import 'package:geolocator/geolocator.dart';
 String MY_NAME, MY_UID, MY_TYPE, MY_NUMBER, MY_EMAIL, MY_IMAGE;
+Position currentLocation;
 
 showEmptyToast(String aa, BuildContext context) {
   Toast.show("$aa cannot be empty", context,
@@ -117,42 +118,50 @@ class RouteModel {
   String desc;
   int baseFare;
   int perKilo;
-  int tax;
-  int kmPerHr;
 
-  RouteModel(
-      {this.type,
-      this.icon,
-      this.desc,
-      this.baseFare,
-      this.perKilo,
-      this.tax,
-      this.kmPerHr});
+  RouteModel({
+    this.type,
+    this.icon,
+    this.desc,
+    this.baseFare,
+    this.perKilo,
+  });
 }
 
 List<RouteModel> routeTypes = [
   RouteModel(
-      icon: Icons.directions_bike,
-      type: "Bike",
-      desc: "Easy Delivery and Small Packages",
-      baseFare: 20,
-      kmPerHr: 50,
-      perKilo: 10,
-      tax: 20),
+    icon: Icons.directions_bike,
+    type: "Bike",
+    desc: "Easy Delivery and Small Packages",
+    baseFare: 400,
+    perKilo: 20,
+  ),
   RouteModel(
-      icon: Icons.directions_car,
-      type: "Mini van",
-      desc: "Fast Delivery for Medium Small Packages",
-      baseFare: 30,
-      kmPerHr: 60,
-      perKilo: 20,
-      tax: 20),
+    icon: Icons.directions_car,
+    type: "Car",
+    desc: "Fast Delivery for Medium Small Packages",
+    baseFare: 400,
+    perKilo: 20,
+  ),
   RouteModel(
-      icon: Icons.airport_shuttle,
-      type: "Truck",
-      desc: "Fast Delivery for Heavy Packages",
-      baseFare: 40,
-      kmPerHr: 70,
-      perKilo: 20,
-      tax: 20)
+    icon: Icons.airport_shuttle,
+    type: "Truck",
+    desc: "Fast Delivery for Heavy Packages",
+    baseFare: 400,
+    perKilo: 20,
+  ),
+  RouteModel(
+    icon: Icons.motorcycle,
+    type: "Tricycle",
+    desc: "Fast Delivery for Heavy Packages",
+    baseFare: 400,
+    perKilo: 20,
+  ),
+  RouteModel(
+    icon: Icons.airplanemode_active,
+    type: "Jet",
+    desc: "Fast Delivery for Heavy Packages",
+    baseFare: 400,
+    perKilo: 20,
+  ),
 ];

@@ -6,8 +6,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/models/notification.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
+import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
+import 'package:fvastalpha/views/user/auth/convertFromUser.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
+import 'package:fvastalpha/views/user/auth/signup_page.dart';
 import 'package:fvastalpha/views/user/contact_us/contact_us.dart';
 import 'package:fvastalpha/views/user/home/home_view.dart';
 import 'package:fvastalpha/views/user/home/order_done.dart';
@@ -381,6 +384,9 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
                   ],
                 ),
               ),
+              CustomButton(title: "SignUp to Drive", onPress: (){
+                Navigator.push(context, CupertinoPageRoute(builder: (context)=> ConvertFromUser()));
+              }),
               GestureDetector(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),

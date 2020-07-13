@@ -139,8 +139,9 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
 
     int baseFare = routeTypes[routeType].baseFare;
     int distance = task.distance;
-    int tax = routeTypes[routeType].tax;
     int perKiloCharge = (routeTypes[routeType].perKilo * distance / 10).round();
+    int tax = (0.07 * (baseFare + perKiloCharge)).floor();
+
     int total = baseFare + perKiloCharge + tax;
     var height = MediaQuery.of(context).size.height;
 

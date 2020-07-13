@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,10 +7,12 @@ import 'package:fvastalpha/models/task.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
-
+import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
+import 'package:fvastalpha/views/user/partials/layout_template.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_view.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
-
+import 'package:http/http.dart' as http;
 class OrderDetails extends StatefulWidget {
   final Task task;
 
@@ -81,8 +85,9 @@ class _OrderDetailsState extends State<OrderDetails> {
 
     int baseFare = routeTypes[routeType].baseFare;
     int distance = widget.task.distance;
-    int tax = routeTypes[routeType].tax;
     int perKiloCharge = (routeTypes[routeType].perKilo * distance / 10).round();
+    int tax = (0.07 * (baseFare + perKiloCharge)).floor();
+
     int total = baseFare + perKiloCharge + tax;
     return SafeArea(
       child: Scaffold(
@@ -171,6 +176,12 @@ class _OrderDetailsState extends State<OrderDetails> {
                                 ),
                                 Text(
                                   widget.task.disNumber ?? "--",
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                Text(
+                                  widget.task.plateNumber ?? "--",
                                   style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500),
@@ -385,7 +396,48 @@ class _OrderDetailsState extends State<OrderDetails> {
                           onPress: () {
                             reviewFromCustomer(context);
                           })
-                      : SizedBox()
+                      : SizedBox(),
+                  GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => CustomDialog(
+                          title: "Do you want to cancel the order?",
+                          onClicked: () {
+                            cancelOrder();
+                          },
+                          includeHeader: true,
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: Colors.red,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(
+                              Icons.close,
+                              color: Colors.white,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "Cancel Order",
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             )
@@ -545,5 +597,81 @@ class _OrderDetailsState extends State<OrderDetails> {
         ),
         elevation: 20,
         backgroundColor: Colors.grey[200]);
+  }
+
+  void cancelOrder() {
+    Navigator.pop(context);
+    showCupertinoDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text(
+              "Almost Done",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.red, fontSize: 20),
+            ),
+            content: CupertinoActivityIndicator(radius: 20),
+          );
+        });
+    Firestore.instance
+        .collection("Orders")
+        .document("Pending") //delete the customer
+        .collection(widget.task.userUid)
+        .document(widget.task.id)
+        .delete()
+        .then((value) {
+      _handleSendNotification();
+      Firestore.instance
+          .collection("Orders")
+          .document("Pending") //delete for dispatcher
+          .collection(widget.task.adminUid)
+          .document(widget.task.id)
+          .delete();
+      showCenterToast("Order Cancelled", context);
+      Navigator.pushAndRemoveUntil(
+          context,
+          CupertinoPageRoute(builder: (context) => LayoutTemplate()),
+          (Route<dynamic> route) => false);
+    });
+  }
+
+  void _handleSendNotification() async {
+    const url = "https://onesignal.com/api/v1/notifications";
+    const imgUrlString =
+        "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
+    var client = http.Client();
+
+    const headers = {
+      "Content-Type": "application/json; charset=utf-8",
+      "Authorization": "Basic NDA4Mjc0MGUtMTMxYS00YjFlLTgwZTktMmRiYmVmYjRjZWFj"
+    };
+
+     var body  = {
+        "app_id": oneOnlineSignalKey,
+        "include_external_user_ids": [widget.task.userUid],
+        "headings": {"en": "Cancelled"},
+        "contents": {"en": "User has cancelled the order"},
+        "data": {
+          "routeType": "em",
+          "type": "em",
+          "paymentType": "em",
+          "reName": "em",
+          "reNum": "em",
+          "amount": "em",
+          "status": "Cancelled",
+        },
+        "android_background_layout": {
+          "image": imgUrlString,
+          "headings_color": "ff000000",
+          "contents_color": "ff0000FF"
+        }
+      };
+    await client
+        .post(url, headers: headers, body: jsonEncode(body))
+        .then((http.Response value) {
+
+    }).catchError((a) {
+      print(a.toString());
+     });
   }
 }

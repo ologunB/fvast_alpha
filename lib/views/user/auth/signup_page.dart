@@ -25,13 +25,15 @@ class _SignupPageState extends State<SignupPage> {
   TextEditingController passController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
-  TextEditingController streetController = TextEditingController();
+  TextEditingController streetController = TextEditingController(text: "");
+  TextEditingController cityController = TextEditingController(text: "");
+  TextEditingController plateNumberController = TextEditingController(text: "");
 
   bool isLoading = false;
 
   Future signUp() async {
     if (selectedType == null) {
-      showEmptyToast("Type", context);
+      showCenterToast("Choose a Type", context);
       return;
     }
     _formKey.currentState.save();
@@ -49,6 +51,8 @@ class _SignupPageState extends State<SignupPage> {
     String name = nameController.text;
     String phone = phoneController.text;
     String street = streetController.text;
+    String city = cityController.text;
+    String plateNumber = plateNumberController.text;
     setState(() {
       isLoading = true;
     });
@@ -64,6 +68,8 @@ class _SignupPageState extends State<SignupPage> {
           mData.putIfAbsent("Email", () => email);
           mData.putIfAbsent("Phone", () => phone);
           mData.putIfAbsent("Street", () => street);
+          mData.putIfAbsent("City", () => city);
+          mData.putIfAbsent("Plate Number", () => plateNumber);
           mData.putIfAbsent("Type", () => selectedType);
           mData.putIfAbsent("Uid", () => user.uid);
           mData.putIfAbsent("Avatar", () => "mm");
@@ -391,13 +397,61 @@ class _SignupPageState extends State<SignupPage> {
                                   data: ThemeData(
                                       primaryColor: Styles.commonDarkBackground,
                                       hintColor: Styles.commonDarkBackground),
-                                  child: TextField(
+                                  child: TextFormField(
+                                    keyboardType: TextInputType.text,
+                                    validator: (value) {
+                                      if (value.isEmpty) {
+                                        return 'Enter your City!';
+                                      }
+                                      return null;
+                                    },
+                                    controller: cityController,
                                     decoration: InputDecoration(
                                       fillColor: Styles.commonDarkBackground,
                                       filled: true,
-                                      suffixIcon: Icon(Icons.location_on),
+                                      suffixIcon:
+                                          Icon(Icons.center_focus_strong),
                                       contentPadding: EdgeInsets.all(10),
                                       hintText: 'City',
+                                      hintStyle: TextStyle(
+                                          color: Colors.grey[500],
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w400),
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
+                                      ),
+                                    ),
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w400),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Theme(
+                                  data: ThemeData(
+                                      primaryColor: Styles.commonDarkBackground,
+                                      hintColor: Styles.commonDarkBackground),
+                                  child: TextFormField(
+                                    keyboardType: TextInputType.text,
+                                    validator: (value) {
+                                      if (value.isEmpty) {
+                                        return 'Enter your Plate number!';
+                                      }
+                                      return null;
+                                    },
+                                    controller: plateNumberController,
+                                    decoration: InputDecoration(
+                                      fillColor: Styles.commonDarkBackground,
+                                      filled: true,
+                                      suffixIcon:
+                                          Icon(Icons.confirmation_number),
+                                      contentPadding: EdgeInsets.all(10),
+                                      hintText: 'Plate Number',
                                       hintStyle: TextStyle(
                                           color: Colors.grey[500],
                                           fontSize: 18,
@@ -477,44 +531,40 @@ class _SignupPageState extends State<SignupPage> {
                           FocusScope.of(context).unfocus();
                         },
                       ),
-                      Row(
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.all(5.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.deepOrange,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: FlatButton(
-                                onPressed: isLoading
-                                    ? null
-                                    : () {
-                                        signUp();
-                                      },
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.max,
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: EdgeInsets.all(5.0),
-                                      child: isLoading
-                                          ? CupertinoActivityIndicator()
-                                          : Text(
-                                              "SIGN UP",
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w900,
-                                                  color: Colors.white),
-                                            ),
-                                    ),
-                                  ],
+                      Padding(
+                        padding: EdgeInsets.all(5.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.deepOrange,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: FlatButton(
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    signUp();
+                                  },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.max,
+                              children: <Widget>[
+                                Padding(
+                                  padding: EdgeInsets.all(5.0),
+                                  child: isLoading
+                                      ? CupertinoActivityIndicator()
+                                      : Text(
+                                          "SIGN UP",
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.white),
+                                        ),
                                 ),
-                              ),
+                              ],
                             ),
-                          )
-                        ],
+                          ),
+                        ),
                       )
                     ],
                   ),

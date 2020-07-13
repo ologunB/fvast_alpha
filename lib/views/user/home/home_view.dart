@@ -14,7 +14,7 @@ import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
 import 'choose_location.dart';
 import 'order_details.dart';
-
+import 'package:geolocator/geolocator.dart';
 class HomeView extends StatefulWidget {
   HomeView({@required Key key}) : super(key: key);
 
@@ -37,6 +37,24 @@ class _HomeMapState extends State<HomeView> {
     mapController = controller;
   }
 
+
+  getUserLocation() async {
+    List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
+        currentLocation.latitude, currentLocation.longitude);
+
+    setState(() {
+      _markers.add(
+        Marker(
+          markerId: MarkerId("Current Location"),
+          position: LatLng(currentLocation.latitude, currentLocation.longitude),
+          infoWindow: InfoWindow(title: "mName", snippet: placeMark[0].name),
+          icon: BitmapDescriptor.defaultMarkerWithHue(120.0),
+          onTap: () {},
+        ),
+      );
+      _center = LatLng(currentLocation.latitude, currentLocation.longitude);
+    });
+  }
   void _onFilledMapCreated(GoogleMapController controller) {
     mapController = controller;
     _controller.complete(controller);
@@ -328,6 +346,7 @@ class _HomeMapState extends State<HomeView> {
   @override
   void initState() {
     getAndDraw();
+    getUserLocation();
     super.initState();
   }
 

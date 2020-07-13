@@ -191,6 +191,255 @@ class _ModeSelectorState extends State<ModeSelector> {
     });
   }
 
+  routeSelected(index) {
+    showModalBottomSheet(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+      ),
+      context: context,
+      builder: (context) => ListView(
+        shrinkWrap: true,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  height: 8,
+                  width: 60,
+                  decoration: BoxDecoration(
+                      color: Styles.appPrimaryColor,
+                      borderRadius: BorderRadius.circular(5)),
+                )
+              ],
+              mainAxisAlignment: MainAxisAlignment.center,
+            ),
+          ),
+          Row(
+            children: <Widget>[
+              Container(
+                height: 70,
+                width: 70,
+                decoration: BoxDecoration(
+                  color: Colors.blue[100],
+                  borderRadius: BorderRadius.circular(35),
+                ),
+                child: Icon(
+                  routeTypes[index].icon,
+                  color: Styles.appPrimaryColor,
+                ),
+              )
+            ],
+            mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Row(
+              children: <Widget>[
+                Text(
+                  routeTypes[index].type,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                )
+              ],
+              mainAxisAlignment: MainAxisAlignment.center,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: <Widget>[
+                Text(
+                  routeTypes[index].desc,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Styles.appPrimaryColor),
+                )
+              ],
+              mainAxisAlignment: MainAxisAlignment.center,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: <Widget>[
+                Text("Base Fare: ", style: TextStyle(fontSize: 16)),
+                Expanded(child: Divider(thickness: 2)),
+                Text(" ₦ " + routeTypes[index].baseFare.toString(),
+                    style: TextStyle(fontSize: 16))
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: <Widget>[
+                Text("Per Kilometer: ", style: TextStyle(fontSize: 16)),
+                Expanded(child: Divider(thickness: 2)),
+                Expanded(child: Divider(thickness: 2)),
+                Text(
+                  " ₦ " + routeTypes[index].perKilo.toString(),
+                  style: TextStyle(fontSize: 16),
+                )
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: <Widget>[
+                Text("Tax: ", style: TextStyle(fontSize: 16)),
+                Expanded(child: Divider(thickness: 2)),
+                Expanded(child: Divider(thickness: 2)),
+                Text(" 7% VAT ",
+                    style: TextStyle(fontSize: 16))
+              ],
+            ),
+          ),
+          SizedBox(height: 50),
+          CustomButton(
+              title: "Use ${routeTypes[index].type}",
+              onPress: () {
+                routeSelector(context, index);
+              }),
+          SizedBox(height: 10)
+        ],
+      ),
+    );
+  }
+
+  Widget eachRoute(int index) {
+    return GestureDetector(
+      onTap: () {
+        routeSelected(index);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Container(
+                height: 60,
+                width: 60,
+                decoration: BoxDecoration(
+                  color:
+                      routeType == index ? Colors.blue[100] : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Icon(
+                  routeTypes[index].icon,
+                  color:
+                      routeType == index ? Styles.appPrimaryColor : Colors.grey,
+                ),
+              ),
+            ),
+            Row(
+              children: <Widget>[
+                Center(
+                  child: Text(
+                    routeTypes[index].type,
+                    style: TextStyle(
+                        fontSize: 17,
+                        color: routeType == index
+                            ? Styles.appPrimaryColor
+                            : Colors.grey),
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget otherRoute() {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+            useRootNavigator: true,
+            barrierDismissible: true,
+            context: context,
+            builder: (context) {
+              return CupertinoAlertDialog(
+                  title: Text("All Routes"),
+                  content: Container(
+                    height: 300,
+                    child: Center(
+                      child: ListView.builder(
+                          itemCount: routeTypes.length,
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  routeSelected(index);
+                                },
+                                child: Material(
+                                  child: ListTile(
+                                    leading: Icon(routeTypes[index].icon),
+                                    title: Text(
+                                      routeTypes[index].type,
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w400),
+                                    ),
+                                  ),
+                                ));
+                          }),
+                    ),
+                  ));
+            });
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Container(
+                height: 60,
+                width: 60,
+                decoration: BoxDecoration(
+                  color: (routeType ?? 0) > 1
+                      ? Colors.blue[100]
+                      : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Icon(
+                  routeTypes[(routeType ?? 3)].icon ??  Icons.format_list_bulleted,
+                  color: (routeType ?? 0) > 1
+                      ? Styles.appPrimaryColor
+                      : Colors.grey,
+                ),
+              ),
+            ),
+            Row(
+              children: <Widget>[
+                Center(
+                  child: Text(
+                    routeTypes[(routeType ?? 3)].type ?? "Others",
+                    style: TextStyle(
+                        fontSize: 17,
+                        color: (routeType ?? 0) > 1
+                            ? Styles.appPrimaryColor
+                            : Colors.grey),
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     setPolylines();
@@ -204,10 +453,11 @@ class _ModeSelectorState extends State<ModeSelector> {
   void routeSelector(context, index) {
     Navigator.pop(context);
     routeType = index;
-    timeFactor = routeTypes[index].kmPerHr;
+    timeFactor = routeTypes[index].perKilo;
     int baseFare = routeTypes[index].baseFare;
-    int tax = routeTypes[index].tax;
     double distanceAmount = routeTypes[index].perKilo * distanceBtwn / 10;
+
+    int tax = (0.07 * (baseFare + distanceAmount)).floor();
     totalAmount = baseFare + tax + distanceAmount;
     setState(() {});
   }
@@ -301,200 +551,13 @@ class _ModeSelectorState extends State<ModeSelector> {
                   children: <Widget>[
                     Container(
                       height: 110,
-                      child: ListView.builder(
-                        itemCount: 3,
+                      child: ListView(
                         scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              showModalBottomSheet(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(30),
-                                    topRight: Radius.circular(30),
-                                  ),
-                                ),
-                                context: context,
-                                builder: (context) => ListView(
-                                  shrinkWrap: true,
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: const EdgeInsets.all(12.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Container(
-                                            height: 8,
-                                            width: 60,
-                                            decoration: BoxDecoration(
-                                                color: Styles.appPrimaryColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(5)),
-                                          )
-                                        ],
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                      ),
-                                    ),
-                                    Row(
-                                      children: <Widget>[
-                                        Container(
-                                          height: 70,
-                                          width: 70,
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue[100],
-                                            borderRadius:
-                                                BorderRadius.circular(35),
-                                          ),
-                                          child: Icon(
-                                            routeTypes[index].icon,
-                                            color: Styles.appPrimaryColor,
-                                          ),
-                                        )
-                                      ],
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Text(
-                                            routeTypes[index].type,
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w500),
-                                          )
-                                        ],
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Text(
-                                            routeTypes[index].desc,
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w400,
-                                                color: Styles.appPrimaryColor),
-                                          )
-                                        ],
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Text("Base Fare: ",
-                                              style: TextStyle(fontSize: 16)),
-                                          Expanded(
-                                              child: Divider(thickness: 2)),
-                                          Text(
-                                              " ₦ " +
-                                                  routeTypes[index]
-                                                      .baseFare
-                                                      .toString(),
-                                              style: TextStyle(fontSize: 16))
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Text("Per Kilometer: ",
-                                              style: TextStyle(fontSize: 16)),
-                                          Expanded(
-                                              child: Divider(thickness: 2)),
-                                          Expanded(
-                                              child: Divider(thickness: 2)),
-                                          Text(
-                                              " ₦ " +
-                                                  routeTypes[index]
-                                                      .perKilo
-                                                      .toString(),
-                                              style: TextStyle(fontSize: 16))
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Text("Tax: ",
-                                              style: TextStyle(fontSize: 16)),
-                                          Expanded(
-                                              child: Divider(thickness: 2)),
-                                          Expanded(
-                                              child: Divider(thickness: 2)),
-                                          Text(
-                                              " ₦ " +
-                                                  routeTypes[index]
-                                                      .tax
-                                                      .toString(),
-                                              style: TextStyle(fontSize: 16))
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(height: 50),
-                                    CustomButton(
-                                        title: "Use ${routeTypes[index].type}",
-                                        onPress: () {
-                                          routeSelector(context, index);
-                                        }),
-                                    SizedBox(height: 10)
-                                  ],
-                                ),
-                              );
-                            },
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: Container(
-                                      height: 60,
-                                      width: 60,
-                                      decoration: BoxDecoration(
-                                        color: routeType == index
-                                            ? Colors.blue[100]
-                                            : Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                      child: Icon(
-                                        routeTypes[index].icon,
-                                        color: routeType == index
-                                            ? Styles.appPrimaryColor
-                                            : Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      Center(
-                                        child: Text(
-                                          routeTypes[index].type,
-                                          style: TextStyle(
-                                              fontSize: 17,
-                                              color: routeType == index
-                                                  ? Styles.appPrimaryColor
-                                                  : Colors.grey),
-                                        ),
-                                      )
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+                        children: <Widget>[
+                          eachRoute(0),
+                          eachRoute(1),
+                          otherRoute()
+                        ],
                         shrinkWrap: true,
                       ),
                     ),
