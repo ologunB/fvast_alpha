@@ -8,7 +8,7 @@ import 'package:fvastalpha/views/partials/widgets/toast.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 String MY_NAME, MY_UID, MY_TYPE, MY_NUMBER, MY_EMAIL, MY_IMAGE;
-Position currentLocation;
+Position currentLocation = Position(longitude: 7.3034138, latitude: 5.143012);
 
 showEmptyToast(String aa, BuildContext context) {
   Toast.show("$aa cannot be empty", context,

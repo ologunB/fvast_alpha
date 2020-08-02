@@ -424,7 +424,7 @@ class _ModeSelectorState extends State<ModeSelector> {
               children: <Widget>[
                 Center(
                   child: Text(
-                    routeTypes[(routeType ?? 3)].type ?? "Others",
+                   "Others",
                     style: TextStyle(
                         fontSize: 17,
                         color: (routeType ?? 0) > 1

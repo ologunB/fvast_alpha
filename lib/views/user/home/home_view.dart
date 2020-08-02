@@ -15,6 +15,7 @@ import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 import 'choose_location.dart';
 import 'order_details.dart';
 import 'package:geolocator/geolocator.dart';
+
 class HomeView extends StatefulWidget {
   HomeView({@required Key key}) : super(key: key);
 
@@ -37,24 +38,27 @@ class _HomeMapState extends State<HomeView> {
     mapController = controller;
   }
 
-
   getUserLocation() async {
+    currentLocation = await Geolocator().getCurrentPosition();
     List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
         currentLocation.latitude, currentLocation.longitude);
 
+    chooser = emptyMap();
+
+    _center = LatLng(currentLocation.latitude, currentLocation.longitude);
     setState(() {
       _markers.add(
         Marker(
           markerId: MarkerId("Current Location"),
           position: LatLng(currentLocation.latitude, currentLocation.longitude),
-          infoWindow: InfoWindow(title: "mName", snippet: placeMark[0].name),
+          infoWindow: InfoWindow(title: "Current Location", snippet: placeMark[0].name),
           icon: BitmapDescriptor.defaultMarkerWithHue(120.0),
           onTap: () {},
         ),
       );
-      _center = LatLng(currentLocation.latitude, currentLocation.longitude);
     });
   }
+
   void _onFilledMapCreated(GoogleMapController controller) {
     mapController = controller;
     _controller.complete(controller);
@@ -80,7 +84,7 @@ class _HomeMapState extends State<HomeView> {
     }
 
     CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
-    this.mapController.animateCamera(u2).then((void v) {
+    mapController.animateCamera(u2).then((void v) {
       check(u2, this.mapController);
     });
   }
@@ -343,13 +347,39 @@ class _HomeMapState extends State<HomeView> {
     );
   }
 
+  Widget chooser = Container();
+  Widget map1(){
+      return GoogleMap(
+        onMapCreated: _onMapCreated,
+        myLocationEnabled: true,
+        markers: _markers,
+        onCameraMove: _onCameraMove,
+        initialCameraPosition: CameraPosition(
+            zoom: 20.0,
+            target: _center),
+      );
+
+  }
   @override
   void initState() {
+    chooser = map1();
     getAndDraw();
     getUserLocation();
     super.initState();
   }
 
+  Widget emptyMap(){
+    return GoogleMap(
+      onMapCreated: _onMapCreated,
+      myLocationEnabled: true,
+      markers: _markers,
+      onCameraMove: _onCameraMove,
+      initialCameraPosition: CameraPosition(
+          zoom: 20.0,
+          target: LatLng(currentLocation.latitude,
+              currentLocation.longitude)),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
@@ -399,6 +429,7 @@ class _HomeMapState extends State<HomeView> {
                     return GoogleMap(
                       onMapCreated: _onMapCreated,
                       myLocationEnabled: true,
+                      onCameraMove: _onCameraMove,
                       initialCameraPosition:
                           CameraPosition(zoom: 10.0, target: _center),
                     );
@@ -431,12 +462,7 @@ class _HomeMapState extends State<HomeView> {
                         onCameraMove: _onCameraMove,
                       );
                     } else {
-                      return GoogleMap(
-                        onMapCreated: _onMapCreated,
-                        myLocationEnabled: true,
-                        initialCameraPosition:
-                            CameraPosition(zoom: 20.0, target: _center),
-                      );
+                      return chooser;
                     }
                 }
               },

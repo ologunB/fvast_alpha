@@ -376,7 +376,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
                       child: ListTile(
                         leading: Icon(Icons.help),
                         title: Text(
-                          "Help",
+                          "Help and Support",
                           style: TextStyle(fontSize: 18),
                         ),
                       ),

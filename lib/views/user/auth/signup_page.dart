@@ -157,8 +157,7 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   Widget build(BuildContext context) {
-    // SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
-
+  //   SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
     return Scaffold(
       body: Form(
         key: _formKey,
@@ -186,7 +185,11 @@ class _SignupPageState extends State<SignupPage> {
                                 icon: Icon(Icons.arrow_back_ios,
                                     color: Styles.appPrimaryColor),
                                 onPressed: () {
-                                  Navigator.pop(context);
+                                  Navigator.pushAndRemoveUntil(
+                                      context,
+                                      CupertinoPageRoute(
+                                          builder: (context) => SigninPage()),
+                                      (Route<dynamic> route) => false);
                                 }),
                             Expanded(
                               child: Text(
