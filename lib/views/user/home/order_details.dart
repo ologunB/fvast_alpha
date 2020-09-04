@@ -13,6 +13,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_view.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
 import 'package:http/http.dart' as http;
+
 class OrderDetails extends StatefulWidget {
   final Task task;
 
@@ -103,23 +104,25 @@ class _OrderDetailsState extends State<OrderDetails> {
             child: Text(widget.task.id),
           ),
           actions: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  color: widgetColor,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    userHomeNext(widget.task.status),
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 16),
+            widget.task.status != "Completed"
+                ? SizedBox()
+                : Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: widgetColor,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          userHomeNext(widget.task.status),
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
           ],
           elevation: 0,
         ),
@@ -397,47 +400,49 @@ class _OrderDetailsState extends State<OrderDetails> {
                             reviewFromCustomer(context);
                           })
                       : SizedBox(),
-                  GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => CustomDialog(
-                          title: "Do you want to cancel the order?",
-                          onClicked: () {
-                            cancelOrder();
-                          },
-                          includeHeader: true,
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color: Colors.red,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Icon(
-                              Icons.close,
-                              color: Colors.white,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                "Cancel Order",
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 16, color: Colors.white),
+                  widget.task.status != "Completed"
+                      ? SizedBox()
+                      : GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => CustomDialog(
+                                title: "Do you want to cancel the order?",
+                                onClicked: () {
+                                  cancelOrder();
+                                },
+                                includeHeader: true,
                               ),
-                            )
-                          ],
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: Colors.red,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      "Cancel Order",
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.white),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             )
@@ -600,7 +605,7 @@ class _OrderDetailsState extends State<OrderDetails> {
   }
 
   void cancelOrder() {
-    Navigator.pop(context);
+    //  Navigator.pop(context);
     showCupertinoDialog(
         context: context,
         builder: (_) {
@@ -615,23 +620,24 @@ class _OrderDetailsState extends State<OrderDetails> {
         });
     Firestore.instance
         .collection("Orders")
-        .document("Pending") //delete the customer
-        .collection(widget.task.userUid)
+        .document("Pending") //delete for dispatcher
+        .collection(widget.task.disUid)
         .document(widget.task.id)
         .delete();
     Firestore.instance
         .collection("Orders")
-        .document("Pending") //delete for dispatcher
-        .collection(widget.task.adminUid)
+        .document("Pending") //delete the customer
+        .collection(widget.task.userUid)
         .document(widget.task.id)
         .delete();
+
     _sendCancelNotification();
 
-      showCenterToast("Order Cancelled", context);
-      Navigator.pushAndRemoveUntil(
-          context,
-          CupertinoPageRoute(builder: (context) => LayoutTemplate()),
-          (Route<dynamic> route) => false);
+    showCenterToast("Order Cancelled", context);
+    Navigator.pushAndRemoveUntil(
+        context,
+        CupertinoPageRoute(builder: (context) => LayoutTemplate()),
+        (Route<dynamic> route) => false);
   }
 
   void _sendCancelNotification() async {
@@ -645,32 +651,31 @@ class _OrderDetailsState extends State<OrderDetails> {
       "Authorization": "Basic NDA4Mjc0MGUtMTMxYS00YjFlLTgwZTktMmRiYmVmYjRjZWFj"
     };
 
-     var body  = {
-        "app_id": oneOnlineSignalKey,
-        "include_external_user_ids": [widget.task.adminUid],
-        "headings": {"en": "Cancelled"},
-        "contents": {"en": "User has cancelled the order"},
-        "data": {
-          "routeType": "em",
-          "type": "em",
-          "paymentType": "em",
-          "reName": "em",
-          "reNum": "em",
-          "amount": "em",
-          "status": "Cancelled",
-        },
-        "android_background_layout": {
-          "image": imgUrlString,
-          "headings_color": "ff000000",
-          "contents_color": "ff0000FF"
-        }
-      };
+    var body = {
+      "app_id": oneOnlineSignalKey,
+      "include_external_user_ids": [widget.task.adminUid],
+      "headings": {"en": "Cancelled"},
+      "contents": {"en": "User has cancelled the order"},
+      "data": {
+        "routeType": "em",
+        "type": "em",
+        "paymentType": "em",
+        "reName": "em",
+        "reNum": "em",
+        "amount": "em",
+        "status": "Cancelled",
+      },
+      "android_background_layout": {
+        "image": imgUrlString,
+        "headings_color": "ff000000",
+        "contents_color": "ff0000FF"
+      }
+    };
     await client
         .post(url, headers: headers, body: jsonEncode(body))
-        .then((http.Response value) {
-
-    }).catchError((a) {
+        .then((http.Response value) {})
+        .catchError((a) {
       print(a.toString());
-     });
+    });
   }
 }

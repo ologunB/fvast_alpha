@@ -23,11 +23,12 @@ class Task {
   String _disName;
   String _disImage, _disUid;
   String _disNumber;
-  String _paymentType, _disAddress, _plateNumber;
+  String _paymentType, _disAddress, _plateNumber, _disNotes;
   double _toLong;
   double _toLat;
   double _fromLong;
   double _fromLat;
+  List _disImages;
   int _timeStamp;
 
   String get name => _name;
@@ -63,6 +64,8 @@ class Task {
   int get routeType => _routeType;
   double get amount => _amount;
   int get timeStamp => _timeStamp;
+  List get disImages => _disImages;
+  String get disNotes => _disNotes;
 
   Task(
       this._id,
@@ -95,7 +98,7 @@ class Task {
       this._disImage,
       this._disAddress,
       this._from,
-      this._to, this._userPhone, this._plateNumber);
+      this._to, this._userPhone, this._plateNumber, this._disNotes, this._disImages);
 
   Task.map(dynamic obj) {
     this._name = obj["Name"];
@@ -130,5 +133,7 @@ class Task {
     this._userPhone = obj["userPhone"];
     this._to = obj["toAdd"];
     this._plateNumber = obj["Plate Number"];
+    this._disNotes = obj["Dis Notes"];
+    this._disImages = obj["Dis Images"];
   }
 }

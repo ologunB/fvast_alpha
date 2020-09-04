@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/models/task.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
+import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_loading_button.dart';
@@ -125,17 +126,19 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
   @override
   void initState() {
     setPolylines();
+    noteController = TextEditingController(text: widget.task.disNotes);
     super.initState();
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  TextEditingController noteController;
   String status;
 
   @override
   Widget build(BuildContext context) {
     Task task = widget.task;
     int routeType = task.routeType;
+
 
     int baseFare = routeTypes[routeType].baseFare;
     int distance = task.distance;
@@ -360,7 +363,12 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                       Text("Notes",
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w600)),
-                      Icon(Icons.add)
+                      GestureDetector(
+                        child: Icon(Icons.add),
+                        onTap: () {
+                          onAddNotes(context);
+                        },
+                      )
                     ],
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   ),
@@ -370,8 +378,8 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                 padding: const EdgeInsets.all(8.0),
                 child: Center(
                   child: Text(
-                    "No Notes yet!",
-                    style: TextStyle(fontSize: 16),
+                   noteController.text.trim() == ""  ? "No Notes yet!": noteController.text,
+                    style: TextStyle(fontSize: 17),
                   ),
                 ),
               ),
@@ -570,8 +578,120 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
       ),
     ));
   }
-
   bool isLoading = false;
+
+  void onAddNotes(context) {
+    String initialText = noteController.text;
+    showCupertinoDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text(
+              "Add Note",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.black, fontSize: 23),
+            ),
+            content: Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Container(
+                height: MediaQuery.of(context).size.height / 4,
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: CupertinoTextField(
+                  placeholder: "Type note here...",
+                  placeholderStyle: TextStyle(
+                      fontWeight: FontWeight.w300, color: Colors.black38),
+                  padding: EdgeInsets.all(10),
+                  maxLines: 10,
+                  onSubmitted: (e) {
+                    Map<String, Object>  data = Map();
+                    data.putIfAbsent("Dis Notes", () => noteController.text);
+                    Firestore.instance
+                        .collection("Orders")
+                        .document("Pending") //create for dispatcher
+                        .collection(MY_UID)
+                        .document(widget.task.id)
+                        .updateData(data);
+                        setState(() {});
+                    Navigator.pop(context);
+
+                  },
+                  style: TextStyle(fontSize: 20, color: Colors.black),
+                  controller: noteController,
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        color: Colors.red),
+                    child: FlatButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        noteController.text = initialText;
+                        setState(() {
+
+                        });
+                      },
+                      child: Text(
+                        "Cancel",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      color: Styles.appPrimaryColor,
+                    ),
+                    child: FlatButton(
+                      onPressed: () {
+                        if (noteController.text.isEmpty) {
+                          showCenterToast("Enter note", context);
+                          return;
+                        }
+                        Map<String, Object>  data = Map();
+                        data.putIfAbsent("Dis Notes", () => noteController.text);
+                        Firestore.instance
+                            .collection("Orders")
+                            .document("Pending") //create for dispatcher
+                            .collection(MY_UID)
+                            .document(widget.task.id)
+                            .updateData(data);
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        "Proceed",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        });
+  }
 
   processTask(context, next) async {
     setState(() {
@@ -670,8 +790,8 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
   String todoNext(status) {
     String todo = ""; //= "Start Task";
     if (status == "Accepted") {
-      todo = "Start Task";
-    } else if (status == "Start Task") {
+      todo = "Started Task";
+    } else if (status == "Started Task") {
       todo = "Mark Arrived";
     } else if (status == "Mark Arrived") {
       todo = "Start Delivery";

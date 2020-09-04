@@ -42,7 +42,7 @@ class _HomeMapState extends State<HomeView> {
     List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
         currentLocation.latitude, currentLocation.longitude);
 
-    showCenterToast(currentLocation.longitude.toString(), context);
+    //showCenterToast(currentLocation.longitude.toString(), context);
 
     _center = LatLng(currentLocation.latitude, currentLocation.longitude);
     _markers.add(
