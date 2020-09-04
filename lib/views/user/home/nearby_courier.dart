@@ -229,5 +229,3 @@ class _NearbyCourierState extends State<NearbyCourier> {
     );
   }
 }
-
-/**/

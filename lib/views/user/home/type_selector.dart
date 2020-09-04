@@ -294,7 +294,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                 Text("Tax: ", style: TextStyle(fontSize: 16)),
                 Expanded(child: Divider(thickness: 2)),
                 Expanded(child: Divider(thickness: 2)),
-                Text(" 7% VAT ",
+                Text(" 7.5% VAT ",
                     style: TextStyle(fontSize: 16))
               ],
             ),
@@ -457,7 +457,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     int baseFare = routeTypes[index].baseFare;
     double distanceAmount = routeTypes[index].perKilo * distanceBtwn / 10;
 
-    int tax = (0.07 * (baseFare + distanceAmount)).floor();
+    int tax = (0.075 * (baseFare + distanceAmount)).floor();
     totalAmount = baseFare + tax + distanceAmount;
     setState(() {});
   }

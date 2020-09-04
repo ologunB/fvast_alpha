@@ -40,6 +40,7 @@ class _OrdersViewState extends State<OrdersView>
           bottom: TabBar(
               isScrollable: true,
               unselectedLabelColor: Colors.grey[500],
+
               indicatorSize: TabBarIndicatorSize.tab,
               indicator: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),

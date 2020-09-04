@@ -14,6 +14,7 @@ import 'package:fvastalpha/views/user/auth/signup_page.dart';
 import 'package:fvastalpha/views/user/contact_us/contact_us.dart';
 import 'package:fvastalpha/views/user/home/home_view.dart';
 import 'package:fvastalpha/views/user/home/order_done.dart';
+import 'package:fvastalpha/views/user/settings/setting.dart';
 import 'package:fvastalpha/views/user/task_history/order_view.dart';
 import 'package:fvastalpha/views/user/wallet/wallet_screen.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -44,18 +45,17 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
   }
 
   int _selectedDrawerIndex = 0;
-  final Key _mapKey = UniqueKey();
 
   _getDrawerItemWidget(int pos) {
     switch (pos) {
       case 0:
-        return HomeView(key: _mapKey);
+        return HomeView();
       case 1:
         return OrdersView();
       case 2:
         return WalletView();
       case 3:
-        return Text("Settings");
+        return SettingView();
       case 4:
         return ContactUsF();
       default:
@@ -384,9 +384,14 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
                   ],
                 ),
               ),
-              CustomButton(title: "SignUp to Drive", onPress: (){
-                Navigator.push(context, CupertinoPageRoute(builder: (context)=> ConvertFromUser()));
-              }),
+              CustomButton(
+                  title: "SignUp to Drive",
+                  onPress: () {
+                    Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                            builder: (context) => ConvertFromUser()));
+                  }),
               GestureDetector(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),

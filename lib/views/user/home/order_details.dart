@@ -618,24 +618,23 @@ class _OrderDetailsState extends State<OrderDetails> {
         .document("Pending") //delete the customer
         .collection(widget.task.userUid)
         .document(widget.task.id)
-        .delete()
-        .then((value) {
-      _handleSendNotification();
-      Firestore.instance
-          .collection("Orders")
-          .document("Pending") //delete for dispatcher
-          .collection(widget.task.adminUid)
-          .document(widget.task.id)
-          .delete();
+        .delete();
+    Firestore.instance
+        .collection("Orders")
+        .document("Pending") //delete for dispatcher
+        .collection(widget.task.adminUid)
+        .document(widget.task.id)
+        .delete();
+    _sendCancelNotification();
+
       showCenterToast("Order Cancelled", context);
       Navigator.pushAndRemoveUntil(
           context,
           CupertinoPageRoute(builder: (context) => LayoutTemplate()),
           (Route<dynamic> route) => false);
-    });
   }
 
-  void _handleSendNotification() async {
+  void _sendCancelNotification() async {
     const url = "https://onesignal.com/api/v1/notifications";
     const imgUrlString =
         "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
@@ -648,7 +647,7 @@ class _OrderDetailsState extends State<OrderDetails> {
 
      var body  = {
         "app_id": oneOnlineSignalKey,
-        "include_external_user_ids": [widget.task.userUid],
+        "include_external_user_ids": [widget.task.adminUid],
         "headings": {"en": "Cancelled"},
         "contents": {"en": "User has cancelled the order"},
         "data": {
