@@ -17,6 +17,7 @@ class CustomOrderPage extends StatefulWidget {
   const CustomOrderPage(
       {Key key, this.type, this.color, this.theUID, this.from})
       : super(key: key);
+
   @override
   _ListViewNoteState createState() => _ListViewNoteState();
 }
@@ -77,46 +78,49 @@ class _ListViewNoteState extends State<CustomOrderPage>
                               fontSize: 22),
                         ),
                         SizedBox(height: 30),
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Padding(
-                            padding: EdgeInsets.all(5.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Styles.appPrimaryColor,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: FlatButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      CupertinoPageRoute(
-                                          builder: (context) =>
-                                              ChooseLocation()));
-                                },
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    Icon(
-                                      Icons.add,
-                                      size: 28,
-                                      color: Colors.white,
+                        widget.from == "dis"
+                            ? SizedBox()
+                            : Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Padding(
+                                  padding: EdgeInsets.all(5.0),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Styles.appPrimaryColor,
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    Text(
-                                      "Create Task",
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white),
+                                    child: FlatButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                            context,
+                                            CupertinoPageRoute(
+                                                builder: (context) =>
+                                                    ChooseLocation()));
+                                      },
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: <Widget>[
+                                          Icon(
+                                            Icons.add,
+                                            size: 28,
+                                            color: Colors.white,
+                                          ),
+                                          Text(
+                                            "Create Task",
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w900,
+                                                color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   )
@@ -126,6 +130,7 @@ class _ListViewNoteState extends State<CustomOrderPage>
                         task: Task.map(document),
                         color: widget.color,
                         type: widget.type,
+                        map: document.data
                       );
                     }).toList(),
                   );

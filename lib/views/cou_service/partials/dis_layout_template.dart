@@ -248,7 +248,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     MY_IMAGE = await image;
 
     if (ACCEPT_T_D == "false") {
-      acceptTermsAndCondition();
+   //   acceptTermsAndCondition();
     }
     setState(() {});
   }

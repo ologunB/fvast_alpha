@@ -211,7 +211,7 @@ class _HomeMapState extends State<DispatchHomeView> {
                           ),
                         ),
                         Text(
-                          "Task is empty, Create a Task!",
+                          "Task is empty",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: Colors.black,
@@ -230,7 +230,7 @@ class _HomeMapState extends State<DispatchHomeView> {
                             Navigator.push(
                               context,
                               CupertinoPageRoute(
-                                builder: (context) => DisTaskDetail(task: task),
+                                builder: (context) => DisTaskDetail(task: task, dataMap: document.data,),
                               ),
                             );
                           },

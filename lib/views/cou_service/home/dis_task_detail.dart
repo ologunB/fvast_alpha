@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
 import 'package:signature/signature.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,8 +28,8 @@ import 'dis_order_done.dart';
 
 class DisTaskDetail extends StatefulWidget {
   final Task task;
-
-  const DisTaskDetail({Key key, this.task}) : super(key: key);
+  final Map dataMap;
+  const DisTaskDetail({Key key, this.task, this.dataMap}) : super(key: key);
 
   @override
   _DisTaskDetailState createState() => _DisTaskDetailState();
@@ -206,7 +207,6 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                           child: CustomLoadingButton(
                               title: todoNext(status),
                               onPress: () {
-
                                 processTask(_scaffoldKey.currentContext,
                                     todoNext(status));
                               },
@@ -548,6 +548,49 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                   ],
                 ),
               ),
+              status != "Start Delivery" || status != "Mark Completed"
+                  ? SizedBox()
+                  : GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => CustomDialog(
+                            title: "Do you want to cancel the order?",
+                            onClicked: () {
+                              cancelOrder();
+                            },
+                            includeHeader: true,
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            color: Colors.red,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Icon(
+                                Icons.close,
+                                color: Colors.white,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "Cancel Order",
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.white),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
             ],
           ),
         ),
@@ -924,7 +967,6 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
             Map data = doc.data;
             data.update("status", (a) => next, ifAbsent: () => next);
 
-
             Firestore.instance
                 .collection("Orders")
                 .document("Completed") //create for dispatcher
@@ -939,7 +981,6 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
                   .document(widget.task.id)
                   .setData(data)
                   .then((value) {
-
                 _handleSendNotification(next, context);
                 Firestore.instance
                     .collection("Orders")
@@ -1082,13 +1123,104 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
           CupertinoPageRoute(
             fullscreenDialog: true,
             builder: (context) => DisOrderCompletedPage(
-                task: widget.task,),
+              task: widget.task,
+            ),
           ),
         );
       }
     }).catchError((a) {
       print(a.toString());
       showCenterToast("Error: " + a.toString(), _scaffoldKey.currentContext);
+    });
+  }
+
+
+
+  void cancelOrder() {
+    //  Navigator.pop(context);
+    showCupertinoDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text(
+              "Almost Done",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.red, fontSize: 20),
+            ),
+            content: CupertinoActivityIndicator(radius: 20),
+          );
+        });
+    Firestore.instance
+        .collection("Orders")
+        .document("Pending") //delete for dispatcher
+        .collection(widget.task.disUid)
+        .document(widget.task.id)
+        .delete();
+    Firestore.instance
+        .collection("Orders")
+        .document("Pending") //delete the customer
+        .collection(widget.task.userUid)
+        .document(widget.task.id)
+        .delete();
+
+    Firestore.instance
+        .collection("Orders")
+        .document("Cancelled") //delete for dispatcher
+        .collection(widget.task.disUid)
+        .document(widget.task.id)
+        .setData(widget.dataMap);
+
+    Firestore.instance
+        .collection("Orders")
+        .document("Cancelled") //delete the customer
+        .collection(widget.task.userUid)
+        .document(widget.task.id)
+        .setData(widget.dataMap);
+    _sendCancelNotification();
+
+    showCenterToast("Order Cancelled", context);
+    Navigator.pushAndRemoveUntil(
+        context,
+        CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
+            (Route<dynamic> route) => false);
+  }
+
+  void _sendCancelNotification() async {
+    const url = "https://onesignal.com/api/v1/notifications";
+    const imgUrlString =
+        "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
+    var client = http.Client();
+
+    const headers = {
+      "Content-Type": "application/json; charset=utf-8",
+      "Authorization": "Basic NDA4Mjc0MGUtMTMxYS00YjFlLTgwZTktMmRiYmVmYjRjZWFj"
+    };
+
+    var body = {
+      "app_id": oneOnlineSignalKey,
+      "include_external_user_ids": [widget.task.userUid],
+      "headings": {"en": "Cancelled"},
+      "contents": {"en": "Dispatcher has cancelled the order"},
+      "data": {
+        "routeType": "em",
+        "type": "em",
+        "paymentType": "em",
+        "reName": "em",
+        "reNum": "em",
+        "amount": "em",
+        "status": "Cancelled",
+      },
+      "android_background_layout": {
+        "image": imgUrlString,
+        "headings_color": "ff000000",
+        "contents_color": "ff0000FF"
+      }
+    };
+    await client
+        .post(url, headers: headers, body: jsonEncode(body))
+        .then((http.Response value) {})
+        .catchError((a) {
+      print(a.toString());
     });
   }
 }

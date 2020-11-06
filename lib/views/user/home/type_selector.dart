@@ -529,13 +529,13 @@ class _ModeSelectorState extends State<ModeSelector> {
                                       fontWeight: FontWeight.w600,
                                       fontSize: 20),
                                 ),
-                                Text(
+                            /*    Text(
                                   timeConvert(distanceBtwn / timeFactor),
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.w800,
                                       fontSize: 20),
-                                ),
+                                ),*/
                               ],
                               mainAxisAlignment: MainAxisAlignment.center,
                             ),
@@ -682,11 +682,11 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                   onChanged: (value) {
 
                                                     // to enable uncomment
-                                                /*    _setState(() {
+                                                  _setState(() {
                                                       paymentType = value;
-                                                    });*/
+                                                    });
                                                   },
-                                                  title: Text("Bitcoin Payment(Coming soon)",
+                                                  title: Text("Bitcoin Payment",
                                                       style: TextStyle(
                                                           fontSize: 18,
                                                           color: Colors.black,
@@ -1317,6 +1317,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                         onTap: () {
                           Clipboard.setData(new ClipboardData(text: btcWalletController.text));
                           if (mounted) {
+                            showCenterToast("Address Copied!", context);
                             scaffoldKey.currentState.showSnackBar(
                               SnackBar(
                                 content: Text(
@@ -1358,7 +1359,34 @@ class _ModeSelectorState extends State<ModeSelector> {
                     ),
                     child: FlatButton(
                       onPressed: () {
-                        // compileTransaction(context);
+                           showDialog(
+                              context: context,
+                              builder: (_) {
+                                return AlertDialog(
+                                  title: Image.asset(
+                                    "assets/images/logo.png",
+                                    height: 70,
+                                  ),
+                                  content: SingleChildScrollView(
+                                    child: Text("Are yoy sure you have sent money to the wallet?"   ,                                   textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                  ),
+                                  actions: [
+                                    FlatButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text("NO")),
+                                    FlatButton(
+                                        onPressed: () async {
+                                          compileTransaction(context);
+                                        },
+                                        child: Text("YES")),
+
+                                  ],
+                                );
+                              });
                       },
                       child: Text(
                         "Proceed",

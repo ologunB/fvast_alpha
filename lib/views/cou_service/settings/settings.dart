@@ -89,7 +89,7 @@ class SettingsDisView extends StatelessWidget {
                               height: 70,
                             ),
                             content: Text(
-                              "FVAST is a web based app for ordering logistics; it communicates logistics service requests to the logistics service providers who have been registered as users of the FVAST app. FVAST makes it easy for customers who require logistics services in any part of Nigeria and beyond to be linked up to riders who are willing to render such services provided both parties are signed on to the FVAST app.",
+"FVAST is a web based app for ordering logistics; it communicates logistics service requests to the logistics service providers who have been registered as users of the FVAST app. FVAST makes it easy for customers who require logistics services in any part of Nigeria and beyond to be linked up to riders who are willing to render such services provided both parties are signed on to the FVAST app.",
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 16),
                             ),

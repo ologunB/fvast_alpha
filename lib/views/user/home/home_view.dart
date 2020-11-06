@@ -180,14 +180,14 @@ class _HomeMapState extends State<HomeView> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  Widget taskItem({context, Task task}) {
+  Widget taskItem({context, Task task, Map docTask}) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
             context,
             CupertinoPageRoute(
                 builder: (context) => OrderDetails(
-                      task: task,
+                      task: task, dataMap: docTask
                     )));
       },
       child: Column(
@@ -233,7 +233,7 @@ class _HomeMapState extends State<HomeView> {
                             context,
                             CupertinoPageRoute(
                                 builder: (context) =>
-                                    OrderDetails(task: task)));
+                                    OrderDetails(task: task, dataMap: docTask)));
                       },
                       currentStep: 1,
                       steps: [
@@ -351,7 +351,7 @@ class _HomeMapState extends State<HomeView> {
                     children: snapshot.data.documents.map((document) {
                       Task task = Task.map(document);
 
-                      return taskItem(task: task, context: context);
+                      return taskItem(task: task, context: context, docTask: document.data);
                     }).toList(),
                   );
         }

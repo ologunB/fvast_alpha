@@ -47,7 +47,7 @@ class Walk2 extends StatelessWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: Center(
                       child: Text(
-                        "There are variation os lorem to deliver but we offer the best and suffered in the past",
+                        "We offer flexible payment options ranging from Cash, Bitcoin and Card payment systems",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 18,

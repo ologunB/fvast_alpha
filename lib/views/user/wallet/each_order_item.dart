@@ -24,6 +24,8 @@ class _EachOrderItemState extends State<EachOrderItem> {
       color = Colors.blueAccent;
     }else if(widget.transaction.type == "Cash Payment"){
       color = Colors.deepOrange;
+    }else if(widget.transaction.type == "Bitcoin Payment"){
+      color = Colors.blueAccent;
     }
 
     EachTransaction transaction = widget.transaction;

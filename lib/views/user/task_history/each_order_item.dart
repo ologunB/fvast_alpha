@@ -8,9 +8,10 @@ class EachOrderItem extends StatefulWidget {
   final Task task;
   final Color color;
   final String type;
+  final Map map;
 
   const EachOrderItem(
-      {Key key, @required this.task, @required this.color, @required this.type})
+      {Key key, @required this.task, @required this.color, @required this.type, this.map})
       : super(key: key);
 
   @override
@@ -27,7 +28,7 @@ class _EachOrderItemState extends State<EachOrderItem> {
             context,
             CupertinoPageRoute(
                 builder: (context) => OrderDetails(
-                      task: widget.task,
+                      task: widget.task, dataMap: widget.map
                     )));
       },
       child: Container(

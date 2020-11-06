@@ -73,7 +73,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
           Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (context) => DisTaskDetail(task: task),
+              builder: (context) => DisTaskDetail(task: task, dataMap: toDispatchData),
             ),
           );
         });

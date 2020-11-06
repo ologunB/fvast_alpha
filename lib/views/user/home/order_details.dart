@@ -15,9 +15,9 @@ import 'package:smooth_star_rating/smooth_star_rating.dart';
 import 'package:http/http.dart' as http;
 
 class OrderDetails extends StatefulWidget {
-  final Task task;
+  final Task task;final Map dataMap;
 
-  const OrderDetails({Key key, this.task}) : super(key: key);
+  const OrderDetails({Key key, this.task, this.dataMap}) : super(key: key);
 
   @override
   _OrderDetailsState createState() => _OrderDetailsState();
@@ -402,7 +402,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                       : SizedBox(),
                   widget.task.status != "Completed"
                       ? SizedBox()
-                      : GestureDetector(
+                      : GestureDetector (
                           onTap: () {
                             showDialog(
                               context: context,
@@ -631,6 +631,19 @@ class _OrderDetailsState extends State<OrderDetails> {
         .document(widget.task.id)
         .delete();
 
+    Firestore.instance
+        .collection("Orders")
+        .document("Cancelled") //delete for dispatcher
+        .collection(widget.task.disUid)
+        .document(widget.task.id)
+        .setData(widget.dataMap);
+
+    Firestore.instance
+        .collection("Orders")
+        .document("Cancelled") //delete the customer
+        .collection(widget.task.userUid)
+        .document(widget.task.id)
+        .setData(widget.dataMap);
     _sendCancelNotification();
 
     showCenterToast("Order Cancelled", context);

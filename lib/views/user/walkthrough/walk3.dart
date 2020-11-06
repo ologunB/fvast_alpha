@@ -49,7 +49,7 @@ class Walk3 extends StatelessWidget {
                           padding: const EdgeInsets.all(8.0),
                           child: Center(
                             child: Text(
-                              "There are variation os lorem to deliver but we offer the best and suffered in the past",
+                              "Deliver anything with ease, we got you covered",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 18,

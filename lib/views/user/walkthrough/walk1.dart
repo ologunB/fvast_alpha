@@ -47,7 +47,7 @@ class Walk1 extends StatelessWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: Center(
                       child: Text(
-                        "There are variation os lorem to deliver but we offer the best and suffered in the past",
+                        "Choose your destination, our dispatch riders are always ready to go",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 18,

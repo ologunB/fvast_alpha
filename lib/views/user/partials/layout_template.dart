@@ -111,7 +111,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
     ACCEPT_T_D = await accept_td;
 
     if (ACCEPT_T_D == "false") {
-      acceptTermsAndCondition();
+    //  acceptTermsAndCondition();
     }
     setState(() {});
   }

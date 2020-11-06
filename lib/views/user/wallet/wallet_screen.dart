@@ -85,7 +85,7 @@ class _WalletViewState extends State<WalletView> {
                             EachTransaction item =
                                 EachTransaction.map(document);
 
-                            if (item.type == "Deposit") {
+                            if (item.type == "Deposit" || item.type == "Card Payment") {
                               mBalance = mBalance + item.amount;
                               totalDeposit = totalDeposit + item.amount.floor();
                             } else  if (item.type == "Cash Payment"){
@@ -95,7 +95,11 @@ class _WalletViewState extends State<WalletView> {
                               mBalance = mBalance - item.amount;
                               totalWithdrawals =
                                   totalWithdrawals + item.amount.floor();
-                            }  }).toList();
+                            }else if (item.type == "Bitcoin Payment") {
+                              mBalance = mBalance + item.amount;
+                              totalDeposit = totalDeposit + item.amount.floor();
+                            }
+                          }).toList();
                           return Column(
                             children: <Widget>[
                               Text("Balance: ₦ " + commaFormat.format(mBalance),

@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/show_exception_alert_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:loading_overlay/loading_overlay.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SignupPage extends StatefulWidget {
   @override
@@ -82,7 +84,6 @@ class _SignupPageState extends State<SignupPage> {
               .document(user.uid)
               .setData(mData)
               .then((val) {
-
             showCupertinoDialog(
                 context: context,
                 builder: (_) {
@@ -159,7 +160,7 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   Widget build(BuildContext context) {
-  //   SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
+    //   SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
     return Scaffold(
       body: LoadingOverlay(
         isLoading: isLoading,
@@ -362,7 +363,8 @@ class _SignupPageState extends State<SignupPage> {
                                       const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Theme(
                                     data: ThemeData(
-                                        primaryColor: Styles.commonDarkBackground,
+                                        primaryColor:
+                                            Styles.commonDarkBackground,
                                         hintColor: Styles.commonDarkBackground),
                                     child: TextFormField(
                                       keyboardType: TextInputType.text,
@@ -401,7 +403,8 @@ class _SignupPageState extends State<SignupPage> {
                                       const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Theme(
                                     data: ThemeData(
-                                        primaryColor: Styles.commonDarkBackground,
+                                        primaryColor:
+                                            Styles.commonDarkBackground,
                                         hintColor: Styles.commonDarkBackground),
                                     child: TextFormField(
                                       keyboardType: TextInputType.text,
@@ -440,7 +443,8 @@ class _SignupPageState extends State<SignupPage> {
                                       const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Theme(
                                     data: ThemeData(
-                                        primaryColor: Styles.commonDarkBackground,
+                                        primaryColor:
+                                            Styles.commonDarkBackground,
                                         hintColor: Styles.commonDarkBackground),
                                     child: TextFormField(
                                       keyboardType: TextInputType.text,
@@ -480,7 +484,8 @@ class _SignupPageState extends State<SignupPage> {
                                       const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Theme(
                                     data: ThemeData(
-                                        primaryColor: Styles.commonDarkBackground,
+                                        primaryColor:
+                                            Styles.commonDarkBackground,
                                         hintColor: Styles.commonDarkBackground),
                                     child: TextField(
                                       decoration: InputDecoration(
@@ -511,7 +516,8 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         DropdownButton<String>(
                           hint: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
                             child: Text("Sign up as "),
                           ),
                           value: selectedType,
@@ -546,9 +552,7 @@ class _SignupPageState extends State<SignupPage> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: FlatButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () {
+                              onPressed:() {
                                       signUp();
                                     },
                               child: Row(
@@ -557,9 +561,7 @@ class _SignupPageState extends State<SignupPage> {
                                 children: <Widget>[
                                   Padding(
                                     padding: EdgeInsets.all(5.0),
-                                    child: isLoading
-                                        ? CupertinoActivityIndicator()
-                                        : Text(
+                                    child:Text(
                                             "SIGN UP",
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
@@ -612,7 +614,70 @@ class _SignupPageState extends State<SignupPage> {
                           ),
                         ),
                       )
-                    ])
+                    ]),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    //  mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                            text: "By signing up you agree to our ",
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey),
+                            children: <TextSpan>[
+                              TextSpan(
+                                  text: 'Terms of service',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w400,
+                                      color: Styles.appPrimaryColor),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      String _url =
+                                          "https://fvast.com.ng/terms";
+                                      if (await canLaunch(_url)) {
+                                        await launch(_url);
+                                      } else {
+                                        showCenterToast(
+                                            " Could not launch $_url", context);
+                                        throw 'Could not launch $_url';
+                                      }
+                                    }),
+                              TextSpan(
+                                text: ' and ',
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.grey),
+                              ),
+                              TextSpan(
+                                  text: 'Privacy Policy',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w400,
+                                      color: Styles.appPrimaryColor),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      String _url =
+                                          "https://fvast.com.ng/privacy";
+                                      if (await canLaunch(_url)) {
+                                        await launch(_url);
+                                      } else {
+                                        showCenterToast(
+                                            " Could not launch $_url", context);
+                                        throw 'Could not launch $_url';
+                                      }
+                                    }),
+                            ]),
+                      )
+                    ],
+                  ),
+                )
               ],
             ),
           ),

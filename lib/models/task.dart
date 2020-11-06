@@ -100,8 +100,8 @@ class Task {
   List get disImages => _disImages;
 
   String get disNotes => _disNotes;
-  String get disSign => _disSign;
 
+  String get disSign => _disSign;
 
   Task(
       this._id,
@@ -138,7 +138,8 @@ class Task {
       this._userPhone,
       this._plateNumber,
       this._disNotes,
-      this._disImages, this._disSign);
+      this._disImages,
+      this._disSign);
 
   Task.map(dynamic obj) {
     this._name = obj["Name"];
@@ -176,5 +177,9 @@ class Task {
     this._disNotes = obj["Dis Notes"];
     this._disImages = obj["Dis Images"];
     this._disSign = obj["Dis Signature"] ?? "not";
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'Name': name};
   }
 }

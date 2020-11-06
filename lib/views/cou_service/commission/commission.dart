@@ -101,6 +101,9 @@ class _CommissionViewState extends State<CommissionView> {
                               mBalance = mBalance - (item.amount).floor();
                               totalWithdrawals =
                                   totalWithdrawals + item.amount.floor();
+                            }else if (item.type == "Bitcoin Payment") {
+                              mBalance = mBalance + (item.amount * 0.8).floor();
+                            //  totalDeposit = totalDeposit + item.amount.floor();
                             }
                           }).toList();
                           return Column(
