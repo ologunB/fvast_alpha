@@ -173,6 +173,9 @@ class _ModeSelectorState extends State<ModeSelector> {
 
   bool isCouponLoading = false;
 
+  int distanceBtwn;
+  int timeFactor = 50;
+  bool makeCouponClick = true;
   applyCoupon(_setState) {
     if (inputCouponCode.text.isEmpty) {
       showCenterToast("Code cannot be empty", context);
@@ -301,7 +304,6 @@ class _ModeSelectorState extends State<ModeSelector> {
               ],
             ),
           ),
-          SizedBox(height: 50),
           CustomButton(
               title: "Use ${routeTypes[index].type}",
               onPress: () {
@@ -443,16 +445,6 @@ class _ModeSelectorState extends State<ModeSelector> {
     );
   }
 
-  @override
-  void initState() {
-    setPolylines();
-    super.initState();
-    getBalance();
-  }
-
-  int distanceBtwn;
-  int timeFactor = 50;
-
   void routeSelector(context, index) {
     Navigator.pop(context);
     routeType = index;
@@ -465,7 +457,12 @@ class _ModeSelectorState extends State<ModeSelector> {
     setState(() {});
   }
 
-  bool makeCouponClick = true;
+  @override
+  void initState() {
+    setPolylines();
+    super.initState();
+    getBalance();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -523,13 +520,13 @@ class _ModeSelectorState extends State<ModeSelector> {
                                       fontSize: 18),
                                 ),
                                 Text(
-                                  "₦ " + commaFormat.format(totalAmount),
+                                  "₦ " + commaFormat.format(toTens(totalAmount)),
                                   style: TextStyle(
                                       color: Colors.blue,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 20),
                                 ),
-                            /*    Text(
+                                /*    Text(
                                   timeConvert(distanceBtwn / timeFactor),
                                   style: TextStyle(
                                       color: Colors.black,
@@ -669,7 +666,6 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                           fontWeight:
                                                               FontWeight.w400)),
                                                 ),
-
                                                 RadioListTile(
                                                   value: "Bitcoin Payment",
                                                   toggleable: true,
@@ -680,9 +676,8 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                       ListTileControlAffinity
                                                           .trailing,
                                                   onChanged: (value) {
-
                                                     // to enable uncomment
-                                                  _setState(() {
+                                                    _setState(() {
                                                       paymentType = value;
                                                     });
                                                   },
@@ -892,7 +887,6 @@ class _ModeSelectorState extends State<ModeSelector> {
                     CustomButton(
                         title: "PROCEED",
                         onPress: () {
-
                           if (paymentType == null) {
                             showCenterToast("Choose a payment type", context);
                             return;
@@ -903,286 +897,288 @@ class _ModeSelectorState extends State<ModeSelector> {
                           amountBefore = totalAmount;
                           scaffoldKey.currentState.showBottomSheet(
                             (context) => StatefulBuilder(
-                              builder: (context, _setState) => SolidBottomSheet(
-                                headerBar: Container(
-                                  decoration: BoxDecoration(
-                                    color: Styles.appPrimaryColor,
-                                  ),
-                                  height: 50,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: <Widget>[
-                                        Center(
-                                          child: IconButton(
-                                              icon: Icon(
-                                                Icons.close,
+                              builder: (context, _setState) => SingleChildScrollView(
+                                child: SolidBottomSheet(
+                                  headerBar: Container(
+                                    decoration: BoxDecoration(
+                                      color: Styles.appPrimaryColor,
+                                    ),
+                                    height: 50,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          Center(
+                                            child: IconButton(
+                                                icon: Icon(
+                                                  Icons.close,
+                                                  color: Colors.white,
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                }),
+                                          ),
+                                          SizedBox(width: 20),
+                                          Text(
+                                            "Courier Details",
+                                            style: TextStyle(
                                                 color: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              }),
+                                                fontSize: 18),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  draggableBody: true,
+                                  body: Padding(
+                                    padding: const EdgeInsets.all(18.0),
+                                    child: ListView(
+                                      children: <Widget>[
+                                        Text("Package Details*",
+                                            style: TextStyle(fontSize: 18)),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(5.0),
+                                            color: Styles.commonDarkBackground,
+                                          ),
+                                          child: DropdownButton<String>(
+                                            hint: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10.0),
+                                              child: Text("Choose Size*"),
+                                            ),
+                                            value: packageSize,
+                                            underline: SizedBox(),
+                                            items: ["Small", "Medium", "Large"]
+                                                .map((value) {
+                                              return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal: 8.0),
+                                                  child: Text(
+                                                    "$value",
+                                                    style:
+                                                        TextStyle(fontSize: 18),
+                                                  ),
+                                                ),
+                                              );
+                                            }).toList(),
+                                            isExpanded: true,
+                                            onChanged: (value) {
+                                              packageSize = value;
+                                              totalAmount = amountBefore;
+                                              if (value == "Medium") {
+                                                sizeCharge = 5;
+                                              } else if (value == "Large") {
+                                                sizeCharge = 10;
+                                              } else if (value == "Small") {
+                                                sizeCharge = 0;
+                                              }
+                                              totalAmount = totalAmount +
+                                                  sizeCharge +
+                                                  weightCharge +
+                                                  packageCharge;
+
+                                              setState(() {});
+                                              FocusScope.of(context).unfocus();
+                                            },
+                                          ),
                                         ),
-                                        SizedBox(width: 20),
-                                        Text(
-                                          "Courier Details",
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 18),
+                                        SizedBox(height: 8),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(5.0),
+                                            color: Styles.commonDarkBackground,
+                                          ),
+                                          child: DropdownButton<String>(
+                                            hint: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10.0),
+                                              child: Text("Choose Type*"),
+                                            ),
+                                            value: packageType,
+                                            underline: SizedBox(),
+                                            items: [
+                                              "Glass Packing",
+                                              "Box Packing"
+                                            ].map((value) {
+                                              return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal: 8.0),
+                                                  child: Text(
+                                                    "$value",
+                                                    style:
+                                                        TextStyle(fontSize: 18),
+                                                  ),
+                                                ),
+                                              );
+                                            }).toList(),
+                                            isExpanded: true,
+                                            onChanged: (value) {
+                                              packageType = value;
+
+                                              totalAmount = amountBefore;
+                                              if (value == "Glass Packing") {
+                                                packageCharge = 10;
+                                              } else {
+                                                packageCharge = 0;
+                                              }
+
+                                              totalAmount = totalAmount +
+                                                  sizeCharge +
+                                                  weightCharge +
+                                                  packageCharge;
+
+                                              setState(() {});
+                                              FocusScope.of(context).unfocus();
+                                            },
+                                          ),
                                         ),
+                                        SizedBox(height: 8),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(5.0),
+                                            color: Styles.commonDarkBackground,
+                                          ),
+                                          child: DropdownButton<String>(
+                                            hint: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10.0),
+                                              child: Text("Choose Weight*"),
+                                            ),
+                                            value: packageWeight,
+                                            underline: SizedBox(),
+                                            items: [
+                                              "Less than 1kg",
+                                              "1 - 3kg",
+                                              "3 - 8kg",
+                                              "Greater than 8kg"
+                                            ].map((value) {
+                                              return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal: 8.0),
+                                                  child: Text(
+                                                    "$value",
+                                                    style:
+                                                        TextStyle(fontSize: 18),
+                                                  ),
+                                                ),
+                                              );
+                                            }).toList(),
+                                            isExpanded: true,
+                                            onChanged: (value) {
+                                              packageWeight = value;
+
+                                              totalAmount = amountBefore;
+                                              if (value == "1 - 3kg") {
+                                                weightCharge = 5;
+                                              } else if (value == "3 - 8kg") {
+                                                weightCharge = 10;
+                                              } else if (value ==
+                                                  "Greater than 8kg") {
+                                                weightCharge = 15;
+                                              } else {
+                                                weightCharge = 1;
+                                              }
+                                              totalAmount = totalAmount +
+                                                  sizeCharge +
+                                                  weightCharge +
+                                                  packageCharge;
+                                              setState(() {});
+                                              FocusScope.of(context).unfocus();
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text("Deliver To*",
+                                            style: TextStyle(fontSize: 18)),
+                                        CustomTextField(
+                                          controller: receiversName,
+                                          inputType: TextInputType.text,
+                                          text: "Receiver's Name*",
+                                        ),
+                                        SizedBox(height: 8),
+                                        CustomTextField(
+                                          controller: receiversNumber,
+                                          inputType: TextInputType.number,
+                                          text: "Receiver's Number*",
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text("Instructions",
+                                            style: TextStyle(fontSize: 18)),
+                                        CustomTextField(
+                                          controller: pickupInstruct,
+                                          inputType: TextInputType.text,
+                                          text: "Pickup Instructions",
+                                        ),
+                                        SizedBox(height: 8),
+                                        CustomTextField(
+                                          controller: deliInstruct,
+                                          inputType: TextInputType.text,
+                                          text: "Delivery Instructions",
+                                        ),
+                                        SizedBox(height: 8),
+                                        CustomButton(
+                                            title: "CONFIRM",
+                                            onPress: () {
+                                              if (receiversName.text.isEmpty ||
+                                                  receiversNumber.text.isEmpty ||
+                                                  packageWeight.isEmpty ||
+                                                  packageType.isEmpty ||
+                                                  packageSize.isEmpty ||
+                                                  receiversName.text.isEmpty) {
+                                                showCenterToast(
+                                                    "Fill important fields",
+                                                    context);
+                                                return;
+                                              }
+
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (_) {
+                                                    return CustomDialog(
+                                                      title:
+                                                          "Do you want to proceed with this?",
+                                                      includeHeader: true,
+                                                      onClicked: () {
+                                                        if (paymentType ==
+                                                            "Cash Payment") {
+                                                          compileTransaction(
+                                                              context);
+                                                        } else if (paymentType ==
+                                                            "Card Payment") {
+                                                          processCardTransaction(
+                                                              context);
+                                                        } else if (paymentType ==
+                                                            "Bitcoin Payment") {
+                                                          useBitcoinPayment(
+                                                              context);
+                                                        }
+                                                      },
+                                                    );
+                                                  });
+                                            })
                                       ],
                                     ),
                                   ),
+                                  maxHeight: height * .6,
+                                  minHeight: height * .5,
                                 ),
-                                draggableBody: true,
-                                body: Padding(
-                                  padding: const EdgeInsets.all(18.0),
-                                  child: ListView(
-                                    children: <Widget>[
-                                      Text("Package Details*",
-                                          style: TextStyle(fontSize: 18)),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(5.0),
-                                          color: Styles.commonDarkBackground,
-                                        ),
-                                        child: DropdownButton<String>(
-                                          hint: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
-                                            child: Text("Choose Size*"),
-                                          ),
-                                          value: packageSize,
-                                          underline: SizedBox(),
-                                          items: ["Small", "Medium", "Large"]
-                                              .map((value) {
-                                            return DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 8.0),
-                                                child: Text(
-                                                  "$value",
-                                                  style:
-                                                      TextStyle(fontSize: 18),
-                                                ),
-                                              ),
-                                            );
-                                          }).toList(),
-                                          isExpanded: true,
-                                          onChanged: (value) {
-                                            packageSize = value;
-                                            totalAmount = amountBefore;
-                                            if (value == "Medium") {
-                                              sizeCharge = 5;
-                                            } else if (value == "Large") {
-                                              sizeCharge = 10;
-                                            } else if (value == "Small") {
-                                              sizeCharge = 0;
-                                            }
-                                            totalAmount = totalAmount +
-                                                sizeCharge +
-                                                weightCharge +
-                                                packageCharge;
-
-                                            setState(() {});
-                                            FocusScope.of(context).unfocus();
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(5.0),
-                                          color: Styles.commonDarkBackground,
-                                        ),
-                                        child: DropdownButton<String>(
-                                          hint: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
-                                            child: Text("Choose Type*"),
-                                          ),
-                                          value: packageType,
-                                          underline: SizedBox(),
-                                          items: [
-                                            "Glass Packing",
-                                            "Box Packing"
-                                          ].map((value) {
-                                            return DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 8.0),
-                                                child: Text(
-                                                  "$value",
-                                                  style:
-                                                      TextStyle(fontSize: 18),
-                                                ),
-                                              ),
-                                            );
-                                          }).toList(),
-                                          isExpanded: true,
-                                          onChanged: (value) {
-                                            packageType = value;
-
-                                            totalAmount = amountBefore;
-                                            if (value == "Glass Packing") {
-                                              packageCharge = 10;
-                                            } else {
-                                              packageCharge = 0;
-                                            }
-
-                                            totalAmount = totalAmount +
-                                                sizeCharge +
-                                                weightCharge +
-                                                packageCharge;
-
-                                            setState(() {});
-                                            FocusScope.of(context).unfocus();
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(5.0),
-                                          color: Styles.commonDarkBackground,
-                                        ),
-                                        child: DropdownButton<String>(
-                                          hint: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10.0),
-                                            child: Text("Choose Weight*"),
-                                          ),
-                                          value: packageWeight,
-                                          underline: SizedBox(),
-                                          items: [
-                                            "Less than 1kg",
-                                            "1 - 3kg",
-                                            "3 - 8kg",
-                                            "Greater than 8kg"
-                                          ].map((value) {
-                                            return DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 8.0),
-                                                child: Text(
-                                                  "$value",
-                                                  style:
-                                                      TextStyle(fontSize: 18),
-                                                ),
-                                              ),
-                                            );
-                                          }).toList(),
-                                          isExpanded: true,
-                                          onChanged: (value) {
-                                            packageWeight = value;
-
-                                            totalAmount = amountBefore;
-                                            if (value == "1 - 3kg") {
-                                              weightCharge = 5;
-                                            } else if (value == "3 - 8kg") {
-                                              weightCharge = 10;
-                                            } else if (value ==
-                                                "Greater than 8kg") {
-                                              weightCharge = 15;
-                                            } else {
-                                              weightCharge = 1;
-                                            }
-                                            totalAmount = totalAmount +
-                                                sizeCharge +
-                                                weightCharge +
-                                                packageCharge;
-                                            setState(() {});
-                                            FocusScope.of(context).unfocus();
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text("Deliver To*",
-                                          style: TextStyle(fontSize: 18)),
-                                      CustomTextField(
-                                        controller: receiversName,
-                                        inputType: TextInputType.text,
-                                        text: "Receiver's Name*",
-                                      ),
-                                      SizedBox(height: 8),
-                                      CustomTextField(
-                                        controller: receiversNumber,
-                                        inputType: TextInputType.number,
-                                        text: "Receiver's Number*",
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text("Instructions",
-                                          style: TextStyle(fontSize: 18)),
-                                      CustomTextField(
-                                        controller: pickupInstruct,
-                                        inputType: TextInputType.text,
-                                        text: "Pickup Instructions",
-                                      ),
-                                      SizedBox(height: 8),
-                                      CustomTextField(
-                                        controller: deliInstruct,
-                                        inputType: TextInputType.text,
-                                        text: "Delivery Instructions",
-                                      ),
-                                      SizedBox(height: 8),
-                                      CustomButton(
-                                          title: "CONFIRM",
-                                          onPress: () {
-                                            if (receiversName.text.isEmpty ||
-                                                receiversNumber.text.isEmpty ||
-                                                packageWeight.isEmpty ||
-                                                packageType.isEmpty ||
-                                                packageSize.isEmpty ||
-                                                receiversName.text.isEmpty) {
-                                              showCenterToast(
-                                                  "Fill important fields",
-                                                  context);
-                                              return;
-                                            }
-
-                                            showDialog(
-                                                context: context,
-                                                builder: (_) {
-                                                  return CustomDialog(
-                                                    title:
-                                                        "Do you want to proceed with this?",
-                                                    includeHeader: true,
-                                                    onClicked: () {
-                                                      if (paymentType ==
-                                                          "Cash Payment") {
-                                                        compileTransaction(
-                                                            context);
-                                                      } else if (paymentType ==
-                                                          "Card Payment") {
-                                                        processCardTransaction(
-                                                            context);
-                                                      } else if (paymentType ==
-                                                          "Bitcoin Payment") {
-                                                        useBitcoinPayment(
-                                                            context);
-                                                      }
-                                                    },
-                                                  );
-                                                });
-                                          })
-                                    ],
-                                  ),
-                                ),
-                                maxHeight: height * .6,
-                                minHeight: height * .5,
                               ),
                             ),
                             shape: RoundedRectangleBorder(
@@ -1221,7 +1217,7 @@ class _ModeSelectorState extends State<ModeSelector> {
 
   processCardTransaction(context) async {
     var initializer = RavePayInitializer(
-        amount: totalAmount,
+        amount: toTens(totalAmount).toDouble(),
         publicKey: ravePublicKey,
         encryptionKey: raveEncryptKey)
       ..country = "NG"
@@ -1294,7 +1290,7 @@ class _ModeSelectorState extends State<ModeSelector> {
           return AlertDialog(
             title: Text(
               "Send ₦" +
-                  totalAmount.toString() +
+                  toTens(totalAmount).toString() +
                   " to this Bitcoin Wallet Address",
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.black, fontSize: 20),
@@ -1315,7 +1311,8 @@ class _ModeSelectorState extends State<ModeSelector> {
                       suffix: InkWell(
                         child: Icon(Icons.content_copy),
                         onTap: () {
-                          Clipboard.setData(new ClipboardData(text: btcWalletController.text));
+                          Clipboard.setData(new ClipboardData(
+                              text: btcWalletController.text));
                           if (mounted) {
                             showCenterToast("Address Copied!", context);
                             scaffoldKey.currentState.showSnackBar(
@@ -1359,34 +1356,35 @@ class _ModeSelectorState extends State<ModeSelector> {
                     ),
                     child: FlatButton(
                       onPressed: () {
-                           showDialog(
-                              context: context,
-                              builder: (_) {
-                                return AlertDialog(
-                                  title: Image.asset(
-                                    "assets/images/logo.png",
-                                    height: 70,
+                        showDialog(
+                            context: context,
+                            builder: (_) {
+                              return AlertDialog(
+                                title: Image.asset(
+                                  "assets/images/logo.png",
+                                  height: 70,
+                                ),
+                                content: SingleChildScrollView(
+                                  child: Text(
+                                    "Are you sure you have sent money to the wallet?",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 15),
                                   ),
-                                  content: SingleChildScrollView(
-                                    child: Text("Are yoy sure you have sent money to the wallet?"   ,                                   textAlign: TextAlign.center,
-                                      style: TextStyle(fontSize: 15),
-                                    ),
-                                  ),
-                                  actions: [
-                                    FlatButton(
-                                        onPressed: () async {
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text("NO")),
-                                    FlatButton(
-                                        onPressed: () async {
-                                          compileTransaction(context);
-                                        },
-                                        child: Text("YES")),
-
-                                  ],
-                                );
-                              });
+                                ),
+                                actions: [
+                                  FlatButton(
+                                      onPressed: () async {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text("NO")),
+                                  FlatButton(
+                                      onPressed: () async {
+                                        compileTransaction(context);
+                                      },
+                                      child: Text("YES")),
+                                ],
+                              );
+                            });
                       },
                       child: Text(
                         "Proceed",
@@ -1411,7 +1409,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     mData.putIfAbsent("Name", () => MY_NAME);
     mData.putIfAbsent("startDate", () => presentDateTime());
     mData.putIfAbsent("endDate", () => "--");
-    mData.putIfAbsent("Amount", () => totalAmount);
+    mData.putIfAbsent("Amount", () => toTens(totalAmount));
     mData.putIfAbsent("userUid", () => MY_UID);
     mData.putIfAbsent("userPhone", () => MY_NUMBER);
     mData.putIfAbsent("fromLat", () => widget.fromLat);
@@ -1485,7 +1483,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     });
 
     final Map<String, Object> data = Map();
-    data.putIfAbsent("Amount", () => totalAmount);
+    data.putIfAbsent("Amount", () => toTens(totalAmount));
     data.putIfAbsent("uid", () => MY_UID);
     data.putIfAbsent("date", () => presentDateTime());
     data.putIfAbsent("id", () => orderID);
@@ -1517,6 +1515,19 @@ class _ModeSelectorState extends State<ModeSelector> {
   }
 
   Future _handleSendNotification(String id) async {
+    String message = "You created a New task at ${widget.from}";
+    final Map<String, Object> data = Map();
+    data.putIfAbsent("Message", () => message);
+    data.putIfAbsent("Date", () => presentDateTime());
+    data.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+
+    Firestore.instance
+        .collection("Utils")
+        .document("Notification")
+        .collection(MY_UID)
+        .document(randomString())
+        .setData(data);
+
     String url = "https://onesignal.com/api/v1/notifications";
     var imgUrlString =
         "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";

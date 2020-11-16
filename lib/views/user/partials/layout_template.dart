@@ -4,7 +4,6 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fvastalpha/views/cou_service/settings/settings.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
@@ -15,11 +14,14 @@ import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:fvastalpha/views/user/contact_us/contact_us.dart';
 import 'package:fvastalpha/views/user/home/home_view.dart';
 import 'package:fvastalpha/views/user/home/order_done.dart';
+import 'package:fvastalpha/views/user/settings/update_profile.dart';
 import 'package:fvastalpha/views/user/task_history/order_view.dart';
 import 'package:fvastalpha/views/user/wallet/wallet_screen.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 class LayoutTemplate extends StatefulWidget {
   @override
@@ -110,53 +112,7 @@ class _LayoutTemplateState extends State<LayoutTemplate> {
     MY_IMAGE = await image;
     ACCEPT_T_D = await accept_td;
 
-    if (ACCEPT_T_D == "false") {
-    //  acceptTermsAndCondition();
-    }
     setState(() {});
-  }
-
-  acceptTermsAndCondition() {
-    showDialog(
-        context: context,
-        builder: (_) {
-          return AlertDialog(
-            title: Image.asset(
-              "assets/images/logo.png",
-              height: 70,
-            ),
-            content: SingleChildScrollView(
-              child: Text(
-                '''TERMS AND CONDITIONS\n
-Welcome to fvast.com, this site is owned and managed by FVAST ENTERPRISE , a business duly registered with the corporate affairs commission in Nigeria, with registration number BN: 2956782
-FVAST ENTERPRISE registered address is at No.9a Mogadishu Street Wuse zone 4, Abuja.
-FVAST is a web based app for ordering logistics; it communicates logistics service requests to the logistics service providers who have been registered as users of the FVAST app.
-FVAST makes it easy for customers who require logistics services in any part of Nigeria and beyond to be linked up to riders who are willing to render such services provided both parties are signed on to the FVAST app.
-FVAST APP, grants both riders and customers a non-exclusive, revocable license to access the app and its associated services. The eligibility to qualify for the numerous benefits embedded therein is dependent on riders and customers agreement to its terms and conditions which is geared towards protecting its valued users. FVAST may only terminate use of the website and services if in breach of its terms and conditions and this won’t be without giving proper notifications, several warnings and fair hearing to the affected users.''',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15),
-              ),
-            ),
-            actions: [
-              FlatButton(
-                  onPressed: () async {
-                    SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-                  },
-                  child: Text("NO")),
-              FlatButton(
-                  onPressed: () async {
-                    Future<SharedPreferences> _prefs =
-                        SharedPreferences.getInstance();
-
-                    final SharedPreferences prefs = await _prefs;
-
-                    prefs.setString("accept_td", "True");
-                    Navigator.pop(context);
-                  },
-                  child: Text("YES")),
-            ],
-          );
-        });
   }
 
   String _debugLabelString = "";
@@ -299,46 +255,51 @@ FVAST APP, grants both riders and customers a non-exclusive, revocable license t
                       padding: EdgeInsets.all(8),
                       child: Row(
                         children: <Widget>[
-                          FutureBuilder(
-                              future: image,
-                              builder: (context, snap) {
-                                if (snap.connectionState ==
-                                    ConnectionState.done) {
+                          GestureDetector(
+                            onTap:(){
+                              moveTo(context, UpdateCusProfile());
+                            },
+                            child: FutureBuilder(
+                                future: image,
+                                builder: (context, snap) {
+                                  if (snap.connectionState ==
+                                      ConnectionState.done) {
+                                    return Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(30.0),
+                                          child: CachedNetworkImage(
+                                            imageUrl: snap.data ?? "ere",
+                                            height: 60,
+                                            width: 60,
+                                            placeholder: (context, url) => Image(
+                                                image: AssetImage(
+                                                    "assets/images/person.png"),
+                                                height: 60,
+                                                width: 60,
+                                                fit: BoxFit.contain),
+                                            errorWidget: (context, url, error) =>
+                                                Image(
+                                                    image: AssetImage(
+                                                        "assets/images/person.png"),
+                                                    height: 60,
+                                                    width: 60,
+                                                    fit: BoxFit.contain),
+                                          ),
+                                        ));
+                                  }
                                   return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(30.0),
-                                        child: CachedNetworkImage(
-                                          imageUrl: snap.data ?? "ere",
-                                          height: 60,
-                                          width: 60,
-                                          placeholder: (context, url) => Image(
-                                              image: AssetImage(
-                                                  "assets/images/person.png"),
-                                              height: 60,
-                                              width: 60,
-                                              fit: BoxFit.contain),
-                                          errorWidget: (context, url, error) =>
-                                              Image(
-                                                  image: AssetImage(
-                                                      "assets/images/person.png"),
-                                                  height: 60,
-                                                  width: 60,
-                                                  fit: BoxFit.contain),
-                                        ),
-                                      ));
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(30),
-                                      child: Image.asset(
-                                          "assets/images/person.png",
-                                          height: 50,
-                                          width: 50)),
-                                );
-                              }),
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(30),
+                                        child: Image.asset(
+                                            "assets/images/person.png",
+                                            height: 50,
+                                            width: 50)),
+                                  );
+                                }),
+                          ),
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),

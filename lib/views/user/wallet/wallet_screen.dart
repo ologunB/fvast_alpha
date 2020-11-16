@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fvastalpha/models/wallet.dart';
+import 'package:fvastalpha/views/partials/notification_page.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
@@ -43,7 +44,10 @@ class _WalletViewState extends State<WalletView> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
           ),
           actions: <Widget>[
-            IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
+            IconButton(icon: Icon(Icons.notifications), onPressed: () {
+              moveTo(context, NotificationPage());
+
+            }),
           ],
         ),
         body: Container(
@@ -537,6 +541,18 @@ class _WalletViewState extends State<WalletView> {
       showCenterToast("Deposit Made", context);
       // TODO add to balance
     });
+    String message = "You Deposited  at ₦$totalAmount into your wallet from your Card";
+    final Map<String, Object> nData = Map();
+    nData.putIfAbsent("Message", () => message);
+    nData.putIfAbsent("Date", () => presentDateTime());
+    nData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+
+    Firestore.instance
+        .collection("Utils")
+        .document("Notification")
+        .collection(MY_UID)
+        .document(randomString())
+        .setData(nData);
   }
 
   Widget item(String type, String amount) => Column(

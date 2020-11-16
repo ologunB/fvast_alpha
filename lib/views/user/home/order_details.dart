@@ -15,7 +15,8 @@ import 'package:smooth_star_rating/smooth_star_rating.dart';
 import 'package:http/http.dart' as http;
 
 class OrderDetails extends StatefulWidget {
-  final Task task;final Map dataMap;
+  final Task task;
+  final Map dataMap;
 
   const OrderDetails({Key key, this.task, this.dataMap}) : super(key: key);
 
@@ -383,7 +384,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                               Expanded(child: Divider(thickness: 2)),
                               Text(
                                   " \₦ " +
-                                      commaFormat.format(widget.task.amount),
+                                      commaFormat
+                                          .format(toTens(widget.task.amount)),
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600))
@@ -400,9 +402,10 @@ class _OrderDetailsState extends State<OrderDetails> {
                             reviewFromCustomer(context);
                           })
                       : SizedBox(),
-                  widget.task.status != "Completed"
+                  widget.task.status == "Completed" ||
+                          widget.task.status == "Cancelled"
                       ? SizedBox()
-                      : GestureDetector (
+                      : GestureDetector(
                           onTap: () {
                             showDialog(
                               context: context,
@@ -631,6 +634,7 @@ class _OrderDetailsState extends State<OrderDetails> {
         .document(widget.task.id)
         .delete();
 
+    widget.dataMap.update("status", (value) => "Cancelled");
     Firestore.instance
         .collection("Orders")
         .document("Cancelled") //delete for dispatcher
@@ -654,6 +658,20 @@ class _OrderDetailsState extends State<OrderDetails> {
   }
 
   void _sendCancelNotification() async {
+
+    String message = "Customer cancelled  the task at ${widget.task.from} by ${widget.task.name ?? "no-name"}";
+    final Map<String, Object> nData = Map();
+    nData.putIfAbsent("Message", () => message);
+    nData.putIfAbsent("Date", () => presentDateTime());
+    nData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+
+    Firestore.instance
+        .collection("Utils")
+        .document("Notification")
+        .collection(MY_UID)
+        .document(randomString())
+        .setData(nData);
+
     const url = "https://onesignal.com/api/v1/notifications";
     const imgUrlString =
         "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
@@ -690,5 +708,15 @@ class _OrderDetailsState extends State<OrderDetails> {
         .catchError((a) {
       print(a.toString());
     });
+
+    if(widget.task.disUid != null){
+      Firestore.instance
+          .collection("Utils")
+          .document("Notification")
+          .collection(MY_UID)
+          .document(randomString())
+          .setData(nData);
+    }
   }
+
 }

@@ -10,6 +10,7 @@ import 'package:fvastalpha/views/user/auth/signup_page.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:loading_overlay/loading_overlay.dart';
+
 class SigninPage extends StatefulWidget {
   @override
   _SigninPageState createState() => _SigninPageState();
@@ -117,12 +118,14 @@ class _SigninPageState extends State<SigninPage> {
               (Route<dynamic> route) => false);
 
           putInDB(
-              type,
-              document.data["Uid"],
-              document.data["Email"],
-              document.data["Name"],
-              document.data["Phone"],
-              document.data["Avatar"]);
+            type,
+            document.data["Uid"],
+            document.data["Email"],
+            document.data["Name"],
+            document.data["Phone"],
+            document.data["Avatar"],
+            document.data["online"] ?? false,
+          );
         }).catchError((e) {
           setState(() {
             isLoading = false;
@@ -146,8 +149,7 @@ class _SigninPageState extends State<SigninPage> {
     });
   }
 
-  Future putInDB(
-      String type, String uid, String email, String name, phone, image) async {
+  Future putInDB(type, uid, email, name, phone, image, online) async {
     final SharedPreferences prefs = await _prefs;
     setState(() {
       prefs.setBool("isLoggedIn", true);
@@ -157,6 +159,7 @@ class _SigninPageState extends State<SigninPage> {
       prefs.setString("type", type);
       prefs.setString("phone", phone);
       prefs.setString("image", image);
+      prefs.setString("online", online);
     });
   }
 
@@ -194,7 +197,7 @@ class _SigninPageState extends State<SigninPage> {
 
   @override
   void initState() {
-    putInDB("Login", "", "", "", "", "");
+    putInDB("Login", "", "", "", "", "", false);
     super.initState();
   }
 
@@ -241,7 +244,8 @@ class _SigninPageState extends State<SigninPage> {
                     ),
                     Text(
                       "Login",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 18.0),
@@ -349,17 +353,19 @@ class _SigninPageState extends State<SigninPage> {
                                                   decoration: BoxDecoration(
                                                     color: Colors.deepOrange,
                                                     borderRadius:
-                                                        BorderRadius.circular(10),
+                                                        BorderRadius.circular(
+                                                            10),
                                                   ),
                                                   child: FlatButton(
-                                                    onPressed: forgotPassIsLoading
-                                                        ? null
-                                                        : () {
-                                                            resetEmail(
-                                                                forgetPassController
-                                                                    .text,
-                                                                _setState);
-                                                          },
+                                                    onPressed:
+                                                        forgotPassIsLoading
+                                                            ? null
+                                                            : () {
+                                                                resetEmail(
+                                                                    forgetPassController
+                                                                        .text,
+                                                                    _setState);
+                                                              },
                                                     child: Row(
                                                       mainAxisAlignment:
                                                           MainAxisAlignment
@@ -369,7 +375,8 @@ class _SigninPageState extends State<SigninPage> {
                                                       children: <Widget>[
                                                         Padding(
                                                           padding:
-                                                              EdgeInsets.all(5.0),
+                                                              EdgeInsets.all(
+                                                                  5.0),
                                                           child: forgotPassIsLoading
                                                               ? CupertinoActivityIndicator()
                                                               : Text(

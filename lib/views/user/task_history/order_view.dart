@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
+import 'package:fvastalpha/views/partials/notification_page.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
@@ -36,7 +37,6 @@ class _OrdersViewState extends State<OrdersView>
                 size: 30,
               ),
               onPressed: () {
-
                 widget.from == "dis"
                     ? disMainScaffoldKey.currentState.openDrawer()
                     : cusMainScaffoldKey.currentState.openDrawer();
@@ -81,6 +81,13 @@ class _OrdersViewState extends State<OrdersView>
             style: TextStyle(
                 color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
           ),
+          actions: [
+            IconButton(
+                icon: Icon(Icons.notifications),
+                onPressed: () {
+                  moveTo(context, NotificationPage());
+                }),
+          ],
         ),
         body: Container(
           height: double.infinity,

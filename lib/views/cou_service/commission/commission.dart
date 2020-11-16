@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
-import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fvastalpha/models/wallet.dart';
+import 'package:fvastalpha/views/partials/notification_page.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
-import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:fvastalpha/views/user/wallet/each_order_item.dart';
 import 'package:rave_flutter/rave_flutter.dart';
 
@@ -47,7 +45,10 @@ class _CommissionViewState extends State<CommissionView> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
           ),
           actions: <Widget>[
-            IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
+            IconButton(icon: Icon(Icons.notifications), onPressed: () {
+              moveTo(context, NotificationPage());
+
+            }),
           ],
         ),
         body: Container(
@@ -88,7 +89,7 @@ class _CommissionViewState extends State<CommissionView> {
 
                           snapshot.data.documents.map((document) {
                             EachTransaction item =
-                            EachTransaction.map(document);
+                                EachTransaction.map(document);
 
                             if (item.type == "Deposit") {
                               mBalance = mBalance + item.amount.floor();
@@ -101,9 +102,9 @@ class _CommissionViewState extends State<CommissionView> {
                               mBalance = mBalance - (item.amount).floor();
                               totalWithdrawals =
                                   totalWithdrawals + item.amount.floor();
-                            }else if (item.type == "Bitcoin Payment") {
+                            } else if (item.type == "Bitcoin Payment") {
                               mBalance = mBalance + (item.amount * 0.8).floor();
-                            //  totalDeposit = totalDeposit + item.amount.floor();
+                              //  totalDeposit = totalDeposit + item.amount.floor();
                             }
                           }).toList();
                           return Column(
@@ -122,17 +123,19 @@ class _CommissionViewState extends State<CommissionView> {
                                       onPress: () {
                                         deposit(context);
                                       }),
-                                  mBalance <= 0 ? SizedBox():  CustomButton(
-                                      title: "Withdrawal",
-                                      onPress: () {
-                                        withdraw(context);
-                                      }),
+                                  mBalance <= 0
+                                      ? SizedBox()
+                                      : CustomButton(
+                                          title: "Withdrawal",
+                                          onPress: () {
+                                            withdraw(context);
+                                          }),
                                 ],
                               ),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceEvenly,
+                                    MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
                                   item("Total Deposit",
                                       commaFormat.format(totalDeposit)),
@@ -160,17 +163,19 @@ class _CommissionViewState extends State<CommissionView> {
                                       onPress: () {
                                         deposit(context);
                                       }),
-                                  mBalance <= 0 ? SizedBox():  CustomButton(
-                                      title: "Withdrawal",
-                                      onPress: () {
-                                        withdraw(context);
-                                      }),
+                                  mBalance <= 0
+                                      ? SizedBox()
+                                      : CustomButton(
+                                          title: "Withdrawal",
+                                          onPress: () {
+                                            withdraw(context);
+                                          }),
                                 ],
                               ),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceEvenly,
+                                    MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
                                   item("Total Deposit", "0"),
                                   item("Total Withdrawal", "0")
@@ -305,34 +310,34 @@ class _CommissionViewState extends State<CommissionView> {
                       default:
                         return snapshot.data.documents.isEmpty
                             ? Container(
-                          padding: EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "No transactions yet",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 20),
-                              ),
-                              SizedBox(height: 30),
-                            ],
-                          ),
-                        )
+                                padding: EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Text(
+                                      "No transactions, make one!",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 20),
+                                    ),
+                                    SizedBox(height: 30),
+                                  ],
+                                ),
+                              )
                             : ListView(
-                          children:
-                          snapshot.data.documents.map((document) {
-                            EachTransaction transaction =
-                            EachTransaction.map(document);
-                            return EachOrderItem(
-                              transaction: transaction,
-                            );
-                          }).toList(),
-                          physics: NeverScrollableScrollPhysics(),
-                        );
+                                children:
+                                    snapshot.data.documents.map((document) {
+                                  EachTransaction transaction =
+                                      EachTransaction.map(document);
+                                  return EachOrderItem(
+                                    transaction: transaction,
+                                  );
+                                }).toList(),
+                                physics: NeverScrollableScrollPhysics(),
+                              );
                     }
                   },
                 ),
@@ -340,7 +345,6 @@ class _CommissionViewState extends State<CommissionView> {
             ],
           ),
         ),
-
       ),
     );
   }
@@ -433,8 +437,8 @@ class _CommissionViewState extends State<CommissionView> {
             content: SingleChildScrollView(
               child: CupertinoTextField(
                 placeholder: "Amount",
-                placeholderStyle:
-                    TextStyle(fontWeight: FontWeight.w300, color: Colors.black38),
+                placeholderStyle: TextStyle(
+                    fontWeight: FontWeight.w300, color: Colors.black38),
                 padding: EdgeInsets.all(10),
                 maxLines: 1,
                 keyboardType: TextInputType.number,
@@ -535,9 +539,22 @@ class _CommissionViewState extends State<CommissionView> {
         .then((a) {
       Navigator.pop(context);
 
+
       showCenterToast("Deposit Made", context);
       // TODO add to balance
     });
+    String message = "You Deposited  at ₦$totalAmount into your wallet from your Card";
+    final Map<String, Object> nData = Map();
+    nData.putIfAbsent("Message", () => message);
+    nData.putIfAbsent("Date", () => presentDateTime());
+    nData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+
+    Firestore.instance
+        .collection("Utils")
+        .document("Notification")
+        .collection(MY_UID)
+        .document(randomString())
+        .setData(nData);
   }
 
   void withdraw(context) {
@@ -549,17 +566,17 @@ class _CommissionViewState extends State<CommissionView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "Balance: " + mBalance.toString(),
+                  "Balance: ₦" + mBalance.toString(),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.black, fontSize: 20),
                 ),
-                     Text(
-                  "Commission: " + (mBalance * 0.2).toString(),
+                Text(
+                  "Commission: ₦" + (mBalance * 0.2).toString(),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey[700], fontSize: 18),
                 ),
                 Text(
-                  "Earning: " + (mBalance * 0.8).toString(),
+                  "Earning: ₦" + (mBalance * 0.8).toString(),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.black, fontSize: 22),
                 )
@@ -598,18 +615,20 @@ class _CommissionViewState extends State<CommissionView> {
                       color: Styles.appPrimaryColor,
                     ),
                     child: FlatButton(
-
                       onPressed: () {
                         if ((mBalance * 0.8) < 1000) {
-                          showCenterToast("You can't withdraw less than ₦1000", context);
+                          showCenterToast(
+                              "You can't withdraw less than ₦1000", context);
                           return;
                         } else if (mBalance < 0) {
                           showCenterToast(
-                              "You have to deposit to redeem continue using this account", context);
+                              "You have to deposit to redeem continue using this account",
+                              context);
                           return;
                         }
 
-                        String orderID = "WAL" + DateTime.now().millisecondsSinceEpoch.toString();
+                        String orderID = "WAL" +
+                            DateTime.now().millisecondsSinceEpoch.toString();
 
                         final Map<String, Object> data = Map();
                         data.putIfAbsent("Amount", () => mBalance);
@@ -617,7 +636,8 @@ class _CommissionViewState extends State<CommissionView> {
                         data.putIfAbsent("date", () => presentDateTime());
                         data.putIfAbsent("id", () => orderID);
                         data.putIfAbsent("type", () => "Withdraw");
-                        data.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+                        data.putIfAbsent("Timestamp",
+                            () => DateTime.now().millisecondsSinceEpoch);
 
                         showCupertinoDialog(
                             context: context,
@@ -626,7 +646,8 @@ class _CommissionViewState extends State<CommissionView> {
                                 title: Text(
                                   "Finishing processing",
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.red, fontSize: 20),
+                                  style: TextStyle(
+                                      color: Colors.red, fontSize: 20),
                                 ),
                                 content: CupertinoActivityIndicator(radius: 20),
                               );
@@ -639,13 +660,13 @@ class _CommissionViewState extends State<CommissionView> {
                             .document(orderID)
                             .setData(data)
                             .then((a) {
-
                           Firestore.instance
                               .collection("Utils")
                               .document("Withdraw Request")
                               .collection(MY_UID)
                               .document(orderID)
-                              .setData(data).then((value){
+                              .setData(data)
+                              .then((value) {
                             showCupertinoDialog(
                                 context: context,
                                 builder: (_) {
@@ -653,14 +674,30 @@ class _CommissionViewState extends State<CommissionView> {
                                     title: Text(
                                       "Your withdrawal will be processed before 3-5 Days. Thanks for using FVAST",
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.red, fontSize: 20),
+                                      style: TextStyle(
+                                          color: Colors.red, fontSize: 20),
                                     ),
-                                    content: CustomButton(title: "DONE", onPress: (){
-                                      Navigator.pop(context);
-                                    }),
+                                    content: CustomButton(
+                                        title: "DONE",
+                                        onPress: () {
+                                          Navigator.pop(context);
+                                        }),
                                   );
                                 });
                           });
+
+                          String message = "Your withdrawal of ₦$mBalance  from your wallet will be processed before 3-5 Days";
+                          final Map<String, Object> nData = Map();
+                          nData.putIfAbsent("Message", () => message);
+                          nData.putIfAbsent("Date", () => presentDateTime());
+                          nData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+
+                          Firestore.instance
+                              .collection("Utils")
+                              .document("Notification")
+                              .collection(MY_UID)
+                              .document(randomString())
+                              .setData(nData);
 
                           showCenterToast("Withdrawal Made", context);
                           // TODO add to balance

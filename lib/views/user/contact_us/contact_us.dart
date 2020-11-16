@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
+import 'package:fvastalpha/views/partials/notification_page.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
@@ -58,7 +59,10 @@ class _ContactUsFState extends State<ContactUsF> {
                       ),
                     )),
                     IconButton(
-                        icon: Icon(Icons.notifications), onPressed: () {}),
+                        icon: Icon(Icons.notifications), onPressed: () {
+                      moveTo(context, NotificationPage());
+
+                    }),
                   ],
                 ),
               ),

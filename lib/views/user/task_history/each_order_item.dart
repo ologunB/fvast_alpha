@@ -56,7 +56,7 @@ class _EachOrderItemState extends State<EachOrderItem> {
                   color: color,
                 ),
                 SizedBox(width: 10),
-                Text("₦${commaFormat.format(widget.task.amount)}",
+                Text("₦${commaFormat.format(toTens(widget.task.amount))}",
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,

@@ -7,8 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/partials/widgets/toast.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 String MY_NAME, MY_UID, MY_TYPE, MY_NUMBER, MY_EMAIL, MY_IMAGE, ACCEPT_T_D;
+bool IS_ONLINE = false;
 Position currentLocation = Position(longitude: 7.3034138, latitude: 5.143012);
+LatLng mapCenter = const LatLng(7.3034138, 5.143012);
 
 showEmptyToast(String aa, BuildContext context) {
   Toast.show("$aa cannot be empty", context,
@@ -74,6 +78,10 @@ String timeConvert(double d) {
   if (d > 48) return ">2 days";
   if (d > 24) return ">1 day";
   if (d < 24) return "${d.ceil()} hours";
+}
+
+int toTens( num){
+  return (num/10.0).round() * 10;
 }
 
 const chars = "abcdefghijklmnopqrstuvwxyz0123456789";

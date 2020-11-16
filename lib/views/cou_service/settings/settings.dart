@@ -5,6 +5,7 @@ import 'package:fvastalpha/views/cou_service/settings/privacy_policy.dart';
 import 'package:fvastalpha/views/cou_service/settings/terms_conditions.dart';
 import 'package:fvastalpha/views/cou_service/settings/update_bank.dart';
 import 'package:fvastalpha/views/cou_service/settings/update_profile.dart';
+import 'package:fvastalpha/views/partials/notification_page.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
@@ -42,7 +43,9 @@ class SettingsDisView extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
             ),
             actions: <Widget>[
-              IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
+              IconButton(icon: Icon(Icons.notifications), onPressed: () {
+                moveTo(context, NotificationPage());
+              }),
             ],
           ),
           body: Container(

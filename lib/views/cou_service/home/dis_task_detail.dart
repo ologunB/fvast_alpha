@@ -29,6 +29,7 @@ import 'dis_order_done.dart';
 class DisTaskDetail extends StatefulWidget {
   final Task task;
   final Map dataMap;
+
   const DisTaskDetail({Key key, this.task, this.dataMap}) : super(key: key);
 
   @override
@@ -1062,7 +1063,19 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
       desc = "Delivery Completed";
     }
 
-    //showCenterToast(mStatus, context);
+    String message = "$desc by ${widget.task.disName ?? "no-name"}";
+    final Map<String, Object> nData = Map();
+    nData.putIfAbsent("Message", () => message);
+    nData.putIfAbsent("Date", () => presentDateTime());
+    nData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+
+    Firestore.instance
+        .collection("Utils")
+        .document("Notification")
+        .collection(widget.task.userUid)
+        .document(randomString())
+        .setData(nData);
+
     var body = {};
     if (mStatus == "Mark Completed") {
       body = {
@@ -1134,8 +1147,6 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
     });
   }
 
-
-
   void cancelOrder() {
     //  Navigator.pop(context);
     showCupertinoDialog(
@@ -1182,10 +1193,31 @@ class _DisTaskDetailState extends State<DisTaskDetail> {
     Navigator.pushAndRemoveUntil(
         context,
         CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
-            (Route<dynamic> route) => false);
+        (Route<dynamic> route) => false);
   }
 
   void _sendCancelNotification() async {
+    String message =
+        "Dispatcher cancelled  the task at ${widget.task.from} by ${widget.task.name ?? "no-name"}";
+    final Map<String, Object> nData = Map();
+    nData.putIfAbsent("Message", () => message);
+    nData.putIfAbsent("Date", () => presentDateTime());
+    nData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+
+    Firestore.instance
+        .collection("Utils")
+        .document("Notification")
+        .collection(MY_UID)
+        .document(randomString())
+        .setData(nData);
+
+    Firestore.instance
+        .collection("Utils")
+        .document("Notification")
+        .collection(widget.task.userUid)
+        .document(randomString())
+        .setData(nData);
+
     const url = "https://onesignal.com/api/v1/notifications";
     const imgUrlString =
         "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";

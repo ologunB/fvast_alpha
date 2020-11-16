@@ -1,16 +1,14 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fvastalpha/models/task.dart';
+import 'package:fvastalpha/views/partials/notification_page.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
-import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
@@ -25,10 +23,10 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeMapState extends State<HomeView> {
-  List<double> toLats = List();
-  List<double> toLongs = List();
-  List<double> fromLats = List();
-  List<double> fromLongs = List();
+  List<double> toLats = [];
+  List<double> toLongs = [];
+  List<double> fromLats = [];
+  List<double> fromLongs = [];
 
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
@@ -37,7 +35,8 @@ class _HomeMapState extends State<HomeView> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    _center = LatLng(currentLocation.latitude, currentLocation.longitude);
+    mapCenter = LatLng(currentLocation.latitude, currentLocation.longitude);
+
     mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
       target: LatLng(currentLocation.latitude, currentLocation.longitude),
       zoom: 10.0,
@@ -49,9 +48,11 @@ class _HomeMapState extends State<HomeView> {
     List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
         currentLocation.latitude, currentLocation.longitude);
 
-   print(currentLocation.longitude.toString() + "      " + currentLocation.latitude.toString());
+    print(currentLocation.longitude.toString() +
+        "      " +
+        currentLocation.latitude.toString());
 
-    _center = LatLng(currentLocation.latitude, currentLocation.longitude);
+    mapCenter = LatLng(currentLocation.latitude, currentLocation.longitude);
     _markers.add(
       Marker(
         markerId: MarkerId("Current Location"),
@@ -68,12 +69,11 @@ class _HomeMapState extends State<HomeView> {
   void _onFilledMapCreated(GoogleMapController controller) {
     mapController = controller;
     _controller.complete(controller);
-
-    //offerLatLng and currentLatLng are custom
     LatLng fromLatLng = LatLng(fromLats.reduce(max), fromLongs.reduce(max));
     LatLng toLatLng = LatLng(toLats.reduce(max), toLongs.reduce(max));
 
     LatLngBounds bound;
+
     if (toLatLng.latitude > fromLatLng.latitude &&
         toLatLng.longitude > fromLatLng.longitude) {
       bound = LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
@@ -89,11 +89,9 @@ class _HomeMapState extends State<HomeView> {
       bound = LatLngBounds(southwest: toLatLng, northeast: fromLatLng);
     }
 
-    _center = LatLng(currentLocation.latitude, currentLocation.longitude);
-    setState(() {
-
-    });
-    getUserLocation();
+    mapCenter = LatLng(currentLocation.latitude, currentLocation.longitude);
+   // setState(() {});
+    //   getUserLocation();
 
     CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
     mapController.animateCamera(u2).then((void v) {
@@ -126,10 +124,8 @@ class _HomeMapState extends State<HomeView> {
       check(u, c);
   }
 
-  LatLng _center = const LatLng(7.3034138, 5.143012);
-
   void _onCameraMove(CameraPosition position) {
-    _center = position.target;
+    mapCenter = position.target;
   }
 
   Set<Polyline> _polylines = {};
@@ -186,9 +182,8 @@ class _HomeMapState extends State<HomeView> {
         Navigator.push(
             context,
             CupertinoPageRoute(
-                builder: (context) => OrderDetails(
-                      task: task, dataMap: docTask
-                    )));
+                builder: (context) =>
+                    OrderDetails(task: task, dataMap: docTask)));
       },
       child: Column(
         children: <Widget>[
@@ -232,8 +227,8 @@ class _HomeMapState extends State<HomeView> {
                         Navigator.push(
                             context,
                             CupertinoPageRoute(
-                                builder: (context) =>
-                                    OrderDetails(task: task, dataMap: docTask)));
+                                builder: (context) => OrderDetails(
+                                    task: task, dataMap: docTask)));
                       },
                       currentStep: 1,
                       steps: [
@@ -351,7 +346,8 @@ class _HomeMapState extends State<HomeView> {
                     children: snapshot.data.documents.map((document) {
                       Task task = Task.map(document);
 
-                      return taskItem(task: task, context: context, docTask: document.data);
+                      return taskItem(
+                          task: task, context: context, docTask: document.data);
                     }).toList(),
                   );
         }
@@ -361,24 +357,10 @@ class _HomeMapState extends State<HomeView> {
 
   @override
   void initState() {
-    getUserLocation();
+   getUserLocation();
     getAndDraw();
     super.initState();
   }
-
-/*
-  Widget emptyMap() {
-    return GoogleMap(
-      onMapCreated: _onMapCreated,
-      myLocationEnabled: true,
-      markers: _markers,
-      onCameraMove: _onCameraMove,
-      initialCameraPosition: CameraPosition(
-          zoom: 20.0,
-          target: LatLng(currentLocation.latitude, currentLocation.longitude)),
-    );
-  }
-*/
 
   @override
   Widget build(BuildContext context) {
@@ -427,63 +409,78 @@ class _HomeMapState extends State<HomeView> {
                   return new Text('Error: ${snapshot.error}');
                 switch (snapshot.connectionState) {
                   case ConnectionState.waiting:
-                    _center = LatLng(
-                        currentLocation.latitude, currentLocation.longitude);
-                 //   setState(() {});
-
-                    return GoogleMap(
-                      onMapCreated: _onMapCreated,
-                      myLocationEnabled: true,
-                      onCameraMove: _onCameraMove,
-                      initialCameraPosition:
-                          CameraPosition(zoom: 10.0, target: _center),
-                    );
+                    return Center(
+                        child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.location_on),
+                        Text(
+                          "Getting Location",
+                          style: TextStyle(fontSize: 18),
+                        )
+                      ],
+                    ));
                   default:
                     if (snapshot.data.documents.isNotEmpty) {
+                      double l1, l2, l3, l4;
                       snapshot.data.documents.map((document) {
                         Task task = Task.map(document);
-                        double l1 = task.fromLat;
-                        double l2 = task.fromLong;
-                        double l3 = task.toLat;
-                        double l4 = task.toLong;
+                          l1 = task.fromLat;
+                          l2 = task.fromLong;
+                          l3 = task.toLat;
+                          l4 = task.toLong;
                         fromLats.add(l1);
                         fromLongs.add(l2);
                         toLats.add(l3);
                         toLongs.add(l4);
 
-                        //setPolylines(l1, l2, l3, l4);
+                        const double PI = math.pi;
+                        double degToRadian(final double deg) => deg * (PI / 180.0);
+                        double radianToDeg(final double rad) => rad * (180.0 / PI);
+
+                        num l1LatRadians = degToRadian(l1);
+                        num l1LngRadians = degToRadian(l1);
+                        num l2LatRadians = degToRadian(l2);
+                        num lngRadiansDiff = degToRadian(l4 - l2);
+
+                        num vectorX = math.cos(l2LatRadians) * math.cos(lngRadiansDiff);
+                        num vectorY = math.cos(l2LatRadians) * math.sin(lngRadiansDiff);
+
+                        num x = math.sqrt((math.cos(l1LatRadians) + vectorX) *
+                            (math.cos(l1LatRadians) + vectorX) +
+                            vectorY * vectorY);
+                        num y = math.sin(l1LatRadians) + math.sin(l2LatRadians);
+                        num latRadians = math.atan2(y, x);
+                        num lngRadians =
+                            l1LngRadians + math.atan2(vectorY, math.cos(l1LatRadians) + vectorX);
+
+                        mapCenter = LatLng(radianToDeg(latRadians as double), (radianToDeg(lngRadians as double) + 540) % 360 - 180);
                       }).toList();
-                      _center = LatLng(
-                          currentLocation.latitude, currentLocation.longitude);
-                   //   setState(() {});
+
                       return GoogleMap(
                         polylines: _polylines,
                         tiltGesturesEnabled: true,
                         myLocationButtonEnabled: true,
                         myLocationEnabled: true,
-                        onMapCreated: _onFilledMapCreated,
+                        onMapCreated: _onMapCreated,
                         initialCameraPosition: CameraPosition(
-                          target: _center,
+                          target: mapCenter,
                           zoom: 10.0,
                         ),
                         markers: _markers,
                         onCameraMove: _onCameraMove,
                       );
                     } else {
-                      _center = LatLng(
-                          currentLocation.latitude, currentLocation.longitude);
-                 //  setState(() {});
                       return GoogleMap(
                         myLocationButtonEnabled: true,
                         myLocationEnabled: true,
                         onMapCreated: _onMapCreated,
                         initialCameraPosition: CameraPosition(
-                          target: _center,
+                          target: mapCenter,
                           zoom: 10.0,
                         ),
                         onCameraMove: _onCameraMove,
                       );
-                      ;
                     }
                 }
               },
@@ -511,9 +508,10 @@ class _HomeMapState extends State<HomeView> {
                                 onPressed: () {
                                   cusMainScaffoldKey.currentState.openDrawer();
                                 }),
-                            IconButton(
+                             IconButton(
                                 icon: Icon(Icons.notifications),
-                                onPressed: () {}),
+                                onPressed: () {                  moveTo(context, NotificationPage());
+                                }),
                           ],
                         ),
                       ),
@@ -612,3 +610,4 @@ String todo2(status) {
   }
   return toStatus;
 }
+

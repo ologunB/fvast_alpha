@@ -5,22 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:fvastalpha/models/task.dart';
 import 'package:fvastalpha/views/cou_service/home/dis_task_detail.dart';
 import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
+import 'package:fvastalpha/views/partials/notification_page.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
- import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoder/geocoder.dart';
+import 'dart:math' as math;
+
 class DispatchHomeView extends StatefulWidget {
   @override
   _HomeMapState createState() => _HomeMapState();
 }
 
 class _HomeMapState extends State<DispatchHomeView> {
-
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
 
@@ -65,7 +66,6 @@ class _HomeMapState extends State<DispatchHomeView> {
     });
   }
 
-
   getUserLocation() async {
     List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
         currentLocation.latitude, currentLocation.longitude);
@@ -87,7 +87,7 @@ class _HomeMapState extends State<DispatchHomeView> {
   void addMarker(LatLng mLatLng, String mTitle) {
     _markers.add(Marker(
       markerId:
-      MarkerId((mTitle + "_" + _markers.length.toString()).toString()),
+          MarkerId((mTitle + "_" + _markers.length.toString()).toString()),
       position: mLatLng,
       infoWindow: InfoWindow(
         title: mTitle,
@@ -164,8 +164,10 @@ class _HomeMapState extends State<DispatchHomeView> {
   @override
   void initState() {
     getUserLocation();
+    getAndDraw();
     super.initState();
   }
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<double> toLats = List();
   List<double> toLongs = List();
@@ -225,24 +227,32 @@ class _HomeMapState extends State<DispatchHomeView> {
                 : ListView(
                     children: snapshot.data.documents.map((document) {
                       Task task = Task.map(document);
-                       return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) => DisTaskDetail(task: task, dataMap: document.data,),
-                              ),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Container(padding:EdgeInsets.all(10 ),decoration: BoxDecoration(boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)], color: Colors.white),
-                              child: Text(
-                                "Task " + task.id,
-                                style: TextStyle(fontSize: 18),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) => DisTaskDetail(
+                                task: task,
+                                dataMap: document.data,
                               ),
                             ),
-                          ),);
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Container(
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(boxShadow: [
+                              BoxShadow(color: Colors.black26, blurRadius: 5)
+                            ], color: Colors.white),
+                            child: Text(
+                              "Task " + task.id,
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ),
+                        ),
+                      );
                     }).toList(),
                   );
         }
@@ -267,7 +277,6 @@ class _HomeMapState extends State<DispatchHomeView> {
 
   @override
   Widget build(BuildContext context) {
-
     var height = MediaQuery.of(context).size.height;
     return SafeArea(
         child: Scaffold(
@@ -313,35 +322,70 @@ class _HomeMapState extends State<DispatchHomeView> {
                   return new Text('Error: ${snapshot.error}');
                 switch (snapshot.connectionState) {
                   case ConnectionState.waiting:
-                    return GoogleMap(
-                      onMapCreated: _onMapCreated,
-                      myLocationEnabled: true,
-                      initialCameraPosition:
-                      CameraPosition(zoom: 10.0, target: _center),
-                    );
+                    return Center(
+                        child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.location_on),
+                        Text(
+                          "Getting Location",
+                          style: TextStyle(fontSize: 18),
+                        )
+                      ],
+                    ));
                   default:
                     if (snapshot.data.documents.isNotEmpty) {
+                      double l1, l2, l3, l4;
                       snapshot.data.documents.map((document) {
                         Task task = Task.map(document);
-                        double l1 = task.fromLat;
-                        double l2 = task.fromLong;
-                        double l3 = task.toLat;
-                        double l4 = task.toLong;
+                        l1 = task.fromLat;
+                        l2 = task.fromLong;
+                        l3 = task.toLat;
+                        l4 = task.toLong;
                         fromLats.add(l1);
                         fromLongs.add(l2);
                         toLats.add(l3);
                         toLongs.add(l4);
 
-                        //setPolylines(l1, l2, l3, l4);
+                        const double PI = math.pi;
+                        double degToRadian(final double deg) =>
+                            deg * (PI / 180.0);
+                        double radianToDeg(final double rad) =>
+                            rad * (180.0 / PI);
+
+                        num l1LatRadians = degToRadian(l1);
+                        num l1LngRadians = degToRadian(l1);
+                        num l2LatRadians = degToRadian(l2);
+                        num lngRadiansDiff = degToRadian(l4 - l2);
+
+                        num vectorX =
+                            math.cos(l2LatRadians) * math.cos(lngRadiansDiff);
+                        num vectorY =
+                            math.cos(l2LatRadians) * math.sin(lngRadiansDiff);
+
+                        num x = math.sqrt((math.cos(l1LatRadians) + vectorX) *
+                                (math.cos(l1LatRadians) + vectorX) +
+                            vectorY * vectorY);
+                        num y = math.sin(l1LatRadians) + math.sin(l2LatRadians);
+                        num latRadians = math.atan2(y, x);
+                        num lngRadians = l1LngRadians +
+                            math.atan2(
+                                vectorY, math.cos(l1LatRadians) + vectorX);
+
+                        mapCenter = LatLng(
+                            radianToDeg(latRadians as double),
+                            (radianToDeg(lngRadians as double) + 540) % 360 -
+                                180);
                       }).toList();
+
                       return GoogleMap(
                         polylines: _polylines,
                         tiltGesturesEnabled: true,
                         myLocationButtonEnabled: true,
                         myLocationEnabled: true,
-                        onMapCreated: _onFilledMapCreated,
+                        onMapCreated: _onMapCreated,
                         initialCameraPosition: CameraPosition(
-                          target: _center,
+                          target: mapCenter,
                           zoom: 10.0,
                         ),
                         markers: _markers,
@@ -349,16 +393,19 @@ class _HomeMapState extends State<DispatchHomeView> {
                       );
                     } else {
                       return GoogleMap(
-                        onMapCreated: _onMapCreated,
+                        myLocationButtonEnabled: true,
                         myLocationEnabled: true,
-                        initialCameraPosition:
-                        CameraPosition(zoom: 20.0, target: _center),
+                        onMapCreated: _onMapCreated,
+                        initialCameraPosition: CameraPosition(
+                          target: mapCenter,
+                          zoom: 10.0,
+                        ),
+                        onCameraMove: _onCameraMove,
                       );
                     }
                 }
               },
             ),
-
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -384,7 +431,9 @@ class _HomeMapState extends State<DispatchHomeView> {
                                 }),
                             IconButton(
                                 icon: Icon(Icons.notifications),
-                                onPressed: () {}),
+                                onPressed: () {
+                                  moveTo(context, NotificationPage());
+                                }),
                           ],
                         ),
                       ),

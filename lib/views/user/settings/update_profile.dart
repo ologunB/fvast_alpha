@@ -27,6 +27,8 @@ class _UpdateCusProfileState extends State<UpdateCusProfile> {
     DocumentSnapshot doc =
         await Firestore.instance.collection('All').document(MY_UID).get();
 
+    print(doc.data.toString());
+
     name = TextEditingController(text: doc.data["Name"]);
     email = TextEditingController(text: doc.data["Email"]);
     phone = TextEditingController(text: doc.data["Phone"]);
@@ -72,7 +74,7 @@ class _UpdateCusProfileState extends State<UpdateCusProfile> {
           .updateData({"Avatar": url});
 
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setString("Avatar", url);
+      prefs.setString("image", url);
       MY_IMAGE = url;
       setState(() {});
 
@@ -157,7 +159,7 @@ class _UpdateCusProfileState extends State<UpdateCusProfile> {
                         onTap: () {
                           showDialog(
                               context: context,
-                              barrierDismissible: false,
+                            //  barrierDismissible: false,
                               builder: (_) {
                                 return AlertDialog(
                                   content: Column(
@@ -326,14 +328,14 @@ class _UpdateCusProfileState extends State<UpdateCusProfile> {
                         Firestore.instance
                             .collection("All")
                             .document(MY_UID)
-                            .setData(mData)
+                            .updateData(mData)
                             .then((value) async{
                           isLoading = false;
                           setState(() {});
 
                           final SharedPreferences prefs = await SharedPreferences.getInstance();
                           prefs.setString("name", name.text);
-                          prefs.setString("phone", name.text);
+                          prefs.setString("phone", phone.text);
                           MY_NAME = name.text;
                           MY_NUMBER = phone.text;
                           setState(() {});

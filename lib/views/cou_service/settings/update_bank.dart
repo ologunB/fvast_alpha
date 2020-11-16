@@ -22,8 +22,8 @@ class _UpdateBankViewState extends State<UpdateBankView> {
         await Firestore.instance.collection('All').document(MY_UID).get();
 
     bankName = TextEditingController(text: doc.data["Bank Name"]);
-    accName = TextEditingController(text: doc.data["Account Number"]);
-    accNumber = TextEditingController(text: doc.data["Account Name"]);
+    accName = TextEditingController(text: doc.data["Account Name"]);
+    accNumber = TextEditingController(text: doc.data["Account Number"]);
     isLoading = false;
 
     setState(() {});

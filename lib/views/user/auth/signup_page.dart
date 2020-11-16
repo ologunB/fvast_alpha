@@ -76,6 +76,7 @@ class _SignupPageState extends State<SignupPage> {
           mData.putIfAbsent("Type", () => selectedType);
           mData.putIfAbsent("Uid", () => user.uid);
           mData.putIfAbsent("Avatar", () => "mm");
+          mData.putIfAbsent("online", () => false);
           mData.putIfAbsent(
               "Timestamp", () => DateTime.now().millisecondsSinceEpoch);
 
@@ -479,7 +480,7 @@ class _SignupPageState extends State<SignupPage> {
                                     ),
                                   ),
                                 ),
-                                Padding(
+                            /*    Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Theme(
@@ -509,7 +510,7 @@ class _SignupPageState extends State<SignupPage> {
                                           fontWeight: FontWeight.w400),
                                     ),
                                   ),
-                                ),
+                                ),*/
                               ],
                             ),
                           ),
@@ -574,110 +575,111 @@ class _SignupPageState extends State<SignupPage> {
                               ),
                             ),
                           ),
+                        ),
+                        Row(
+                            mainAxisSize: MainAxisSize.max,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
+                              Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Container(
+                                  //  alignment: Alignment.bottomLeft,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.pushAndRemoveUntil(
+                                          context,
+                                          CupertinoPageRoute(
+                                              builder: (context) => SigninPage()),
+                                              (Route<dynamic> route) => false);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        "Own an Account? Login",
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.black87),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ]),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            //  mainAxisSize: MainAxisSize.max,
+                            children: <Widget>[
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                    text: "By signing up you agree to our ",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.grey),
+                                    children: <TextSpan>[
+                                      TextSpan(
+                                          text: 'Terms of service',
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400,
+                                              color: Styles.appPrimaryColor),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () async {
+                                              String _url =
+                                                  "https://fvast.com.ng/terms";
+                                              if (await canLaunch(_url)) {
+                                                await launch(_url);
+                                              } else {
+                                                showCenterToast(
+                                                    " Could not launch $_url", context);
+                                                throw 'Could not launch $_url';
+                                              }
+                                            }),
+                                      TextSpan(
+                                        text: ' and ',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.grey),
+                                      ),
+                                      TextSpan(
+                                          text: 'Privacy Policy',
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400,
+                                              color: Styles.appPrimaryColor),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () async {
+                                              String _url =
+                                                  "https://fvast.com.ng/privacy";
+                                              if (await canLaunch(_url)) {
+                                                await launch(_url);
+                                              } else {
+                                                showCenterToast(
+                                                    " Could not launch $_url", context);
+                                                throw 'Could not launch $_url';
+                                              }
+                                            }),
+                                    ]),
+                              )
+                            ],
+                          ),
                         )
                       ],
                     ),
                   ),
                 )),
-                Row(
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Container(
-                          //  alignment: Alignment.bottomLeft,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.pushAndRemoveUntil(
-                                  context,
-                                  CupertinoPageRoute(
-                                      builder: (context) => SigninPage()),
-                                  (Route<dynamic> route) => false);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                "Own an Account? Login",
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.black87),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    ]),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    //  mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                            text: "By signing up you agree to our ",
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.grey),
-                            children: <TextSpan>[
-                              TextSpan(
-                                  text: 'Terms of service',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400,
-                                      color: Styles.appPrimaryColor),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () async {
-                                      String _url =
-                                          "https://fvast.com.ng/terms";
-                                      if (await canLaunch(_url)) {
-                                        await launch(_url);
-                                      } else {
-                                        showCenterToast(
-                                            " Could not launch $_url", context);
-                                        throw 'Could not launch $_url';
-                                      }
-                                    }),
-                              TextSpan(
-                                text: ' and ',
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.grey),
-                              ),
-                              TextSpan(
-                                  text: 'Privacy Policy',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400,
-                                      color: Styles.appPrimaryColor),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () async {
-                                      String _url =
-                                          "https://fvast.com.ng/privacy";
-                                      if (await canLaunch(_url)) {
-                                        await launch(_url);
-                                      } else {
-                                        showCenterToast(
-                                            " Could not launch $_url", context);
-                                        throw 'Could not launch $_url';
-                                      }
-                                    }),
-                            ]),
-                      )
-                    ],
-                  ),
-                )
+
               ],
             ),
           ),

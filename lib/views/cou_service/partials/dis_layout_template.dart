@@ -9,7 +9,9 @@ import 'package:fvastalpha/views/cou_service/commission/commission.dart';
 import 'package:fvastalpha/views/cou_service/home/dis_home_view.dart';
 import 'package:fvastalpha/views/cou_service/home/new_order_form.dart';
 import 'package:fvastalpha/views/cou_service/settings/settings.dart';
+import 'package:fvastalpha/views/cou_service/settings/update_profile.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
+import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:fvastalpha/views/user/contact_us/contact_us.dart';
@@ -17,6 +19,7 @@ import 'package:fvastalpha/views/user/task_history/order_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DisLayoutTemplate extends StatefulWidget {
   @override
@@ -31,6 +34,10 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
   Future afterLogout() async {
     final SharedPreferences prefs = await _prefs;
 
+    Firestore.instance
+        .collection("All")
+        .document(MY_UID)
+        .updateData({"online": false});
     setState(() {
       prefs.setBool("isLoggedIn", false);
       prefs.setString("type", "Login");
@@ -39,6 +46,7 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
       prefs.remove("name");
       prefs.remove("phone");
       prefs.remove("image");
+      prefs.remove("online");
     });
 
     _handleRemoveExternalUserId();
@@ -71,8 +79,8 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     Navigator.of(context).pop();
   }
 
-  Future<String> uid, name, phone, email, type, image;
-  bool isActive = false;
+  Future uid, name, phone, email, type, image, online;
+  bool isActive = IS_ONLINE;
 
   String _debugLabelString = "";
 
@@ -235,6 +243,9 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     image = _prefs.then((prefs) {
       return (prefs.getString('image') ?? "uid");
     });
+    online = _prefs.then((prefs) {
+      return (prefs.getBool('online') ?? false);
+    });
     assign();
     initPlatformState();
   }
@@ -246,10 +257,8 @@ class _DisLayoutTemplateState extends State<DisLayoutTemplate> {
     MY_NUMBER = await phone;
     MY_NAME = await name;
     MY_IMAGE = await image;
+    IS_ONLINE = await online;
 
-    if (ACCEPT_T_D == "false") {
-   //   acceptTermsAndCondition();
-    }
     setState(() {});
   }
 
@@ -277,14 +286,13 @@ FVAST APP, grants both riders and customers a non-exclusive, revocable license t
             actions: [
               FlatButton(
                   onPressed: () async {
-                    SystemChannels.platform
-                        .invokeMethod('SystemNavigator.pop');
+                    SystemChannels.platform.invokeMethod('SystemNavigator.pop');
                   },
                   child: Text("NO")),
               FlatButton(
                   onPressed: () async {
                     Future<SharedPreferences> _prefs =
-                    SharedPreferences.getInstance();
+                        SharedPreferences.getInstance();
 
                     final SharedPreferences prefs = await _prefs;
 
@@ -292,14 +300,23 @@ FVAST APP, grants both riders and customers a non-exclusive, revocable license t
                     Navigator.pop(context);
                   },
                   child: Text("YES")),
-
             ],
           );
         });
   }
+
   addTags() {
-    OneSignal.shared.sendTag("dispatcher", "online").then((response) {
+    OneSignal.shared.sendTag("dispatcher", "online").then((response) async {
       print("Successfully sent tags with response: $response");
+
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool("online", true);
+      IS_ONLINE = true;
+      Firestore.instance
+          .collection("All")
+          .document(MY_UID)
+          .updateData({"online": true});
+
       showCenterToast("You are online", context);
     }).catchError((error) {
       print("Encountered an error sending tags: $error");
@@ -307,8 +324,17 @@ FVAST APP, grants both riders and customers a non-exclusive, revocable license t
   }
 
   removeTags() {
-    OneSignal.shared.deleteTag("dispatcher").then((response) {
+    OneSignal.shared.deleteTag("dispatcher").then((response) async {
       print("Successfully deleted tag with response: $response");
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool("online", false);
+      IS_ONLINE = false;
+      Firestore.instance
+          .collection("All")
+          .document(MY_UID)
+          .updateData({"online": false});
+
+      showCenterToast("You are offline", context);
     }).catchError((error) {
       print("Encountered an error sending tags: $error");
     });
@@ -327,50 +353,55 @@ FVAST APP, grants both riders and customers a non-exclusive, revocable license t
                 child: Column(
                   children: <Widget>[
                     Container(
-                      color: isActive ? Colors.blue[300] : Colors.red[200],
+                      color: IS_ONLINE ? Colors.blue[300] : Colors.red[200],
                       padding: EdgeInsets.all(8),
                       child: Row(
                         children: <Widget>[
-                          FutureBuilder(
-                              future: image,
-                              builder: (context, snap) {
-                                if (snap.connectionState ==
-                                    ConnectionState.done) {
+                          GestureDetector(
+                            onTap:(){
+                              moveTo(context, UpdateProfile());
+                            },
+                            child: FutureBuilder(
+                                future: image,
+                                builder: (context, snap) {
+                                  if (snap.connectionState ==
+                                      ConnectionState.done) {
+                                    return Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(30.0),
+                                          child: CachedNetworkImage(
+                                            imageUrl: snap.data ?? "ere",
+                                            height: 60,
+                                            width: 60,
+                                            placeholder: (context, url) => Image(
+                                                image: AssetImage(
+                                                    "assets/images/person.png"),
+                                                height: 60,
+                                                width: 60,
+                                                fit: BoxFit.contain),
+                                            errorWidget: (context, url, error) =>
+                                                Image(
+                                                    image: AssetImage(
+                                                        "assets/images/person.png"),
+                                                    height: 60,
+                                                    width: 60,
+                                                    fit: BoxFit.contain),
+                                          ),
+                                        ));
+                                  }
                                   return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(30.0),
-                                        child: CachedNetworkImage(
-                                          imageUrl: snap.data ?? "ere",
-                                          height: 60,
-                                          width: 60,
-                                          placeholder: (context, url) => Image(
-                                              image: AssetImage(
-                                                  "assets/images/person.png"),
-                                              height: 60,
-                                              width: 60,
-                                              fit: BoxFit.contain),
-                                          errorWidget: (context, url, error) =>
-                                              Image(
-                                                  image: AssetImage(
-                                                      "assets/images/person.png"),
-                                                  height: 60,
-                                                  width: 60,
-                                                  fit: BoxFit.contain),
-                                        ),
-                                      ));
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(30),
-                                      child: Image.asset(
-                                          "assets/images/person.png",
-                                          height: 50,
-                                          width: 50)),
-                                );
-                              }),
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(30),
+                                        child: Image.asset(
+                                            "assets/images/person.png",
+                                            height: 50,
+                                            width: 50)),
+                                  );
+                                }),
+                          ),
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
@@ -420,14 +451,14 @@ FVAST APP, grants both riders and customers a non-exclusive, revocable license t
                             ),
                           ),
                           Switch(
-                              value: isActive,
+                              value: IS_ONLINE,
                               onChanged: (a) {
                                 if (a == true) {
                                   addTags();
                                 } else {
                                   removeTags();
                                 }
-                                isActive = a;
+                                IS_ONLINE = a;
                                 setState(() {});
                               })
                         ],

@@ -3,7 +3,7 @@ class Task {
   String _adminUid;
   String _userUid;
   String _userPhone;
-  double _amount;
+  int _amount;
   String _name;
   String _startDate;
   String _acceptedDate;
@@ -93,7 +93,7 @@ class Task {
 
   int get routeType => _routeType;
 
-  double get amount => _amount;
+  int get amount => _amount;
 
   int get timeStamp => _timeStamp;
 
@@ -144,7 +144,7 @@ class Task {
   Task.map(dynamic obj) {
     this._name = obj["Name"];
     this._startDate = obj['startDate'];
-    this._amount = obj['Amount'];
+    this._amount = obj['Amount'].toInt();
     this._userUid = obj["userUid"];
     this._fromLat = obj["fromLat"];
     this._fromLong = obj["fromLong"];
