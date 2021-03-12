@@ -21,21 +21,15 @@ import 'nearby_courier.dart';
 import 'package:http/http.dart' as http;
 
 class ModeSelector extends StatefulWidget {
-  final fromLat;
-  final fromLong;
-  final toLat;
-  final toLong;
-  final from;
-  final to;
+  final double fromLat;
+  final double fromLong;
+  final List<double> toLat;
+  final List<double> toLong;
+  final String from;
+  final List<String> to;
 
   const ModeSelector(
-      {Key key,
-      this.fromLat,
-      this.fromLong,
-      this.to,
-      this.toLat,
-      this.toLong,
-      this.from})
+      {Key key, this.fromLat, this.fromLong, this.to, this.toLat, this.toLong, this.from})
       : super(key: key);
 
   @override
@@ -46,8 +40,7 @@ double balance = 0;
 
 class _ModeSelectorState extends State<ModeSelector> {
   void getBalance() async {
-    DocumentSnapshot doc =
-        await Firestore.instance.collection('All').document(MY_UID).get();
+    DocumentSnapshot doc = await Firestore.instance.collection('All').document(MY_UID).get();
 
     balance = doc.data["Balance"];
   }
@@ -57,12 +50,11 @@ class _ModeSelectorState extends State<ModeSelector> {
 
   final Set<Marker> _markers = {};
 
-  static int calculateDistance(lat1, lon1, lat2, lon2) {
+  static int calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     var p = 0.017453292519943295;
     var c = cos;
-    var a = 0.5 -
-        c((lat2 - lat1) * p) / 2 +
-        c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
+    var a =
+        0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
     return (12742 * asin(sqrt(a))).toInt();
   }
 
@@ -70,17 +62,19 @@ class _ModeSelectorState extends State<ModeSelector> {
     mapController = controller;
     _controller.complete(controller);
 
-    //offerLatLng and currentLatLng are custom
     LatLng fromLatLng = LatLng(widget.fromLat, widget.fromLong);
-    LatLng toLatLng = LatLng(widget.toLat, widget.toLong);
+    LatLng toLatLng = LatLng(widget.toLat[0], widget.toLong[0]);
+
     setState(() {
       _markers.clear();
       addMarker(fromLatLng, "From");
-      addMarker(toLatLng, "To");
+      for (int i = 0; i < widget.toLat.length; i++) {
+        addMarker(LatLng(widget.toLat[i], widget.toLong[i]), "Destination ${i + 1}");
+      }
     });
+
     LatLngBounds bound;
-    if (toLatLng.latitude > fromLatLng.latitude &&
-        toLatLng.longitude > fromLatLng.longitude) {
+    if (toLatLng.latitude > fromLatLng.latitude && toLatLng.longitude > fromLatLng.longitude) {
       bound = LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
     } else if (toLatLng.longitude > fromLatLng.longitude) {
       bound = LatLngBounds(
@@ -102,15 +96,13 @@ class _ModeSelectorState extends State<ModeSelector> {
 
   void addMarker(LatLng mLatLng, String mTitle) {
     _markers.add(Marker(
-      markerId:
-          MarkerId((mTitle + "_" + _markers.length.toString()).toString()),
+      markerId: MarkerId((mTitle + "_" + _markers.length.toString()).toString()),
       position: mLatLng,
       infoWindow: InfoWindow(
         title: mTitle,
       ),
-      icon: BitmapDescriptor.defaultMarkerWithHue(mTitle == "From"
-          ? BitmapDescriptor.hueRed
-          : BitmapDescriptor.hueGreen),
+      icon: BitmapDescriptor.defaultMarkerWithHue(
+          mTitle == "From" ? BitmapDescriptor.hueRed : BitmapDescriptor.hueGreen),
     ));
   }
 
@@ -121,8 +113,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     LatLngBounds l2 = await c.getVisibleRegion();
     print(l1.toString());
     print(l2.toString());
-    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90)
-      check(u, c);
+    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90) check(u, c);
   }
 
   LatLng _center = const LatLng(7.3034138, 5.143012800000008);
@@ -137,11 +128,7 @@ class _ModeSelectorState extends State<ModeSelector> {
 
   setPolylines() async {
     List<PointLatLng> result = await polylinePoints?.getRouteBetweenCoordinates(
-        kGoogleMapKey,
-        widget.fromLat,
-        widget.fromLong,
-        widget.toLat,
-        widget.toLong);
+        kGoogleMapKey, widget.fromLat, widget.fromLong, widget.toLat[0], widget.toLong[0]);
     if (result.isNotEmpty) {
       result.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
@@ -149,7 +136,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     }
     setState(() {
       Polyline polyline = Polyline(
-          polylineId: PolylineId('Poly'),
+          polylineId: PolylineId(randomString()),
           color: Color.fromARGB(255, 40, 122, 198),
           points: polylineCoordinates);
       _polylines.add(polyline);
@@ -174,8 +161,10 @@ class _ModeSelectorState extends State<ModeSelector> {
   bool isCouponLoading = false;
 
   int distanceBtwn;
-  int timeFactor = 50;
+
+//  int timeFactor = 50;
   bool makeCouponClick = true;
+
   applyCoupon(_setState) {
     if (inputCouponCode.text.isEmpty) {
       showCenterToast("Code cannot be empty", context);
@@ -217,8 +206,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                   height: 8,
                   width: 60,
                   decoration: BoxDecoration(
-                      color: Styles.appPrimaryColor,
-                      borderRadius: BorderRadius.circular(5)),
+                      color: Styles.appPrimaryColor, borderRadius: BorderRadius.circular(5)),
                 )
               ],
               mainAxisAlignment: MainAxisAlignment.center,
@@ -260,9 +248,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                 Text(
                   routeTypes[index].desc,
                   style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Styles.appPrimaryColor),
+                      fontSize: 16, fontWeight: FontWeight.w400, color: Styles.appPrimaryColor),
                 )
               ],
               mainAxisAlignment: MainAxisAlignment.center,
@@ -274,8 +260,7 @@ class _ModeSelectorState extends State<ModeSelector> {
               children: <Widget>[
                 Text("Base Fare: ", style: TextStyle(fontSize: 16)),
                 Expanded(child: Divider(thickness: 2)),
-                Text(" ₦ " + routeTypes[index].baseFare.toString(),
-                    style: TextStyle(fontSize: 16))
+                Text(" ₦ " + routeTypes[index].baseFare.toString(), style: TextStyle(fontSize: 16))
               ],
             ),
           ),
@@ -331,14 +316,12 @@ class _ModeSelectorState extends State<ModeSelector> {
                 height: 60,
                 width: 60,
                 decoration: BoxDecoration(
-                  color:
-                      routeType == index ? Colors.blue[100] : Colors.grey[200],
+                  color: routeType == index ? Colors.blue[100] : Colors.grey[200],
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Icon(
                   routeTypes[index].icon,
-                  color:
-                      routeType == index ? Styles.appPrimaryColor : Colors.grey,
+                  color: routeType == index ? Styles.appPrimaryColor : Colors.grey,
                 ),
               ),
             ),
@@ -349,9 +332,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                     routeTypes[index].type,
                     style: TextStyle(
                         fontSize: 17,
-                        color: routeType == index
-                            ? Styles.appPrimaryColor
-                            : Colors.grey),
+                        color: routeType == index ? Styles.appPrimaryColor : Colors.grey),
                   ),
                 )
               ],
@@ -373,7 +354,7 @@ class _ModeSelectorState extends State<ModeSelector> {
               return CupertinoAlertDialog(
                   title: Text("All Routes"),
                   content: Container(
-                    height: 300,
+                    height: 200,
                     child: Center(
                       child: ListView.builder(
                           itemCount: routeTypes.length,
@@ -389,9 +370,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                     leading: Icon(routeTypes[index].icon),
                                     title: Text(
                                       routeTypes[index].type,
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w400),
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                                     ),
                                   ),
                                 ));
@@ -411,17 +390,12 @@ class _ModeSelectorState extends State<ModeSelector> {
                 height: 60,
                 width: 60,
                 decoration: BoxDecoration(
-                  color: (routeType ?? 0) > 1
-                      ? Colors.blue[100]
-                      : Colors.grey[200],
+                  color: (routeType ?? 0) > 1 ? Colors.blue[100] : Colors.grey[200],
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Icon(
-                  routeTypes[(routeType ?? 3)].icon ??
-                      Icons.format_list_bulleted,
-                  color: (routeType ?? 0) > 1
-                      ? Styles.appPrimaryColor
-                      : Colors.grey,
+                  routeTypes[(routeType ?? 2)].icon ?? Icons.format_list_bulleted,
+                  color: (routeType ?? 0) > 1 ? Styles.appPrimaryColor : Colors.grey,
                 ),
               ),
             ),
@@ -432,9 +406,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                     "Others",
                     style: TextStyle(
                         fontSize: 17,
-                        color: (routeType ?? 0) > 1
-                            ? Styles.appPrimaryColor
-                            : Colors.grey),
+                        color: (routeType ?? 0) > 1 ? Styles.appPrimaryColor : Colors.grey),
                   ),
                 )
               ],
@@ -445,12 +417,12 @@ class _ModeSelectorState extends State<ModeSelector> {
     );
   }
 
-  void routeSelector(context, index) {
+  void routeSelector(BuildContext context, int index) {
     Navigator.pop(context);
     routeType = index;
-    timeFactor = routeTypes[index].perKilo;
+    //  timeFactor = routeTypes[index].perKilo;
     int baseFare = routeTypes[index].baseFare;
-    double distanceAmount = routeTypes[index].perKilo * distanceBtwn / 10;
+    double distanceAmount = routeTypes[index].perKilo * distanceBtwn / 1;
 
     int tax = (0.075 * (baseFare + distanceAmount)).floor();
     totalAmount = baseFare + tax + distanceAmount;
@@ -460,16 +432,36 @@ class _ModeSelectorState extends State<ModeSelector> {
   @override
   void initState() {
     setPolylines();
-    super.initState();
     getBalance();
+
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
 
-    distanceBtwn = calculateDistance(
-        widget.toLat, widget.toLong, widget.fromLat, widget.fromLong);
+    distanceBtwn = 0;
+
+    distanceBtwn =
+        calculateDistance(widget.toLat[0], widget.toLong[0], widget.fromLat, widget.fromLong);
+
+    if (widget.toLat.length == 2) {
+      distanceBtwn = distanceBtwn +
+          calculateDistance(widget.toLat[0], widget.toLong[0], widget.toLat[1], widget.toLong[1]);
+    }
+
+    if (widget.toLat.length == 3) {
+      distanceBtwn = distanceBtwn +
+          calculateDistance(widget.toLat[0], widget.toLong[0], widget.toLat[1], widget.toLong[1]) +
+          calculateDistance(widget.toLat[1], widget.toLong[1], widget.toLat[2], widget.toLong[2]);
+    }
+    if (widget.toLat.length == 4) {
+      distanceBtwn = distanceBtwn +
+          calculateDistance(widget.toLat[0], widget.toLong[0], widget.toLat[1], widget.toLong[1]) +
+          calculateDistance(widget.toLat[1], widget.toLong[1], widget.toLat[2], widget.toLong[2]) +
+          calculateDistance(widget.toLat[2], widget.toLong[2], widget.toLat[3], widget.toLong[3]);
+    }
     return Scaffold(
       key: scaffoldKey,
       body: Stack(
@@ -495,7 +487,6 @@ class _ModeSelectorState extends State<ModeSelector> {
                     Positioned.fill(
                       child: Align(
                           child: Column(
-                        //   mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
                           SizedBox(height: 40),
                           Container(
@@ -503,10 +494,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 boxShadow: [
-                                  BoxShadow(
-                                      spreadRadius: 2,
-                                      blurRadius: 11,
-                                      color: Colors.black26)
+                                  BoxShadow(spreadRadius: 2, blurRadius: 11, color: Colors.black26)
                                 ],
                                 borderRadius: BorderRadius.circular(10)),
                             child: Column(
@@ -553,11 +541,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                       height: 110,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        children: <Widget>[
-                          eachRoute(0),
-                          eachRoute(1),
-                          otherRoute()
-                        ],
+                        children: <Widget>[eachRoute(0), eachRoute(1), otherRoute()],
                         shrinkWrap: true,
                       ),
                     ),
@@ -581,59 +565,45 @@ class _ModeSelectorState extends State<ModeSelector> {
                                         ),
                                       ),
                                       context: context,
-                                      builder: (context) => StatefulBuilder(
-                                              builder: (context, _setState) {
+                                      builder: (context) =>
+                                          StatefulBuilder(builder: (context, _setState) {
                                             return ListView(
                                               shrinkWrap: true,
                                               children: <Widget>[
                                                 Padding(
-                                                  padding: const EdgeInsets.all(
-                                                      12.0),
+                                                  padding: const EdgeInsets.all(12.0),
                                                   child: Row(
                                                     children: <Widget>[
                                                       Container(
                                                         height: 8,
                                                         width: 60,
                                                         decoration: BoxDecoration(
-                                                            color: Styles
-                                                                .appPrimaryColor,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        5)),
+                                                            color: Styles.appPrimaryColor,
+                                                            borderRadius: BorderRadius.circular(5)),
                                                       )
                                                     ],
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
                                                   ),
                                                 ),
                                                 Row(
                                                   children: <Widget>[
                                                     Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              10.0),
+                                                      padding: const EdgeInsets.all(10.0),
                                                       child: Text(
                                                         "Payment Mode",
                                                         style: TextStyle(
                                                             fontSize: 20,
-                                                            color: Styles
-                                                                .appPrimaryColor),
+                                                            color: Styles.appPrimaryColor),
                                                       ),
                                                     )
                                                   ],
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
+                                                  mainAxisAlignment: MainAxisAlignment.start,
                                                 ),
                                                 RadioListTile(
                                                   value: "Cash Payment",
                                                   groupValue: paymentType,
-                                                  activeColor:
-                                                      Styles.appPrimaryColor,
-                                                  controlAffinity:
-                                                      ListTileControlAffinity
-                                                          .trailing,
+                                                  activeColor: Styles.appPrimaryColor,
+                                                  controlAffinity: ListTileControlAffinity.trailing,
                                                   onChanged: (value) {
                                                     _setState(() {
                                                       paymentType = value;
@@ -643,17 +613,13 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                       style: TextStyle(
                                                           fontSize: 18,
                                                           color: Colors.black,
-                                                          fontWeight:
-                                                              FontWeight.w400)),
+                                                          fontWeight: FontWeight.w400)),
                                                 ),
                                                 RadioListTile(
                                                   value: "Card Payment",
                                                   groupValue: paymentType,
-                                                  activeColor:
-                                                      Styles.appPrimaryColor,
-                                                  controlAffinity:
-                                                      ListTileControlAffinity
-                                                          .trailing,
+                                                  activeColor: Styles.appPrimaryColor,
+                                                  controlAffinity: ListTileControlAffinity.trailing,
                                                   onChanged: (value) {
                                                     _setState(() {
                                                       paymentType = value;
@@ -663,18 +629,14 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                       style: TextStyle(
                                                           fontSize: 18,
                                                           color: Colors.black,
-                                                          fontWeight:
-                                                              FontWeight.w400)),
+                                                          fontWeight: FontWeight.w400)),
                                                 ),
                                                 RadioListTile(
                                                   value: "Bitcoin Payment",
                                                   toggleable: true,
                                                   groupValue: paymentType,
-                                                  activeColor:
-                                                      Styles.appPrimaryColor,
-                                                  controlAffinity:
-                                                      ListTileControlAffinity
-                                                          .trailing,
+                                                  activeColor: Styles.appPrimaryColor,
+                                                  controlAffinity: ListTileControlAffinity.trailing,
                                                   onChanged: (value) {
                                                     // to enable uncomment
                                                     _setState(() {
@@ -685,15 +647,13 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                       style: TextStyle(
                                                           fontSize: 18,
                                                           color: Colors.black,
-                                                          fontWeight:
-                                                              FontWeight.w400)),
+                                                          fontWeight: FontWeight.w400)),
                                                 ),
                                                 SizedBox(height: 5),
                                                 CustomButton(
                                                     title: "Choose",
                                                     onPress: () {
-                                                      payMode.text =
-                                                          paymentType;
+                                                      payMode.text = paymentType;
                                                       _setState(() {});
                                                       Navigator.pop(context);
                                                     }),
@@ -716,9 +676,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                       borderRadius: BorderRadius.circular(5.0),
                                     )),
                                 style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w400),
+                                    color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                               ),
                             ),
                           ),
@@ -736,116 +694,82 @@ class _ModeSelectorState extends State<ModeSelector> {
                                 onTap: !makeCouponClick
                                     ? null
                                     : () {
-                                        scaffoldKey.currentState
-                                            .showBottomSheet(
+                                        scaffoldKey.currentState.showBottomSheet(
                                           (context) => StatefulBuilder(
-                                            builder: (context, _setState) =>
-                                                ListView(
+                                            builder: (context, _setState) => ListView(
                                               shrinkWrap: true,
                                               children: <Widget>[
                                                 Padding(
-                                                  padding: const EdgeInsets.all(
-                                                      12.0),
+                                                  padding: const EdgeInsets.all(12.0),
                                                   child: Row(
                                                     children: <Widget>[
                                                       Container(
                                                         height: 8,
                                                         width: 60,
                                                         decoration: BoxDecoration(
-                                                            color: Styles
-                                                                .appPrimaryColor,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        5)),
+                                                            color: Styles.appPrimaryColor,
+                                                            borderRadius: BorderRadius.circular(5)),
                                                       )
                                                     ],
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
                                                   ),
                                                 ),
                                                 Row(
                                                   children: <Widget>[
                                                     Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              10.0),
+                                                      padding: const EdgeInsets.all(10.0),
                                                       child: Text(
                                                         "Apply Coupon",
                                                         style: TextStyle(
                                                             fontSize: 20,
-                                                            color: Styles
-                                                                .appPrimaryColor),
+                                                            color: Styles.appPrimaryColor),
                                                       ),
                                                     )
                                                   ],
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
+                                                  mainAxisAlignment: MainAxisAlignment.start,
                                                 ),
                                                 Padding(
-                                                  padding: const EdgeInsets
-                                                          .symmetric(
-                                                      horizontal: 10),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(horizontal: 10),
                                                   child: Theme(
                                                     data: ThemeData(
-                                                        primaryColor: Styles
-                                                            .commonDarkBackground,
-                                                        hintColor: Styles
-                                                            .commonDarkBackground),
+                                                        primaryColor: Styles.commonDarkBackground,
+                                                        hintColor: Styles.commonDarkBackground),
                                                     child: TextField(
                                                       autofocus: true,
-                                                      controller:
-                                                          inputCouponCode,
-                                                      decoration:
-                                                          InputDecoration(
-                                                              fillColor: Styles
-                                                                  .commonDarkBackground,
-                                                              filled: true,
-                                                              hintText:
-                                                                  "Coupon code",
-                                                              contentPadding:
-                                                                  EdgeInsets
-                                                                      .all(10),
-                                                              hintStyle: TextStyle(
-                                                                  color: Colors
-                                                                          .grey[
-                                                                      500],
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w400),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            5.0),
-                                                              )),
+                                                      controller: inputCouponCode,
+                                                      decoration: InputDecoration(
+                                                          fillColor: Styles.commonDarkBackground,
+                                                          filled: true,
+                                                          hintText: "Coupon code",
+                                                          contentPadding: EdgeInsets.all(10),
+                                                          hintStyle: TextStyle(
+                                                              color: Colors.grey[500],
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w400),
+                                                          border: OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(5.0),
+                                                          )),
                                                       style: TextStyle(
                                                           color: Colors.black,
                                                           fontSize: 18,
-                                                          fontWeight:
-                                                              FontWeight.w400),
+                                                          fontWeight: FontWeight.w400),
                                                     ),
                                                   ),
                                                 ),
                                                 SizedBox(height: 50),
-                                                StatefulBuilder(builder:
-                                                    (context, _setState) {
+                                                StatefulBuilder(builder: (context, _setState) {
                                                   return Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(8),
+                                                    padding: const EdgeInsets.all(8),
                                                     child: CustomLoadingButton(
                                                         title: "APPLY",
                                                         context: context,
-                                                        isLoading:
-                                                            isCouponLoading,
+                                                        isLoading: isCouponLoading,
                                                         onPress: isCouponLoading
                                                             ? null
                                                             : () {
-                                                                applyCoupon(
-                                                                    _setState);
+                                                                applyCoupon(_setState);
                                                               }),
                                                   );
                                                 }),
@@ -875,9 +799,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                       borderRadius: BorderRadius.circular(5.0),
                                     )),
                                 style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w400),
+                                    color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                               ),
                             ),
                           ),
@@ -907,10 +829,8 @@ class _ModeSelectorState extends State<ModeSelector> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
                                         children: <Widget>[
                                           Center(
                                             child: IconButton(
@@ -925,9 +845,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           SizedBox(width: 20),
                                           Text(
                                             "Courier Details",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 18),
+                                            style: TextStyle(color: Colors.white, fontSize: 18),
                                           ),
                                         ],
                                       ),
@@ -938,34 +856,28 @@ class _ModeSelectorState extends State<ModeSelector> {
                                     padding: const EdgeInsets.all(18.0),
                                     child: ListView(
                                       children: <Widget>[
-                                        Text("Package Details*",
-                                            style: TextStyle(fontSize: 18)),
+                                        Text("Package Details*", style: TextStyle(fontSize: 18)),
                                         Container(
                                           decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(5.0),
+                                            borderRadius: BorderRadius.circular(5.0),
                                             color: Styles.commonDarkBackground,
                                           ),
                                           child: DropdownButton<String>(
                                             hint: Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 10.0),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
                                               child: Text("Choose Size*"),
                                             ),
                                             value: packageSize,
                                             underline: SizedBox(),
-                                            items: ["Small", "Medium", "Large"]
-                                                .map((value) {
+                                            items: ["Small", "Medium", "Large"].map((value) {
                                               return DropdownMenuItem<String>(
                                                 value: value,
                                                 child: Padding(
                                                   padding:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: 8.0),
+                                                      const EdgeInsets.symmetric(horizontal: 8.0),
                                                   child: Text(
                                                     "$value",
-                                                    style:
-                                                        TextStyle(fontSize: 18),
+                                                    style: TextStyle(fontSize: 18),
                                                   ),
                                                 ),
                                               );
@@ -994,32 +906,25 @@ class _ModeSelectorState extends State<ModeSelector> {
                                         SizedBox(height: 8),
                                         Container(
                                           decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(5.0),
+                                            borderRadius: BorderRadius.circular(5.0),
                                             color: Styles.commonDarkBackground,
                                           ),
                                           child: DropdownButton<String>(
                                             hint: Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 10.0),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
                                               child: Text("Choose Type*"),
                                             ),
                                             value: packageType,
                                             underline: SizedBox(),
-                                            items: [
-                                              "Glass Packing",
-                                              "Box Packing"
-                                            ].map((value) {
+                                            items: ["Glass Packing", "Box Packing"].map((value) {
                                               return DropdownMenuItem<String>(
                                                 value: value,
                                                 child: Padding(
                                                   padding:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: 8.0),
+                                                      const EdgeInsets.symmetric(horizontal: 8.0),
                                                   child: Text(
                                                     "$value",
-                                                    style:
-                                                        TextStyle(fontSize: 18),
+                                                    style: TextStyle(fontSize: 18),
                                                   ),
                                                 ),
                                               );
@@ -1048,14 +953,12 @@ class _ModeSelectorState extends State<ModeSelector> {
                                         SizedBox(height: 8),
                                         Container(
                                           decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(5.0),
+                                            borderRadius: BorderRadius.circular(5.0),
                                             color: Styles.commonDarkBackground,
                                           ),
                                           child: DropdownButton<String>(
                                             hint: Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 10.0),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
                                               child: Text("Choose Weight*"),
                                             ),
                                             value: packageWeight,
@@ -1070,12 +973,10 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                 value: value,
                                                 child: Padding(
                                                   padding:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: 8.0),
+                                                      const EdgeInsets.symmetric(horizontal: 8.0),
                                                   child: Text(
                                                     "$value",
-                                                    style:
-                                                        TextStyle(fontSize: 18),
+                                                    style: TextStyle(fontSize: 18),
                                                   ),
                                                 ),
                                               );
@@ -1089,8 +990,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                 weightCharge = 5;
                                               } else if (value == "3 - 8kg") {
                                                 weightCharge = 10;
-                                              } else if (value ==
-                                                  "Greater than 8kg") {
+                                              } else if (value == "Greater than 8kg") {
                                                 weightCharge = 15;
                                               } else {
                                                 weightCharge = 1;
@@ -1105,8 +1005,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           ),
                                         ),
                                         SizedBox(height: 8),
-                                        Text("Deliver To*",
-                                            style: TextStyle(fontSize: 18)),
+                                        Text("Deliver To*", style: TextStyle(fontSize: 18)),
                                         CustomTextField(
                                           controller: receiversName,
                                           inputType: TextInputType.text,
@@ -1119,8 +1018,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                           text: "Receiver's Number*",
                                         ),
                                         SizedBox(height: 8),
-                                        Text("Instructions",
-                                            style: TextStyle(fontSize: 18)),
+                                        Text("Instructions", style: TextStyle(fontSize: 18)),
                                         CustomTextField(
                                           controller: pickupInstruct,
                                           inputType: TextInputType.text,
@@ -1142,9 +1040,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                   packageType.isEmpty ||
                                                   packageSize.isEmpty ||
                                                   receiversName.text.isEmpty) {
-                                                showCenterToast(
-                                                    "Fill important fields",
-                                                    context);
+                                                showCenterToast("Fill important fields", context);
                                                 return;
                                               }
 
@@ -1152,22 +1048,16 @@ class _ModeSelectorState extends State<ModeSelector> {
                                                   context: context,
                                                   builder: (_) {
                                                     return CustomDialog(
-                                                      title:
-                                                          "Do you want to proceed with this?",
+                                                      title: "Do you want to proceed with this?",
                                                       includeHeader: true,
                                                       onClicked: () {
-                                                        if (paymentType ==
-                                                            "Cash Payment") {
-                                                          compileTransaction(
-                                                              context);
-                                                        } else if (paymentType ==
-                                                            "Card Payment") {
-                                                          processCardTransaction(
-                                                              context);
+                                                        if (paymentType == "Cash Payment") {
+                                                          compileTransaction(context);
+                                                        } else if (paymentType == "Card Payment") {
+                                                          processCardTransaction(context);
                                                         } else if (paymentType ==
                                                             "Bitcoin Payment") {
-                                                          useBitcoinPayment(
-                                                              context);
+                                                          useBitcoinPayment(context);
                                                         }
                                                       },
                                                     );
@@ -1241,14 +1131,12 @@ class _ModeSelectorState extends State<ModeSelector> {
       ..companyLogo = Image.asset("assets/images/logo.png")
       ..displayFee = true;
 
-    RavePayManager()
-        .prompt(context: context, initializer: initializer)
-        .then((result) {
+    RavePayManager().prompt(context: context, initializer: initializer).then((result) {
       if (result.status == RaveStatus.success) {
         doAfterSuccess(result.message);
       } else if (result.status == RaveStatus.cancelled) {
         if (mounted) {
-          scaffoldKey.currentState.showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 "Closed!",
@@ -1289,9 +1177,7 @@ class _ModeSelectorState extends State<ModeSelector> {
         builder: (_) {
           return AlertDialog(
             title: Text(
-              "Send ₦" +
-                  toTens(totalAmount).toString() +
-                  " to this Bitcoin Wallet Address",
+              "Send ₦" + toTens(totalAmount).toString() + " to this Bitcoin Wallet Address",
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.black, fontSize: 20),
             ),
@@ -1311,16 +1197,14 @@ class _ModeSelectorState extends State<ModeSelector> {
                       suffix: InkWell(
                         child: Icon(Icons.content_copy),
                         onTap: () {
-                          Clipboard.setData(new ClipboardData(
-                              text: btcWalletController.text));
+                          Clipboard.setData(new ClipboardData(text: btcWalletController.text));
                           if (mounted) {
                             showCenterToast("Address Copied!", context);
-                            scaffoldKey.currentState.showSnackBar(
+                            ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
                                   "Address Copied!",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18),
+                                  style: TextStyle(color: Colors.white, fontSize: 18),
                                 ),
                                 backgroundColor: Styles.appPrimaryColor,
                                 behavior: SnackBarBehavior.floating,
@@ -1332,16 +1216,11 @@ class _ModeSelectorState extends State<ModeSelector> {
                       ),
                       contentPadding: EdgeInsets.all(10),
                       hintStyle: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400),
+                          color: Colors.grey[500], fontSize: 16, fontWeight: FontWeight.w400),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0),
                       )),
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400),
+                  style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                 ),
               ),
             ),
@@ -1390,9 +1269,7 @@ class _ModeSelectorState extends State<ModeSelector> {
                         "Proceed",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white),
+                            fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white),
                       ),
                     ),
                   ),
@@ -1403,8 +1280,10 @@ class _ModeSelectorState extends State<ModeSelector> {
         });
   }
 
+  String orderID;
+
   compileTransaction(context) async {
-    String orderID = "ORD" + DateTime.now().millisecondsSinceEpoch.toString();
+    orderID = "ORD" + DateTime.now().millisecondsSinceEpoch.toString();
     Map<String, Object> mData = Map();
     mData.putIfAbsent("Name", () => MY_NAME);
     mData.putIfAbsent("startDate", () => presentDateTime());
@@ -1434,7 +1313,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     mData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
     mData.putIfAbsent("id", () => orderID);
 
-    showCupertinoDialog(
+    showDialog(
         context: context,
         builder: (_) {
           return AlertDialog(
@@ -1447,7 +1326,7 @@ class _ModeSelectorState extends State<ModeSelector> {
           );
         });
 
-    DocumentReference docRef = await Firestore.instance
+    DocumentReference docRef = Firestore.instance
         .collection("Orders")
         .document("Pending")
         .collection(MY_UID)
@@ -1457,19 +1336,27 @@ class _ModeSelectorState extends State<ModeSelector> {
       setState(() {
         isLoading = true;
       });
-      _handleSendNotification(docRef.documentID)
-          .then((value) => Navigator.pushAndRemoveUntil(
-              context,
-              CupertinoPageRoute(
-                builder: (context) => NearbyCourier(
-                  fromLong: widget.fromLong,
-                  fromLat: widget.fromLat,
-                  toLat: widget.toLat,
-                  toLong: widget.toLong,
-                  currentAdd: widget.from,
-                ),
-              ),
-              (Route<dynamic> route) => false));
+
+      Firestore.instance
+          .collection("Utils")
+          .document("Tasks")
+          .collection("uid")
+          .document(orderID)
+          .setData(mData);
+
+      _handleSendNotification(docRef.documentID).then((value) => Navigator.pushAndRemoveUntil(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => NearbyCourier(
+              fromLong: widget.fromLong,
+              id: orderID,
+              fromLat: widget.fromLat,
+              toLat: widget.toLat,
+              toLong: widget.toLong,
+              currentAdd: widget.from,
+            ),
+          ),
+          (Route<dynamic> route) => false));
     });
   }
 
@@ -1536,20 +1423,13 @@ class _ModeSelectorState extends State<ModeSelector> {
 
     var headers = {
       "Content-Type": "application/json; charset=utf-8",
-      "Authorization": "Basic NDA4Mjc0MGUtMTMxYS00YjFlLTgwZTktMmRiYmVmYjRjZWFj"
+      "Authorization": "Basic $oneSignalApiKey"
     };
 
     var body = {
-      "app_id": oneOnlineSignalKey,
+      "app_id": oneSignalAppID,
       "filters": [
-        {
-          "field": "tag",
-          "key": "dispatcher",
-          "relation": "=",
-          "value": "online"
-        } /*,
-        {"operator": "OR"},
-        {"field": "amount_spent", "relation": ">", "value": "0"}*/
+        {"field": "tag", "key": "dispatcher", "relation": "=", "value": "online"}
       ],
       "headings": {"en": "New task available at"},
       "contents": {"en": widget.from},
@@ -1569,12 +1449,7 @@ class _ModeSelectorState extends State<ModeSelector> {
     };
     await client
         .post(url, headers: headers, body: jsonEncode(body))
-        .then((value) => (res) {
-              String body = res.body;
-              //  print(body);
-              int code = jsonDecode(body)["statusCode"];
-              //print(code);
-            })
+        .then((value) => (res) {})
         .catchError((a) {
       print(a.toString());
       showCenterToast("Error: " + a.toString(), context);

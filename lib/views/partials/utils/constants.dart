@@ -4,24 +4,26 @@ import 'dart:math';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fvastalpha/views/partials/widgets/toast.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
+// ignore: non_constant_identifier_names
 String MY_NAME, MY_UID, MY_TYPE, MY_NUMBER, MY_EMAIL, MY_IMAGE, ACCEPT_T_D;
+// ignore: non_constant_identifier_names
 bool IS_ONLINE = false;
 Position currentLocation = Position(longitude: 7.3034138, latitude: 5.143012);
 LatLng mapCenter = const LatLng(7.3034138, 5.143012);
 
 showEmptyToast(String aa, BuildContext context) {
-  Toast.show("$aa cannot be empty", context,
-      duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+  Fluttertoast.showToast(
+      msg: "$aa cannot be empty", gravity: ToastGravity.CENTER, toastLength: Toast.LENGTH_LONG);
   return;
 }
 
 showCenterToast(String a, BuildContext context) {
-  Toast.show(a, context, duration: Toast.LENGTH_LONG, gravity: Toast.CENTER);
+  Fluttertoast.showToast(msg: a, gravity: ToastGravity.CENTER, toastLength: Toast.LENGTH_LONG);
   return;
 }
 
@@ -38,9 +40,10 @@ String validateEmail(value) {
 }
 
 String kGoogleMapKey = "AIzaSyD4XcMQdkcBpG-nrLPwUK7kzywq-DtepzI";
-String ravePublicKey = "FLWPUBK_TEST-4775239fc89f256ef2f24cddcebc17e1-X";
-String raveEncryptKey = "FLWSECK_TEST079f656d190b";
-String oneOnlineSignalKey = "c25d99bb-1ab2-462f-a7b3-827ac97c7563";
+String ravePublicKey = "FLWPUBK-873c5e9f20041fe3b9e5d3a3d49fb109-X";
+String raveEncryptKey = "feb6bb192b8b5957f96823ee";
+String oneSignalAppID = "e08b2257-9db2-4bd0-a9d7-b5674094ddda";
+const String oneSignalApiKey = "YjJiYTkwYTctMzk0My00NjI4LTkwNTYtY2U5YTc5YzA1NzIy";
 
 String greeting() {
   var hour = DateTime.now().hour;
@@ -61,16 +64,14 @@ String timeAgo(DateTime d) {
     return "${(diff.inDays / 30).floor()} ${(diff.inDays / 30).floor() == 1 ? "month" : "months"} ago";
   if (diff.inDays > 7)
     return "${(diff.inDays / 7).floor()} ${(diff.inDays / 7).floor() == 1 ? "week" : "weeks"} ago";
-  if (diff.inDays > 0)
-    return "${diff.inDays} ${diff.inDays == 1 ? "day" : "days"} ago";
-  if (diff.inHours > 0)
-    return "${diff.inHours} ${diff.inHours == 1 ? "hour" : "hours"} ago";
+  if (diff.inDays > 0) return "${diff.inDays} ${diff.inDays == 1 ? "day" : "days"} ago";
+  if (diff.inHours > 0) return "${diff.inHours} ${diff.inHours == 1 ? "hour" : "hours"} ago";
   if (diff.inMinutes > 0)
     return "${diff.inMinutes} ${diff.inMinutes == 1 ? "minute" : "minutes"} ago";
   return "just now";
 }
 
-String timeConvert(double d) {
+timeConvert(double d) {
   if (d < 1) return "1 hour";
   if (d > 120) return ">5 days";
   if (d > 96) return "4 days";
@@ -80,8 +81,8 @@ String timeConvert(double d) {
   if (d < 24) return "${d.ceil()} hours";
 }
 
-int toTens( num){
-  return (num/10.0).round() * 10;
+int toTens(num) {
+  return (num / 10.0).round() * 10;
 }
 
 const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -110,8 +111,7 @@ final commaFormat = new NumberFormat("#,##0", "en_US");
 Future<String> uploadImage(File file) async {
   String url = "";
   if (file != null) {
-    StorageReference reference =
-        FirebaseStorage.instance.ref().child("images/${randomString()}");
+    StorageReference reference = FirebaseStorage.instance.ref().child("images/${randomString()}");
 
     StorageUploadTask uploadTask = reference.putFile(file);
     StorageTaskSnapshot downloadUrl = (await uploadTask.onComplete);
@@ -142,34 +142,44 @@ List<RouteModel> routeTypes = [
     type: "Bike",
     desc: "Easy Delivery and Small Packages",
     baseFare: 400,
-    perKilo: 100,
+    perKilo: 50,
   ),
   RouteModel(
     icon: Icons.directions_car,
     type: "Car",
     desc: "Fast Delivery for Medium Small Packages",
-    baseFare: 400,
-    perKilo: 100,
+    baseFare: 700,
+    perKilo: 50,
   ),
   RouteModel(
     icon: Icons.airport_shuttle,
     type: "Truck",
     desc: "Fast Delivery for Heavy Packages",
-    baseFare: 400,
+    baseFare: 9000,
     perKilo: 100,
   ),
-  RouteModel(
+/*  RouteModel(
     icon: Icons.motorcycle,
     type: "Tricycle",
     desc: "Fast Delivery for Heavy Packages",
-    baseFare: 400,
-    perKilo: 100,
+    baseFare: 700,
+    perKilo: 50,
   ),
   RouteModel(
     icon: Icons.airplanemode_active,
     type: "Jet",
     desc: "Fast Delivery for Heavy Packages",
-    baseFare: 400,
-    perKilo: 100,
-  ),
+    baseFare: 9000,
+    perKilo: 200,
+  ),*/
 ];
+
+offKeyboard(BuildContext context) {
+  FocusScopeNode currentFocus = FocusScope.of(context);
+
+  if (!currentFocus.hasPrimaryFocus) {
+    currentFocus.unfocus();
+    return;
+  }
+  currentFocus.unfocus();
+}

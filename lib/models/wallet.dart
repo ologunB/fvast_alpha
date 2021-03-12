@@ -1,7 +1,7 @@
 class EachTransaction {
   String _id;
   String _userUid;
-  double _amount;
+  int _amount;
   String _date;
   String _type;
   int _timeStamp;
@@ -9,7 +9,7 @@ class EachTransaction {
   String get id => _id;
   String get type => _type;
   String get userId => _userUid;
-  double get amount => _amount;
+  int get amount => _amount;
   String get date => _date;
   int get timeStamp => _timeStamp;
 

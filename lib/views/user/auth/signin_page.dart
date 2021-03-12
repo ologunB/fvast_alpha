@@ -17,19 +17,24 @@ class SigninPage extends StatefulWidget {
 }
 
 class _SigninPageState extends State<SigninPage> {
-  bool rememberMe = false;
-
   TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
   TextEditingController forgetPassController = TextEditingController();
   bool isLoading = false;
-  bool forgotPassIsLoading = false;
+  TextEditingController passwordController = TextEditingController();
+  bool rememberMe = false;
+
+
+  // bool forgotPassIsLoading = false;
   FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   final _formKey = GlobalKey<FormState>();
-  bool _autoValidate = false;
-
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
+  @override
+  void initState() {
+    putInDB("Login", "", "", "", "", "", false);
+    super.initState();
+  }
 
   Future signIn(String email, String password, context) async {
     if (emailController.text.toString().isEmpty) {
@@ -43,10 +48,6 @@ class _SigninPageState extends State<SigninPage> {
     _formKey.currentState.save();
     _formKey.currentState.validate();
 
-    setState(() {
-      _autoValidate = true;
-    });
-
     if (!_formKey.currentState.validate()) {
       return;
     }
@@ -54,9 +55,7 @@ class _SigninPageState extends State<SigninPage> {
     setState(() {
       isLoading = true;
     });
-    await _firebaseAuth
-        .signInWithEmailAndPassword(email: email, password: password)
-        .then((value) {
+    await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((value) {
       FirebaseUser user = value.user;
 
       if (value.user != null) {
@@ -64,7 +63,7 @@ class _SigninPageState extends State<SigninPage> {
           setState(() {
             isLoading = false;
           });
-          showCupertinoDialog(
+          showDialog(
               context: context,
               builder: (_) {
                 return CupertinoAlertDialog(
@@ -89,9 +88,7 @@ class _SigninPageState extends State<SigninPage> {
                               "OK",
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white),
+                                  fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white),
                             ),
                           ),
                         ),
@@ -103,35 +100,37 @@ class _SigninPageState extends State<SigninPage> {
           _firebaseAuth.signOut();
           return;
         }
-        Firestore.instance
-            .collection('All')
-            .document(user.uid)
-            .get()
-            .then((document) {
-          String type = document.data["Type"];
+        Firestore.instance.collection('All').document(user.uid).get().then((document) {
+          MY_TYPE = document.data["Type"];
 
           Navigator.pushAndRemoveUntil(
               context,
               CupertinoPageRoute(
-                  builder: (context) =>
-                      type == "User" ? LayoutTemplate() : DisLayoutTemplate()),
+                  builder: (context) => MY_TYPE == "User" ? LayoutTemplate() : DisLayoutTemplate()),
               (Route<dynamic> route) => false);
 
+          MY_UID = document.data["Uid"];
+          MY_EMAIL = document.data["Email"];
+          MY_NAME = document.data["Name"];
+          MY_NUMBER = document.data["Phone"];
+          MY_IMAGE = document.data["Avatar"];
+          IS_ONLINE = document.data["online"];
+          print(MY_NAME + MY_NUMBER);
+
           putInDB(
-            type,
-            document.data["Uid"],
-            document.data["Email"],
-            document.data["Name"],
-            document.data["Phone"],
-            document.data["Avatar"],
-            document.data["online"] ?? false,
+            MY_TYPE,
+            MY_UID,
+            MY_EMAIL,
+            MY_NAME,
+            MY_NUMBER,
+            MY_IMAGE,
+            IS_ONLINE ?? false,
           );
         }).catchError((e) {
           setState(() {
             isLoading = false;
           });
-          showExceptionAlertDialog(
-              context: context, exception: e, title: "Error");
+          showExceptionAlertDialog(context: context, exception: e, title: "Error");
         });
       } else {
         setState(() {
@@ -159,27 +158,25 @@ class _SigninPageState extends State<SigninPage> {
       prefs.setString("type", type);
       prefs.setString("phone", phone);
       prefs.setString("image", image);
-      prefs.setString("online", online);
+      prefs.setBool("online", online);
     });
   }
 
-  Future resetEmail(String email, _setState) async {
+  Future resetEmail(String email) async {
     if (forgetPassController.text.isEmpty) {
-      showEmptyToast("Email", context);
+      showCenterToast("Enter Email!", context);
       return;
     }
-    _setState(() {
-      forgotPassIsLoading = true;
+    Navigator.pop(context);
+    setState(() {
+      isLoading = true;
     });
-    await _firebaseAuth
-        .sendPasswordResetEmail(email: forgetPassController.text)
-        .then((value) {
-      _setState(() {
-        forgotPassIsLoading = false;
+    await _firebaseAuth.sendPasswordResetEmail(email: forgetPassController.text).then((value) {
+      setState(() {
+        isLoading = false;
       });
       forgetPassController.clear();
-      Navigator.pop(context);
-      showCupertinoDialog(
+      showDialog(
           context: context,
           builder: (_) {
             return CupertinoAlertDialog(
@@ -196,19 +193,12 @@ class _SigninPageState extends State<SigninPage> {
   }
 
   @override
-  void initState() {
-    putInDB("Login", "", "", "", "", "", false);
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: LoadingOverlay(
         isLoading: isLoading,
         child: Form(
-          key: _formKey,
-          autovalidate: _autoValidate,
+          key: _formKey,autovalidateMode: AutovalidateMode.always,
           child: Container(
             height: MediaQuery.of(context).size.height,
             padding: EdgeInsets.all(20),
@@ -244,8 +234,7 @@ class _SigninPageState extends State<SigninPage> {
                     ),
                     Text(
                       "Login",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 18.0),
@@ -271,9 +260,7 @@ class _SigninPageState extends State<SigninPage> {
                           keyboardType: TextInputType.emailAddress,
                           validator: validateEmail,
                           style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w400),
+                              color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                         ),
                       ),
                     ),
@@ -302,17 +289,13 @@ class _SigninPageState extends State<SigninPage> {
                             contentPadding: EdgeInsets.all(10),
                             hintText: 'Password',
                             hintStyle: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 18,
-                                fontWeight: FontWeight.w400),
+                                color: Colors.grey[500], fontSize: 18, fontWeight: FontWeight.w400),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.0),
                             ),
                           ),
                           style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w400),
+                              color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                         ),
                       ),
                     ),
@@ -324,6 +307,8 @@ class _SigninPageState extends State<SigninPage> {
                           padding: const EdgeInsets.all(10.0),
                           child: GestureDetector(
                             onTap: () {
+                              offKeyboard(context);
+
                               showDialog(
                                 barrierDismissible: true,
                                 context: context,
@@ -338,76 +323,49 @@ class _SigninPageState extends State<SigninPage> {
                                     placeholder: "Email",
                                     padding: EdgeInsets.all(10),
                                     keyboardType: TextInputType.emailAddress,
-                                    placeholderStyle:
-                                        TextStyle(fontWeight: FontWeight.w300),
-                                    style: TextStyle(
-                                        fontSize: 20, color: Colors.black),
+                                    placeholderStyle: TextStyle(fontWeight: FontWeight.w300),
+                                    style: TextStyle(fontSize: 20, color: Colors.black),
                                   ),
                                   actions: <Widget>[
                                     Center(
-                                      child: StatefulBuilder(
-                                          builder: (context, _setState) =>
+                                        child: Padding(
+                                      padding: EdgeInsets.all(5.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.deepOrange,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: FlatButton(
+                                          onPressed: () {
+                                            resetEmail(forgetPassController.text);
+                                          },
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.max,
+                                            children: <Widget>[
                                               Padding(
                                                 padding: EdgeInsets.all(5.0),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.deepOrange,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                  ),
-                                                  child: FlatButton(
-                                                    onPressed:
-                                                        forgotPassIsLoading
-                                                            ? null
-                                                            : () {
-                                                                resetEmail(
-                                                                    forgetPassController
-                                                                        .text,
-                                                                    _setState);
-                                                              },
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      mainAxisSize:
-                                                          MainAxisSize.max,
-                                                      children: <Widget>[
-                                                        Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  5.0),
-                                                          child: forgotPassIsLoading
-                                                              ? CupertinoActivityIndicator()
-                                                              : Text(
-                                                                  "Reset Password",
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          20,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w900,
-                                                                      color: Colors
-                                                                          .white),
-                                                                ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
+                                                child: Text(
+                                                  "Reset Password",
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight.w900,
+                                                      color: Colors.white),
                                                 ),
-                                              )),
-                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    )),
                                   ],
                                 ),
                               );
                             },
                             child: Text(
                               "Forgot Password?",
-                              style: TextStyle(
-                                  color: Styles.appPrimaryColor, fontSize: 15),
+                              style: TextStyle(color: Styles.appPrimaryColor, fontSize: 15),
                             ),
                           ),
                         ),
@@ -424,8 +382,8 @@ class _SigninPageState extends State<SigninPage> {
                           onPressed: isLoading
                               ? null
                               : () {
-                                  signIn(emailController.text,
-                                      passwordController.text, context);
+                                  offKeyboard(context);
+                                  signIn(emailController.text, passwordController.text, context);
                                 },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -464,10 +422,8 @@ class _SigninPageState extends State<SigninPage> {
                               ),
                               child: InkWell(
                                 onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      CupertinoPageRoute(
-                                          builder: (context) => SignupPage()));
+                                  Navigator.push(context,
+                                      CupertinoPageRoute(builder: (context) => SignupPage()));
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),

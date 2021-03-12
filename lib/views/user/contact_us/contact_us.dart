@@ -6,9 +6,9 @@ import 'package:fvastalpha/views/partials/notification_page.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
-import 'package:fvastalpha/views/partials/widgets/toast.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class ContactUsF extends StatefulWidget {
   final String from;
@@ -54,15 +54,14 @@ class _ContactUsFState extends State<ContactUsF> {
                       padding: const EdgeInsets.symmetric(horizontal: 18.0),
                       child: Text(
                         "Help",
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w800),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                       ),
                     )),
                     IconButton(
-                        icon: Icon(Icons.notifications), onPressed: () {
-                      moveTo(context, NotificationPage());
-
-                    }),
+                        icon: Icon(Icons.notifications),
+                        onPressed: () {
+                          moveTo(context, NotificationPage());
+                        }),
                   ],
                 ),
               ),
@@ -83,8 +82,7 @@ class _ContactUsFState extends State<ContactUsF> {
                   ),
                   child: CupertinoTextField(
                     placeholder: "Type something here...",
-                    placeholderStyle: TextStyle(
-                        fontWeight: FontWeight.w300, color: Colors.black38),
+                    placeholderStyle: TextStyle(fontWeight: FontWeight.w300, color: Colors.black38),
                     padding: EdgeInsets.all(10),
                     maxLines: 10,
                     onChanged: (e) {
@@ -109,8 +107,7 @@ class _ContactUsFState extends State<ContactUsF> {
                   if (await canLaunch(_url)) {
                     await launch(_url);
                   } else {
-                    Toast.show(" Could not launch $_url", context,
-                        duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                    Fluttertoast.showToast(msg: " Could not launch $_url");
                     throw 'Could not launch $_url';
                   }
                 },
@@ -127,15 +124,14 @@ class _ContactUsFState extends State<ContactUsF> {
                         width: 40,
                       ),
                       onTap: () async {
-                        String _url1 =
-                            "http://instagram.com/_u/officialfabatmngt";
+                        String _url1 = "http://instagram.com/_u/officialfabatmngt";
                         String _url2 = "http://instagram.com/officialfabatmngt";
 
                         if (await canLaunch(_url1)) {
                           await launch(_url1);
-                        } else {
+                        } else if (await canLaunch(_url2)) {
                           await launch(_url2);
-                        }
+                        } else {}
                       },
                     ),
                   ),
@@ -168,10 +164,8 @@ class _ContactUsFState extends State<ContactUsF> {
                         width: 40,
                       ),
                       onTap: () async {
-                        String _url1 =
-                            "twitter://user?screen_name=fabatmanagement";
-                        String _url2 =
-                            "https://twitter.com/fabatmanagement?s=09";
+                        String _url1 = "twitter://user?screen_name=fabatmanagement";
+                        String _url2 = "https://twitter.com/fabatmanagement?s=09";
 
                         if (await canLaunch(_url1)) {
                           await launch(_url1);

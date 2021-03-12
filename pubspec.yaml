@@ -1,6 +1,6 @@
 name: fvastalpha
 description: A new Flutter application.
-version: 1.0.0+1
+version: 1.3.0+8
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -24,8 +24,8 @@ dev_dependencies:
   firebase_auth: ^0.14.0+5
   cloud_firestore:
   rave_flutter:   # TODO configure the iOS version
-  geolocator:  # TODO configure the iOS version
-  geocoder: ^0.2.1
+  geolocator: ^6.0.0 # TODO configure the iOS version
+  geocoding: ^1.0.5
   flutter_google_places: ^0.2.5
   intl:
   smooth_star_rating:
@@ -36,10 +36,13 @@ dev_dependencies:
   onesignal_flutter:
   url_launcher:
   cached_network_image:
-  http:
+  logger: ^0.9.4
   loading_overlay: ^0.2.1
   webview_flutter:
   signature:
+  editable:
+  flutter_webview_plugin: ^0.3.11
+  fluttertoast: ^7.1.6
 
 flutter:
 

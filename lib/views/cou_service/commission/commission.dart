@@ -386,7 +386,7 @@ class _CommissionViewState extends State<CommissionView> {
         finishDeposit(result.message);
       } else if (result.status == RaveStatus.cancelled) {
         if (mounted) {
-          scaffoldKey.currentState.showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 "Closed!",

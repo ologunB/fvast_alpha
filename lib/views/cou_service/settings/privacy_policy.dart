@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:fvastalpha/views/partials/widgets/toast.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PrivacyPo extends StatefulWidget {
@@ -401,9 +401,8 @@ Other than as may be very necessary and unavoidable with recourse to our terms a
                               if (await canLaunch(_url)) {
                                 await launch(_url);
                               } else {
-                                Toast.show(" Could not launch $_url", context,
-                                    duration: Toast.LENGTH_SHORT,
-                                    gravity: Toast.BOTTOM);
+                                Fluttertoast.showToast(
+                                    msg:" Could not launch $_url");
                                 throw 'Could not launch $_url';
                               }
                             }
@@ -428,9 +427,9 @@ Other than as may be very necessary and unavoidable with recourse to our terms a
                               if (await canLaunch(_url)) {
                               await launch(_url);
                               } else {
-                              Toast.show(" Could not launch $_url", context,
-                              duration: Toast.LENGTH_SHORT,
-                              gravity: Toast.BOTTOM);
+                                Fluttertoast.showToast(
+                                    msg:" Could not launch $_url",
+                            );
                               throw 'Could not launch $_url';
                               }
                           }

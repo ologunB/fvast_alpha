@@ -31,7 +31,7 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -45,12 +45,12 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.ologunb.fvastalpha"
         minSdkVersion 16
-        targetSdkVersion 28
+        targetSdkVersion 29
         multiDexEnabled true
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         manifestPlaceholders = [
-                onesignal_app_id: 'd3badbf5-4456-41f6-bbae-01b9364e08ce',
+                onesignal_app_id               : 'e08b2257-9db2-4bd0-a9d7-b5674094ddda',
                 onesignal_google_project_number: '691882460257'
         ]
     }

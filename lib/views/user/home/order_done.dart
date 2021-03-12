@@ -7,7 +7,7 @@ import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 class OrderCompletedPage extends StatefulWidget {
   final payment, receiversName, receiversNumber, type, amount, route, from;
 
@@ -38,7 +38,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   double ratingNum = 0;
-  String feedback_text = "";
+  String feedback = "";
 
   @override
   Widget build(BuildContext context) {
@@ -81,14 +81,13 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    "₦ ${widget.amount}",
+                    "₦ ${commaFormat.format(widget.amount)}",
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
                   ),
                   Container(
                     padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15)),
+                    decoration:
+                        BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
                     child: Column(
                       children: <Widget>[
                         Padding(
@@ -97,8 +96,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                             children: <Widget>[
                               Text("Route: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(routeTypes[widget.route].type,
-                                  style: TextStyle(fontSize: 16))
+                              Text(routeTypes[widget.route].type, style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -106,11 +104,9 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Payment Type: ",
-                                  style: TextStyle(fontSize: 16)),
+                              Text("Payment Type: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(widget.payment,
-                                  style: TextStyle(fontSize: 16))
+                              Text(widget.payment, style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -118,11 +114,9 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Receiver's Name: ",
-                                  style: TextStyle(fontSize: 16)),
+                              Text("Receiver's Name: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(widget.receiversName,
-                                  style: TextStyle(fontSize: 16))
+                              Text(widget.receiversName, style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -130,11 +124,9 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Receiver's  Mobile",
-                                  style: TextStyle(fontSize: 16)),
+                              Text("Receiver's  Mobile", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(widget.receiversNumber,
-                                  style: TextStyle(fontSize: 16))
+                              Text(widget.receiversNumber, style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -142,8 +134,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Package Type ",
-                                  style: TextStyle(fontSize: 16)),
+                              Text("Package Type ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
                               Text(widget.type, style: TextStyle(fontSize: 16))
                             ],
@@ -162,8 +153,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                           } else {
                             Navigator.pushAndRemoveUntil(
                                 context,
-                                CupertinoPageRoute(
-                                    builder: (context) => DisLayoutTemplate()),
+                                CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
                                 (Route<dynamic> route) => false);
                           }
                         }),
@@ -228,8 +218,7 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Theme(
                       data: ThemeData(
-                          primaryColor: Colors.grey[100],
-                          hintColor: Styles.commonDarkBackground),
+                          primaryColor: Colors.grey[100], hintColor: Styles.commonDarkBackground),
                       child: TextField(
                         maxLines: 3,
                         decoration: InputDecoration(
@@ -238,20 +227,15 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                             hintText: "Type feedback",
                             contentPadding: EdgeInsets.all(10),
                             hintStyle: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400),
-
+                                color: Colors.grey[500], fontSize: 16, fontWeight: FontWeight.w400),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.0),
                             )),
-                        onChanged: (a){
-                          feedback_text = a;
+                        onChanged: (a) {
+                          feedback = a;
                         },
                         style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w400),
+                            color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                       ),
                     ),
                   ),
@@ -300,9 +284,9 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                               onPressed: () {
                                 Map<String, Object> mData = Map();
                                 mData.putIfAbsent("Star Rating", () => ratingNum);
-                                mData.putIfAbsent("Feedback", () => feedback_text);
+                                mData.putIfAbsent("Feedback", () => feedback);
 
-                     /*           Firestore.instance
+                                /*           Firestore.instance
                                     .collection("Orders")
                                     .document("Completed") //create for dispatcher
                                     .collection(MY_UID)
@@ -310,19 +294,14 @@ class _OrderCompletedPageState extends State<OrderCompletedPage> {
                                     .setData(mData);
                                 */
                                 if (widget.from == "Customer") {
-
                                   Navigator.pushAndRemoveUntil(
                                       context,
-                                      CupertinoPageRoute(
-                                          builder: (context) =>
-                                              LayoutTemplate()),
+                                      CupertinoPageRoute(builder: (context) => LayoutTemplate()),
                                       (Route<dynamic> route) => false);
                                 } else {
                                   Navigator.pushAndRemoveUntil(
                                       context,
-                                      CupertinoPageRoute(
-                                          builder: (context) =>
-                                              DisLayoutTemplate()),
+                                      CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
                                       (Route<dynamic> route) => false);
                                 }
                               },

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/models/task.dart';
@@ -13,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'dart:math' as math;
 
 class DispatchHomeView extends StatefulWidget {
@@ -22,7 +21,6 @@ class DispatchHomeView extends StatefulWidget {
 }
 
 class _HomeMapState extends State<DispatchHomeView> {
-  Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
 
   final Set<Marker> _markers = {};
@@ -36,41 +34,10 @@ class _HomeMapState extends State<DispatchHomeView> {
     )));
   }
 
-  void _onFilledMapCreated(GoogleMapController controller) {
-    mapController = controller;
-    _controller.complete(controller);
-
-    //offerLatLng and currentLatLng are custom
-    LatLng fromLatLng = LatLng(fromLats.reduce(max), fromLongs.reduce(max));
-    LatLng toLatLng = LatLng(toLats.reduce(max), toLongs.reduce(max));
-
-    LatLngBounds bound;
-    if (toLatLng.latitude > fromLatLng.latitude &&
-        toLatLng.longitude > fromLatLng.longitude) {
-      bound = LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
-    } else if (toLatLng.longitude > fromLatLng.longitude) {
-      bound = LatLngBounds(
-          southwest: LatLng(toLatLng.latitude, fromLatLng.longitude),
-          northeast: LatLng(fromLatLng.latitude, toLatLng.longitude));
-    } else if (toLatLng.latitude > fromLatLng.latitude) {
-      bound = LatLngBounds(
-          southwest: LatLng(fromLatLng.latitude, toLatLng.longitude),
-          northeast: LatLng(toLatLng.latitude, fromLatLng.longitude));
-    } else {
-      bound = LatLngBounds(southwest: toLatLng, northeast: fromLatLng);
-    }
-
-    CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
-    this.mapController.animateCamera(u2).then((void v) {
-      check(u2, this.mapController);
-    });
-  }
-
   getUserLocation() async {
-    List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
+    List<Placemark> placeMark = await  placemarkFromCoordinates(
         currentLocation.latitude, currentLocation.longitude);
 
-    setState(() {
       _markers.add(
         Marker(
           markerId: MarkerId("Current Location"),
@@ -81,7 +48,6 @@ class _HomeMapState extends State<DispatchHomeView> {
         ),
       );
       _center = LatLng(currentLocation.latitude, currentLocation.longitude);
-    });
   }
 
   void addMarker(LatLng mLatLng, String mTitle) {
@@ -119,22 +85,52 @@ class _HomeMapState extends State<DispatchHomeView> {
   List<LatLng> polylineCoordinates = [];
   PolylinePoints polylinePoints = PolylinePoints();
 
-  setPolylines(l1, l2, l3, l4) async {
-    List<PointLatLng> result = await polylinePoints?.getRouteBetweenCoordinates(
-        kGoogleMapKey, l1, l2, l3, l4);
-    if (result.isNotEmpty) {
-      result.forEach((PointLatLng point) {
-        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
-      });
-    }
-    addMarker(LatLng(l1, l2), "From");
-    addMarker(LatLng(l3, l4), "To");
-    setState(() {
+  setPolylines(double l1, double l2, List l3, List l4) async {
+    setState(() async {
+      List<PointLatLng> result = await polylinePoints
+          ?.getRouteBetweenCoordinates(kGoogleMapKey, l1, l2, l3[0], l4[0]);
+      if (result.isNotEmpty) {
+        result.forEach((PointLatLng point) {
+          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        });
+      }
+      //  setState(() {
       Polyline polyline = Polyline(
-          polylineId: PolylineId('Poly'),
+          polylineId: PolylineId(randomString()),
           color: Color.fromARGB(255, 40, 122, 198),
           points: polylineCoordinates);
       _polylines.add(polyline);
+      //  });
+
+      for (int i = 0; i < l3.length; i++) {
+        if (i == l3.length - 1) {
+          break;
+        }
+        List<PointLatLng> result =
+        await polylinePoints?.getRouteBetweenCoordinates(
+            kGoogleMapKey, l3[i], l4[i], l3[i + 1], l4[i + 1]);
+        if (result.isNotEmpty) {
+          result.forEach((PointLatLng point) {
+            polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+          });
+        }
+        //   setState(() {
+        Polyline polyline = Polyline(
+            polylineId: PolylineId(randomString()),
+            color: Colors.green,
+            points: polylineCoordinates);
+        _polylines.add(polyline);
+        //  });
+      }
+
+      //markers
+      addMarker(LatLng(l1, l2), "From");
+
+      // setState(() {
+      for (int i = 0; i < l3.length; i++) {
+        addMarker(LatLng(l3[i], l4[i]), "Destination ${i + 1}");
+      }
+      //   });
     });
   }
 
@@ -149,12 +145,12 @@ class _HomeMapState extends State<DispatchHomeView> {
         Task task = Task.map(document);
         double l1 = task.fromLat;
         double l2 = task.fromLong;
-        double l3 = task.toLat;
-        double l4 = task.toLong;
+        List l3 = task.toLat;
+        List l4 = task.toLong;
         fromLats.add(l1);
         fromLongs.add(l2);
-        toLats.add(l3);
-        toLongs.add(l4);
+        toLats.add(l3[0]);
+        toLongs.add(l4[0]);
 
         setPolylines(l1, l2, l3, l4);
       }).toList();
@@ -169,10 +165,10 @@ class _HomeMapState extends State<DispatchHomeView> {
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  List<double> toLats = List();
-  List<double> toLongs = List();
-  List<double> fromLats = List();
-  List<double> fromLongs = List();
+  List<double> toLats =[];
+  List<double> toLongs = [];
+  List<double> fromLats = [];
+  List<double> fromLongs = [];
 
   Widget createTasks(context) {
     return StreamBuilder<QuerySnapshot>(
@@ -340,8 +336,8 @@ class _HomeMapState extends State<DispatchHomeView> {
                         Task task = Task.map(document);
                         l1 = task.fromLat;
                         l2 = task.fromLong;
-                        l3 = task.toLat;
-                        l4 = task.toLong;
+                        l3 = task.toLat[0];
+                        l4 = task.toLong[0];
                         fromLats.add(l1);
                         fromLongs.add(l2);
                         toLats.add(l3);

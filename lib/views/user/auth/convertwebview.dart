@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter/material.dart';
 
 class ConvertWebView extends StatefulWidget {
@@ -13,31 +11,21 @@ class ConvertWebViewState extends State<ConvertWebView> {
   void initState() {
     super.initState();
     // Enable hybrid composition.
-  //  if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
+    //  if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
   }
 
-  bool isLoading = true;
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: new AppBar(
-          title: Text("Sign up as Driver",style: TextStyle(fontWeight: FontWeight.w700)),centerTitle: true
-      ),
-      body: Stack(
-        children: <Widget>[
-          WebView(
-            initialUrl: 'https://fvast.com.ng',
-            javascriptMode: JavascriptMode.unrestricted,
-            onPageFinished: (finish) {
-              setState(() {
-                isLoading = false;
-              });
-            },
-          ),
-          isLoading ? Center( child: CircularProgressIndicator(),)
-              : Stack(),
-        ],
-      ),
+    return WebviewScaffold(
+      url: "https://fvast.com.ng",
+      withJavascript: true,
+      withZoom: true,
+      allowFileURLs: true,
+      appBar: AppBar(
+          title: Text("Sign up as Driver", style: TextStyle(fontWeight: FontWeight.w700)),
+          centerTitle: true),
     );
   }
 }
