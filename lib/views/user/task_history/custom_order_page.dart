@@ -14,19 +14,13 @@ class CustomOrderPage extends StatefulWidget {
   final String theUID;
   final String from;
 
-  const CustomOrderPage(
-      {Key key, this.type, this.color, this.theUID, this.from})
-      : super(key: key);
+  const CustomOrderPage({Key key, this.type, this.color, this.theUID, this.from}) : super(key: key);
 
   @override
   _ListViewNoteState createState() => _ListViewNoteState();
 }
 
-class _ListViewNoteState extends State<CustomOrderPage>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
+class _ListViewNoteState extends State<CustomOrderPage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -50,10 +44,8 @@ class _ListViewNoteState extends State<CustomOrderPage>
                   Text(
                     "Getting Data",
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 22),
+                    style:
+                        TextStyle(color: Colors.black, fontWeight: FontWeight.w500, fontSize: 22),
                   ),
                   SizedBox(height: 30),
                 ],
@@ -73,12 +65,10 @@ class _ListViewNoteState extends State<CustomOrderPage>
                           "No transactions yet",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 22),
+                              color: Colors.black, fontWeight: FontWeight.w500, fontSize: 22),
                         ),
                         SizedBox(height: 30),
-                        widget.from == "dis"
+                        MY_TYPE == "Dispatcher"
                             ? SizedBox()
                             : Padding(
                                 padding: const EdgeInsets.all(20),
@@ -94,12 +84,10 @@ class _ListViewNoteState extends State<CustomOrderPage>
                                         Navigator.push(
                                             context,
                                             CupertinoPageRoute(
-                                                builder: (context) =>
-                                                    ChooseLocation()));
+                                                builder: (context) => ChooseLocation()));
                                       },
                                       child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
                                         children: <Widget>[
                                           Icon(
@@ -127,11 +115,10 @@ class _ListViewNoteState extends State<CustomOrderPage>
                 : ListView(
                     children: snapshot.data.documents.map((document) {
                       return EachOrderItem(
-                        task: Task.map(document),
-                        color: widget.color,
-                        type: widget.type,
-                        map: document.data
-                      );
+                          task: Task.map(document),
+                          color: widget.color,
+                          type: widget.type,
+                          map: document.data);
                     }).toList(),
                   );
         }

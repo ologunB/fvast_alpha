@@ -17,11 +17,7 @@ class OrdersView extends StatefulWidget {
   _OrdersViewState createState() => _OrdersViewState();
 }
 
-class _OrdersViewState extends State<OrdersView>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
+class _OrdersViewState extends State<OrdersView> {
   @override
   // ignore: must_call_super
   Widget build(BuildContext context) {
@@ -46,15 +42,13 @@ class _OrdersViewState extends State<OrdersView>
               unselectedLabelColor: Colors.grey[500],
               indicatorSize: TabBarIndicatorSize.tab,
               indicator: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Styles.appPrimaryColor),
+                  borderRadius: BorderRadius.circular(10), color: Styles.appPrimaryColor),
               tabs: [
                 Tab(
                   child: Align(
                     alignment: Alignment.center,
                     child: Text("En Route",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w500)),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                   ),
                 ),
                 Tab(
@@ -62,8 +56,7 @@ class _OrdersViewState extends State<OrdersView>
                     alignment: Alignment.center,
                     child: Text(
                       "Completed",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),
@@ -71,15 +64,13 @@ class _OrdersViewState extends State<OrdersView>
                   child: Align(
                     alignment: Alignment.center,
                     child: Text("Cancelled",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w500)),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                   ),
                 ),
               ]),
           title: Text(
             "My Orders",
-            style: TextStyle(
-                color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
           ),
           actions: [
             IconButton(
@@ -93,12 +84,9 @@ class _OrdersViewState extends State<OrdersView>
           height: double.infinity,
           width: double.infinity,
           child: TabBarView(children: [
-            CustomOrderPage(
-                type: "Pending", color: Styles.appPrimaryColor, theUID: MY_UID),
-            CustomOrderPage(
-                type: "Completed", color: Colors.green, theUID: MY_UID),
-            CustomOrderPage(
-                type: "Cancelled", color: Colors.red, theUID: MY_UID)
+            CustomOrderPage(type: "Pending", color: Styles.appPrimaryColor, theUID: MY_UID),
+            CustomOrderPage(type: "Completed", color: Colors.green, theUID: MY_UID),
+            CustomOrderPage(type: "Cancelled", color: Colors.red, theUID: MY_UID)
           ]),
         ),
       ),

@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'dart:math';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,8 +9,9 @@ import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 
+import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
+import 'package:geocoding/geocoding.dart';
 import 'choose_location.dart';
 import 'order_details.dart';
 import 'package:geolocator/geolocator.dart';
@@ -28,7 +27,6 @@ class _HomeMapState extends State<HomeView> {
   List<double> fromLats = [];
   List<double> fromLongs = [];
 
-  Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
 
   final Set<Marker> _markers = {};
@@ -44,28 +42,24 @@ class _HomeMapState extends State<HomeView> {
   }
 
   getUserLocation() async {
-    currentLocation = await Geolocator().getCurrentPosition();
-    List<Placemark> placeMark = await Geolocator().placemarkFromCoordinates(
-        currentLocation.latitude, currentLocation.longitude);
-
-    print(currentLocation.longitude.toString() +
-        "      " +
-        currentLocation.latitude.toString());
+    currentLocation = await Geolocator.getCurrentPosition();
+    List<Placemark> placeMark =
+        await placemarkFromCoordinates(currentLocation.latitude, currentLocation.longitude);
 
     mapCenter = LatLng(currentLocation.latitude, currentLocation.longitude);
     _markers.add(
       Marker(
         markerId: MarkerId("Current Location"),
         position: LatLng(currentLocation.latitude, currentLocation.longitude),
-        infoWindow:
-            InfoWindow(title: "Current Location", snippet: placeMark[0].name),
+        infoWindow: InfoWindow(title: "Current Location", snippet: placeMark[0].name),
         icon: BitmapDescriptor.defaultMarkerWithHue(120.0),
         onTap: () {},
       ),
     );
-    setState(() {});
+    // setState(() {});
   }
 
+/*
   void _onFilledMapCreated(GoogleMapController controller) {
     mapController = controller;
     _controller.complete(controller);
@@ -74,8 +68,7 @@ class _HomeMapState extends State<HomeView> {
 
     LatLngBounds bound;
 
-    if (toLatLng.latitude > fromLatLng.latitude &&
-        toLatLng.longitude > fromLatLng.longitude) {
+    if (toLatLng.latitude > fromLatLng.latitude && toLatLng.longitude > fromLatLng.longitude) {
       bound = LatLngBounds(southwest: fromLatLng, northeast: toLatLng);
     } else if (toLatLng.longitude > fromLatLng.longitude) {
       bound = LatLngBounds(
@@ -90,7 +83,7 @@ class _HomeMapState extends State<HomeView> {
     }
 
     mapCenter = LatLng(currentLocation.latitude, currentLocation.longitude);
-   // setState(() {});
+    // setState(() {});
     //   getUserLocation();
 
     CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
@@ -98,18 +91,17 @@ class _HomeMapState extends State<HomeView> {
       check(u2, this.mapController);
     });
   }
+*/
 
   void addMarker(LatLng mLatLng, String mTitle) {
     _markers.add(Marker(
-      markerId:
-          MarkerId((mTitle + "_" + _markers.length.toString()).toString()),
+      markerId: MarkerId((mTitle + "_" + _markers.length.toString()).toString()),
       position: mLatLng,
       infoWindow: InfoWindow(
         title: mTitle,
       ),
-      icon: BitmapDescriptor.defaultMarkerWithHue(mTitle == "From"
-          ? BitmapDescriptor.hueRed
-          : BitmapDescriptor.hueGreen),
+      icon: BitmapDescriptor.defaultMarkerWithHue(
+          mTitle == "From" ? BitmapDescriptor.hueRed : BitmapDescriptor.hueGreen),
     ));
   }
 
@@ -120,8 +112,7 @@ class _HomeMapState extends State<HomeView> {
     LatLngBounds l2 = await c.getVisibleRegion();
     print(l1.toString());
     print(l2.toString());
-    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90)
-      check(u, c);
+    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90) check(u, c);
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -132,23 +123,43 @@ class _HomeMapState extends State<HomeView> {
   List<LatLng> polylineCoordinates = [];
   PolylinePoints polylinePoints = PolylinePoints();
 
-  setPolylines(l1, l2, l3, l4) async {
-    List<PointLatLng> result = await polylinePoints?.getRouteBetweenCoordinates(
-        kGoogleMapKey, l1, l2, l3, l4);
+  setPolylines(double l1, double l2, List l3, List l4) async {
+    List<PointLatLng> result =
+        await polylinePoints?.getRouteBetweenCoordinates(kGoogleMapKey, l1, l2, l3[0], l4[0]);
     if (result.isNotEmpty) {
       result.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
       });
     }
-    addMarker(LatLng(l1, l2), "From");
-    addMarker(LatLng(l3, l4), "To");
-    setState(() {
+    Polyline polyline = Polyline(
+        polylineId: PolylineId(randomString()),
+        color: Color.fromARGB(255, 40, 122, 198),
+        points: polylineCoordinates);
+    _polylines.add(polyline);
+
+    for (int i = 0; i < l3.length; i++) {
+      if (i == l3.length - 1) {
+        break;
+      }
+      List<PointLatLng> result = await polylinePoints?.getRouteBetweenCoordinates(
+          kGoogleMapKey, l3[i], l4[i], l3[i + 1], l4[i + 1]);
+      if (result.isNotEmpty) {
+        result.forEach((PointLatLng point) {
+          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        });
+      }
       Polyline polyline = Polyline(
-          polylineId: PolylineId('Poly'),
-          color: Color.fromARGB(255, 40, 122, 198),
-          points: polylineCoordinates);
+          polylineId: PolylineId(randomString()), color: Colors.green, points: polylineCoordinates);
       _polylines.add(polyline);
-    });
+    }
+
+    //markers
+    addMarker(LatLng(l1, l2), "From");
+
+    for (int i = 0; i < l3.length; i++) {
+      addMarker(LatLng(l3[i], l4[i]), "Destination ${i + 1}");
+    }
+    setState(() {});
   }
 
   getAndDraw() async {
@@ -162,12 +173,12 @@ class _HomeMapState extends State<HomeView> {
         Task task = Task.map(document);
         double l1 = task.fromLat;
         double l2 = task.fromLong;
-        double l3 = task.toLat;
-        double l4 = task.toLong;
+        List l3 = task.toLat;
+        List l4 = task.toLong;
         fromLats.add(l1);
         fromLongs.add(l2);
-        toLats.add(l3);
-        toLongs.add(l4);
+        toLats.add(l3[0]);
+        toLongs.add(l4[0]);
 
         setPolylines(l1, l2, l3, l4);
       }).toList();
@@ -179,11 +190,8 @@ class _HomeMapState extends State<HomeView> {
   Widget taskItem({context, Task task, Map docTask}) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-            context,
-            CupertinoPageRoute(
-                builder: (context) =>
-                    OrderDetails(task: task, dataMap: docTask)));
+        Navigator.push(context,
+            CupertinoPageRoute(builder: (context) => OrderDetails(task: task, dataMap: docTask)));
       },
       child: Column(
         children: <Widget>[
@@ -200,14 +208,12 @@ class _HomeMapState extends State<HomeView> {
                       child: Icon(Icons.location_searching),
                     ),
                     Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color: widgetColor),
+                      decoration:
+                          BoxDecoration(borderRadius: BorderRadius.circular(5), color: widgetColor),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(userHomeNext(task.status),
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 16)),
+                            overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16)),
                       ),
                     ),
                     Padding(
@@ -227,8 +233,7 @@ class _HomeMapState extends State<HomeView> {
                         Navigator.push(
                             context,
                             CupertinoPageRoute(
-                                builder: (context) => OrderDetails(
-                                    task: task, dataMap: docTask)));
+                                builder: (context) => OrderDetails(task: task, dataMap: docTask)));
                       },
                       currentStep: 1,
                       steps: [
@@ -240,8 +245,7 @@ class _HomeMapState extends State<HomeView> {
                                   style: TextStyle(color: Colors.grey),
                                 ),
                                 Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * .70,
+                                  width: MediaQuery.of(context).size.width * .70,
                                   child: Text(
                                     task.from + " - " + todo1(task.status),
                                     overflow: TextOverflow.ellipsis,
@@ -263,7 +267,7 @@ class _HomeMapState extends State<HomeView> {
                               Container(
                                 width: MediaQuery.of(context).size.width * .70,
                                 child: Text(
-                                  task.to + " - " + todo2(task.status),
+                                  task.to[0] + " - " + todo2(task.status),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 2,
                                   style: TextStyle(fontSize: 16),
@@ -276,8 +280,7 @@ class _HomeMapState extends State<HomeView> {
                         ),
                       ],
                       controlsBuilder: (BuildContext context,
-                              {VoidCallback onStepContinue,
-                              VoidCallback onStepCancel}) =>
+                              {VoidCallback onStepContinue, VoidCallback onStepCancel}) =>
                           SizedBox()),
                 ),
               ],
@@ -334,9 +337,7 @@ class _HomeMapState extends State<HomeView> {
                           "Task is empty, Create a Task!",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 18),
+                              color: Colors.black, fontWeight: FontWeight.w500, fontSize: 18),
                         ),
                         SizedBox(height: 30),
                       ],
@@ -346,8 +347,7 @@ class _HomeMapState extends State<HomeView> {
                     children: snapshot.data.documents.map((document) {
                       Task task = Task.map(document);
 
-                      return taskItem(
-                          task: task, context: context, docTask: document.data);
+                      return taskItem(task: task, context: context, docTask: document.data);
                     }).toList(),
                   );
         }
@@ -357,7 +357,7 @@ class _HomeMapState extends State<HomeView> {
 
   @override
   void initState() {
-   getUserLocation();
+    getUserLocation();
     getAndDraw();
     super.initState();
   }
@@ -405,8 +405,7 @@ class _HomeMapState extends State<HomeView> {
                   .orderBy("Timestamp", descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.hasError)
-                  return new Text('Error: ${snapshot.error}');
+                if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
                 switch (snapshot.connectionState) {
                   case ConnectionState.waiting:
                     return Center(
@@ -425,10 +424,10 @@ class _HomeMapState extends State<HomeView> {
                       double l1, l2, l3, l4;
                       snapshot.data.documents.map((document) {
                         Task task = Task.map(document);
-                          l1 = task.fromLat;
-                          l2 = task.fromLong;
-                          l3 = task.toLat;
-                          l4 = task.toLong;
+                        l1 = task.fromLat;
+                        l2 = task.fromLong;
+                        l3 = task.toLat[0].toDouble();
+                        l4 = task.toLong[0].toDouble();
                         fromLats.add(l1);
                         fromLongs.add(l2);
                         toLats.add(l3);
@@ -447,14 +446,15 @@ class _HomeMapState extends State<HomeView> {
                         num vectorY = math.cos(l2LatRadians) * math.sin(lngRadiansDiff);
 
                         num x = math.sqrt((math.cos(l1LatRadians) + vectorX) *
-                            (math.cos(l1LatRadians) + vectorX) +
+                                (math.cos(l1LatRadians) + vectorX) +
                             vectorY * vectorY);
                         num y = math.sin(l1LatRadians) + math.sin(l2LatRadians);
                         num latRadians = math.atan2(y, x);
                         num lngRadians =
                             l1LngRadians + math.atan2(vectorY, math.cos(l1LatRadians) + vectorX);
 
-                        mapCenter = LatLng(radianToDeg(latRadians as double), (radianToDeg(lngRadians as double) + 540) % 360 - 180);
+                        mapCenter = LatLng(radianToDeg(latRadians as double),
+                            (radianToDeg(lngRadians as double) + 540) % 360 - 180);
                       }).toList();
 
                       return GoogleMap(
@@ -463,10 +463,7 @@ class _HomeMapState extends State<HomeView> {
                         myLocationButtonEnabled: true,
                         myLocationEnabled: true,
                         onMapCreated: _onMapCreated,
-                        initialCameraPosition: CameraPosition(
-                          target: mapCenter,
-                          zoom: 10.0,
-                        ),
+                        initialCameraPosition: CameraPosition(target: mapCenter, zoom: 10.0),
                         markers: _markers,
                         onCameraMove: _onCameraMove,
                       );
@@ -475,10 +472,7 @@ class _HomeMapState extends State<HomeView> {
                         myLocationButtonEnabled: true,
                         myLocationEnabled: true,
                         onMapCreated: _onMapCreated,
-                        initialCameraPosition: CameraPosition(
-                          target: mapCenter,
-                          zoom: 10.0,
-                        ),
+                        initialCameraPosition: CameraPosition(target: mapCenter, zoom: 10.0),
                         onCameraMove: _onCameraMove,
                       );
                     }
@@ -508,9 +502,10 @@ class _HomeMapState extends State<HomeView> {
                                 onPressed: () {
                                   cusMainScaffoldKey.currentState.openDrawer();
                                 }),
-                             IconButton(
+                            IconButton(
                                 icon: Icon(Icons.notifications),
-                                onPressed: () {                  moveTo(context, NotificationPage());
+                                onPressed: () {
+                                  moveTo(context, NotificationPage());
                                 }),
                           ],
                         ),
@@ -526,11 +521,8 @@ class _HomeMapState extends State<HomeView> {
                             ),
                             child: FlatButton(
                               onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    CupertinoPageRoute(
-                                        builder: (context) =>
-                                            ChooseLocation()));
+                                Navigator.push(context,
+                                    CupertinoPageRoute(builder: (context) => ChooseLocation()));
                               },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -559,7 +551,7 @@ class _HomeMapState extends State<HomeView> {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -572,24 +564,41 @@ var widgetColor = Colors.blue[200];
 String userHomeNext(status) {
   String todo = "";
 
-  if (status == "Accepted") {
+  if (status == "Pending") {
+    widgetColor = Colors.redAccent[200];
+    todo = "Awaiting";
+  } else if (status == "Accepted") {
     todo = "Task Accepted";
     widgetColor = Colors.lightBlueAccent[200];
-  } else if (status == "Started Task") {
-    todo = "Arrival Started";
+  } else if (status == "Start Task 1") {
+    todo = "Task 1 Started";
     widgetColor = Colors.greenAccent[200];
-  } else if (status == "Mark Arrived") {
-    todo = "Dispatcher Arrived";
+  } else if (status == "End Task 1") {
+    todo = "Task 1 Ended";
     widgetColor = Colors.lightBlueAccent[200];
-  } else if (status == "Start Delivery") {
-    todo = "Delivery Started";
+  } else if (status == "End Task 2") {
+    todo = "Task 2 Ended";
+    widgetColor = Colors.lightBlueAccent[200];
+  } else if (status == "Start Task 2") {
+    todo = "Task 2 Started";
+    widgetColor = Colors.greenAccent[200];
+  } else if (status == "Start Task 3") {
+    todo = "Task 3 Started";
+    widgetColor = Colors.greenAccent[200];
+  } else if (status == "End Task 3") {
+    todo = "Task 3 Ended";
+    widgetColor = Colors.lightBlueAccent[200];
+  } else if (status == "Start Task 4") {
+    todo = "Task 4 Started";
+    widgetColor = Colors.greenAccent[200];
+  } else if (status == "End Task 4") {
+    todo = "Task 4 Ended";
+    widgetColor = Colors.lightBlueAccent[200];
   } else if (status == "Completed") {
     widgetColor = Colors.greenAccent[200];
     todo = "Completed";
-  } else if (status == "Pending") {
-    widgetColor = Colors.redAccent[200];
-    todo = "Awaiting";
   }
+
   return todo;
 }
 
@@ -610,4 +619,3 @@ String todo2(status) {
   }
   return toStatus;
 }
-

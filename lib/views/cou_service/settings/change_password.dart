@@ -29,7 +29,6 @@ class _PaymentMethodState extends State<ChangePasswordPage> {
 
   final _formKey = GlobalKey<FormState>();
   bool checkedValue = false;
-  bool _autoValidate = false;
 
   Future _changePassword(String former, String password) async {
     setState(() {
@@ -58,7 +57,6 @@ class _PaymentMethodState extends State<ChangePasswordPage> {
         new2Pass.clear();
         setState(() {
           isLoading = false;
-          _autoValidate = false;
         });
         return true;
       }).catchError((e) {
@@ -96,7 +94,7 @@ class _PaymentMethodState extends State<ChangePasswordPage> {
         body: ListView(children: [
           Form(
             key: _formKey,
-            autovalidate: _autoValidate,
+            autovalidateMode: AutovalidateMode.always,
             child: Container(
               padding: EdgeInsets.all(18),
               child: Column(
@@ -207,10 +205,6 @@ class _PaymentMethodState extends State<ChangePasswordPage> {
                 : () async {
                     _formKey.currentState.save();
                     _formKey.currentState.validate();
-
-                    setState(() {
-                      _autoValidate = true;
-                    });
 
                     if (_formKey.currentState.validate()) {
                       _changePassword(oldPass.text, new2Pass.text);

@@ -1,8 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:fvastalpha/views/partials/widgets/toast.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class TandCs extends StatefulWidget {
   @override

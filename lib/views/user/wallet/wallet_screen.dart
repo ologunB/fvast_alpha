@@ -22,11 +22,11 @@ class _WalletViewState extends State<WalletView> {
   double mBalance = 0;
   int totalDeposit = 0;
   int totalWithdrawals = 0;
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        key: scaffoldKey,
         appBar: AppBar(
           iconTheme: IconThemeData(color: Colors.black),
           backgroundColor: Colors.white,
@@ -44,10 +44,11 @@ class _WalletViewState extends State<WalletView> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
           ),
           actions: <Widget>[
-            IconButton(icon: Icon(Icons.notifications), onPressed: () {
-              moveTo(context, NotificationPage());
-
-            }),
+            IconButton(
+                icon: Icon(Icons.notifications),
+                onPressed: () {
+                  moveTo(context, NotificationPage());
+                }),
           ],
         ),
         body: Container(
@@ -86,20 +87,17 @@ class _WalletViewState extends State<WalletView> {
                           totalWithdrawals = 0;
 
                           snapshot.data.documents.map((document) {
-                            EachTransaction item =
-                                EachTransaction.map(document);
+                            EachTransaction item = EachTransaction.map(document);
 
                             if (item.type == "Deposit" || item.type == "Card Payment") {
                               mBalance = mBalance + item.amount;
                               totalDeposit = totalDeposit + item.amount.floor();
-                            } else  if (item.type == "Cash Payment"){
+                            } else if (item.type == "Cash Payment") {
                               mBalance = mBalance;
-                            }
-                            else if (item.type == "Withdrawal") {
+                            } else if (item.type == "Withdrawal") {
                               mBalance = mBalance - item.amount;
-                              totalWithdrawals =
-                                  totalWithdrawals + item.amount.floor();
-                            }else if (item.type == "Bitcoin Payment") {
+                              totalWithdrawals = totalWithdrawals + item.amount.floor();
+                            } else if (item.type == "Bitcoin Payment") {
                               mBalance = mBalance + item.amount;
                               totalDeposit = totalDeposit + item.amount.floor();
                             }
@@ -124,21 +122,17 @@ class _WalletViewState extends State<WalletView> {
                                       title: "Withdrawal",
                                       onPress: () {
                                         showCenterToast(
-                                            "Withdrawal option isn't available now",
-                                            context);
+                                            "Withdrawal option isn't available now", context);
                                       }),
                                 ],
                               ),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
-                                  item("Total Deposit",
-                                      commaFormat.format(totalDeposit)),
+                                  item("Total Deposit", commaFormat.format(totalDeposit)),
                                   SizedBox(width: 20),
-                                  item("Total Withdrawal",
-                                      commaFormat.format(totalWithdrawals))
+                                  item("Total Withdrawal", commaFormat.format(totalWithdrawals))
                                 ],
                               )
                             ],
@@ -164,15 +158,13 @@ class _WalletViewState extends State<WalletView> {
                                       title: "Withdrawal",
                                       onPress: () {
                                         showCenterToast(
-                                            "Withdrawal option isn't available now",
-                                            context);
+                                            "Withdrawal option isn't available now", context);
                                       }),
                                 ],
                               ),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
                                   item("Total Deposit", "0"),
                                   item("Total Withdrawal", "0")
@@ -265,10 +257,8 @@ class _WalletViewState extends State<WalletView> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text("Transactions",
-                    style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold)),
+                    style:
+                        TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold)),
               ),
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
@@ -279,8 +269,7 @@ class _WalletViewState extends State<WalletView> {
                       .orderBy("Timestamp", descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (snapshot.hasError)
-                      return new Text('Error: ${snapshot.error}');
+                    if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
                     switch (snapshot.connectionState) {
                       case ConnectionState.waiting:
                         return Container(
@@ -294,9 +283,7 @@ class _WalletViewState extends State<WalletView> {
                                 "Getting Data",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 20),
+                                    color: Colors.black, fontWeight: FontWeight.w500, fontSize: 20),
                               ),
                               SizedBox(height: 30),
                             ],
@@ -325,10 +312,8 @@ class _WalletViewState extends State<WalletView> {
                                 ),
                               )
                             : ListView(
-                                children:
-                                    snapshot.data.documents.map((document) {
-                                  EachTransaction transaction =
-                                      EachTransaction.map(document);
+                                children: snapshot.data.documents.map((document) {
+                                  EachTransaction transaction = EachTransaction.map(document);
                                   return EachOrderItem(
                                     transaction: transaction,
                                   );
@@ -345,15 +330,11 @@ class _WalletViewState extends State<WalletView> {
     );
   }
 
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
   processCardTransaction(context) async {
     Navigator.pop(context);
 
     var initializer = RavePayInitializer(
-        amount: totalAmount,
-        publicKey: ravePublicKey,
-        encryptionKey: raveEncryptKey)
+        amount: totalAmount, publicKey: ravePublicKey, encryptionKey: raveEncryptKey)
       ..country = "NG"
       ..currency = "NGN"
       ..email = MY_EMAIL
@@ -375,22 +356,20 @@ class _WalletViewState extends State<WalletView> {
       ..companyLogo = Image.asset("assets/images/logo.png")
       ..displayFee = true;
 
-    RavePayManager()
-        .prompt(context: context, initializer: initializer)
-        .then((result) {
+    RavePayManager().prompt(context: context, initializer: initializer).then((result) {
       if (result.status == RaveStatus.success) {
         doAfterSuccess(result.message);
       } else if (result.status == RaveStatus.cancelled) {
         if (mounted) {
-          scaffoldKey.currentState.showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                "Closed!",
-                style: TextStyle(color: Colors.white, fontSize: 18),
-              ),
-              backgroundColor: Styles.appPrimaryColor,
-              duration: Duration(seconds: 1),
-            ),
+                content: Text(
+                  "Closed!",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                backgroundColor: Styles.appPrimaryColor,
+                duration: Duration(seconds: 1),
+                behavior: SnackBarBehavior.floating),
           );
         }
       } else if (result.status == RaveStatus.error) {
@@ -417,11 +396,15 @@ class _WalletViewState extends State<WalletView> {
   }
 
   TextEditingController depositAmount = TextEditingController();
+
   void deposit(context) {
-    showCupertinoDialog(
+    showDialog(
         context: context,
         builder: (_) {
           return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
             title: Text(
               "How much do you want to add to wallet",
               textAlign: TextAlign.center,
@@ -429,8 +412,7 @@ class _WalletViewState extends State<WalletView> {
             ),
             content: CupertinoTextField(
               placeholder: "Amount",
-              placeholderStyle:
-                  TextStyle(fontWeight: FontWeight.w300, color: Colors.black38),
+              placeholderStyle: TextStyle(fontWeight: FontWeight.w300, color: Colors.black38),
               padding: EdgeInsets.all(10),
               maxLines: 1,
               keyboardType: TextInputType.number,
@@ -442,20 +424,18 @@ class _WalletViewState extends State<WalletView> {
                 child: Padding(
                   padding: EdgeInsets.all(5.0),
                   child: Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.red),
+                    decoration:
+                        BoxDecoration(borderRadius: BorderRadius.circular(10), color: Colors.red),
                     child: FlatButton(
                       onPressed: () {
+                        depositAmount.clear();
                         Navigator.of(context).pop();
                       },
                       child: Text(
                         "Cancel",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white),
+                            fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white),
                       ),
                     ),
                   ),
@@ -475,8 +455,7 @@ class _WalletViewState extends State<WalletView> {
                           showCenterToast("Enter a number", context);
                           return;
                         } else if (double.tryParse(depositAmount.text) < 500) {
-                          showCenterToast(
-                              "You can't deposit less than ₦500", context);
+                          showCenterToast("You can't deposit less than ₦500", context);
                           return;
                         }
                         totalAmount = double.tryParse(depositAmount.text);
@@ -486,9 +465,7 @@ class _WalletViewState extends State<WalletView> {
                         "Proceed",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white),
+                            fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white),
                       ),
                     ),
                   ),
@@ -501,6 +478,7 @@ class _WalletViewState extends State<WalletView> {
 
   double totalAmount;
   bool depositIsLoading = false;
+
   void doAfterSuccess(String serverData) async {
     String orderID = "WAL" + DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -564,8 +542,7 @@ class _WalletViewState extends State<WalletView> {
           ),
           Text(
             "₦ $amount",
-            style: TextStyle(
-                fontSize: 22, color: Colors.black, fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize: 22, color: Colors.black, fontWeight: FontWeight.w500),
           ),
         ],
       );

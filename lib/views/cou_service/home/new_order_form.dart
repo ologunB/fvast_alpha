@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,18 +14,21 @@ import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
 import 'package:http/http.dart' as http;
 
 class NewTaskRequest extends StatefulWidget {
-  final String cusUid, transId, from, fromTime, to;
+  final String cusUid;
+  final String through;
+  final  String transId;
+  final String from;
+  final String fromTime;
+  final List to;
 
-  const NewTaskRequest(
-      {Key key, this.cusUid, this.transId, this.from, this.fromTime, this.to})
-      : super(key: key);
+  NewTaskRequest({this.cusUid, this.transId, this.from, this.through, this.fromTime, this.to});
 
   @override
   _NewTaskRequestState createState() => _NewTaskRequestState();
 }
 
 class _NewTaskRequestState extends State<NewTaskRequest> {
-  getOrder(context) async {
+  acceptOrder(context) async {
     setState(() {
       isLoading = true;
     });
@@ -46,14 +50,51 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
       Navigator.pop(context);
     } else {
       Map toDispatchData = doc.data;
-      toDispatchData.putIfAbsent("Dis Uid", () => MY_UID);
-      toDispatchData.putIfAbsent("Dis Name", () => MY_NAME);
-      toDispatchData.putIfAbsent("Dis Number", () => MY_NUMBER);
-      toDispatchData.update("status", (a) => "Accepted");
-      toDispatchData.putIfAbsent("Accepted Date", () => presentDateTime());
-      toDispatchData.putIfAbsent("assigned", () => true);
+      toDispatchData.update("Dis Uid", (a) => MY_UID, ifAbsent: () => MY_UID);
+      toDispatchData.update("Dis Name", (a) => MY_NAME, ifAbsent: () => MY_NAME);
+      toDispatchData.update("Dis Number", (a) => MY_NUMBER, ifAbsent: () => MY_NUMBER);
+      toDispatchData.update("status", (a) => "Accepted", ifAbsent: () => "Accepted");
+      toDispatchData.update("Accepted Date", (a) => presentDateTime(),
+          ifAbsent: () => presentDateTime());
+      toDispatchData.update("assigned", (a) => true, ifAbsent: () => true);
 
-      Firestore.instance
+      Firestore _firestore = Firestore.instance;
+
+      WriteBatch writeBatch = _firestore.batch();
+      writeBatch.setData(
+          _firestore
+              .collection("Orders")
+              .document("Pending") //create for dispatcher
+              .collection(MY_UID)
+              .document(widget.transId),
+          toDispatchData);
+
+      writeBatch.setData(
+          _firestore
+              .collection("Orders")
+              .document("Pending") //create for dispatcher
+              .collection(widget.cusUid)
+              .document(widget.transId),
+          toDispatchData);
+
+      writeBatch.delete(_firestore
+          .collection("Utils")
+          .document("Tasks")
+          .collection("uid")
+          .document(widget.transId));
+
+      writeBatch.commit().then((value) {
+        _handleSendNotification();
+        Navigator.pop(context);
+        Task task = Task.map(toDispatchData);
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => DisTaskDetail(task: task, dataMap: toDispatchData),
+          ),
+        );
+      });
+      /*     Firestore.instance
           .collection("Orders")
           .document("Pending") //create for dispatcher
           .collection(MY_UID)
@@ -67,6 +108,13 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
             .document(widget.transId)
             .setData(toDispatchData)
             .then((value) {
+          Firestore.instance
+              .collection("Utils")
+              .document("Tasks")
+              .collection("uid")
+              .document(widget.transId)
+              .delete();
+
           _handleSendNotification();
           Navigator.pop(context);
           Task task = Task.map(toDispatchData);
@@ -77,7 +125,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
             ),
           );
         });
-      });
+      });*/
     }
     setState(() {
       isLoading = false;
@@ -102,58 +150,66 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
   Widget _tabStep() => Container(
         margin: EdgeInsets.only(top: 10),
         child: Stepper(
+          key: Key(Random.secure().nextDouble().toString()),
           physics: ClampingScrollPhysics(),
-          onStepTapped: (a) {},
           currentStep: 1,
-          steps: [
-            Step(
-              title: Column(
-                children: <Widget>[
-                  Text(
-                    widget.fromTime,
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * .70,
-                    child: Text(
-                      widget.from,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  )
-                ],
-                crossAxisAlignment: CrossAxisAlignment.start,
-              ),
-              content: Container(),
-            ),
-            Step(
-              title: Column(
-                children: <Widget>[
-                  Text(
-                    "---",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * .70,
-                    child: Text(
-                      widget.to,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  )
-                ],
-                crossAxisAlignment: CrossAxisAlignment.start,
-              ),
-              content: Text(" "),
-            ),
-          ],
+          steps: steppers(),
           controlsBuilder: (BuildContext context,
                   {VoidCallback onStepContinue, VoidCallback onStepCancel}) =>
               Container(),
         ),
       );
+
+  List<Step> steppers() {
+    List<Step> bb = [];
+
+    bb.add(Step(
+      title: Column(
+        children: <Widget>[
+          Text(
+            widget.fromTime,
+            style: TextStyle(color: Colors.grey),
+          ),
+          Container(
+            width: MediaQuery.of(context).size.width * .70,
+            child: Text(
+              widget.from,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+              style: TextStyle(fontSize: 16),
+            ),
+          )
+        ],
+        crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+      content: Container(),
+    ));
+
+    for (String i in widget.to) {
+      bb.add(Step(
+        title: Column(
+          children: <Widget>[
+            Text(
+              "--",
+              style: TextStyle(color: Colors.grey),
+            ),
+            Container(
+              width: MediaQuery.of(context).size.width * .70,
+              child: Text(
+                i,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                style: TextStyle(fontSize: 16),
+              ),
+            )
+          ],
+          crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        content: SizedBox(),
+      ));
+    }
+    return bb;
+  }
 
   double ratingNum = 0;
 
@@ -170,8 +226,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
                 onClicked: () {
                   Navigator.pushAndRemoveUntil(
                       context,
-                      CupertinoPageRoute(
-                          builder: (context) => DisLayoutTemplate()),
+                      CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
                       (Route<dynamic> route) => false);
                 },
               );
@@ -186,11 +241,14 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
             IconButton(
                 icon: Icon(Icons.close),
                 onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      CupertinoPageRoute(
-                          builder: (context) => DisLayoutTemplate()),
-                      (Route<dynamic> route) => false);
+                  if (widget.through == "pool") {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushAndRemoveUntil(
+                        context,
+                        CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
+                        (Route<dynamic> route) => false);
+                  }
                 })
           ],
           backgroundColor: Colors.white,
@@ -198,9 +256,9 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
         ),
         key: _scaffoldKey,
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          child: ListView(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               SizedBox(height: 20),
               Center(
@@ -227,11 +285,14 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
                       ),
                       child: FlatButton(
                         onPressed: () {
-                          Navigator.pushAndRemoveUntil(
-                              context,
-                              CupertinoPageRoute(
-                                  builder: (context) => DisLayoutTemplate()),
-                              (Route<dynamic> route) => false);
+                          if (widget.through == "pool") {
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pushAndRemoveUntil(
+                                context,
+                                CupertinoPageRoute(builder: (context) => DisLayoutTemplate()),
+                                (Route<dynamic> route) => false);
+                          }
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -240,9 +301,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
                               "DECLINE",
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.red),
+                                  fontSize: 18, fontWeight: FontWeight.w900, color: Colors.red),
                             )
                           ],
                         ),
@@ -259,7 +318,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
                       ),
                       child: FlatButton(
                         onPressed: () {
-                          getOrder(disMainScaffoldKey.currentContext);
+                          acceptOrder(disMainScaffoldKey.currentContext);
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -287,7 +346,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
     );
   }
 
-  void _handleSendNotification() async {
+  _handleSendNotification() async {
     String url = "https://onesignal.com/api/v1/notifications";
     var imgUrlString =
         "https://firebasestorage.googleapis.com/v0/b/fvast-d08d6.appspot.com/o/logo.png?alt=media&token=6b63a858-7625-4640-a79a-b0b0fd5c04a8";
@@ -296,17 +355,14 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
 
     var headers = {
       "Content-Type": "application/json; charset=utf-8",
-      "Authorization": "Basic NDA4Mjc0MGUtMTMxYS00YjFlLTgwZTktMmRiYmVmYjRjZWFj"
+      "Authorization": "Basic $oneSignalApiKey"
     };
 
     var body = {
-      "app_id": oneOnlineSignalKey,
+      "app_id": oneSignalAppID,
       "include_external_user_ids": [widget.cusUid],
       "headings": {"en": "En route"},
-      "contents": {
-        "en":
-            "Your task has been accepted and we will reach you as soon as possible."
-      },
+      "contents": {"en": "Your task has been accepted and we will reach you as soon as possible."},
       "data": {
         "routeType": "em",
         "type": "em",
@@ -314,7 +370,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
         "reName": "em",
         "reNum": "em",
         "amount": "em",
-        "status": "new order",
+        "status": "Accepted",
       },
       "android_background_layout": {
         "image": imgUrlString,
@@ -322,9 +378,7 @@ class _NewTaskRequestState extends State<NewTaskRequest> {
         "contents_color": "ff0000FF"
       }
     };
-    await client
-        .post(url, headers: headers, body: jsonEncode(body))
-        .catchError((a) {
+    await client.post(url, headers: headers, body: jsonEncode(body)).catchError((a) {
       print(a.toString());
       showCenterToast("Error: " + a.toString(), context);
     });

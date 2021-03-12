@@ -676,7 +676,7 @@ class _MenuViewState extends State<MenuView> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     selectorColor = widget?.selectorColor ?? Theme.of(context).indicatorColor;
     textStyle = widget?.textStyle ??
-        Theme.of(context).textTheme.subtitle.copyWith(
+        Theme.of(context).textTheme.subtitle2.copyWith(
             color: widget.color.computeLuminance() < 0.5
                 ? Colors.white
                 : Colors.black);

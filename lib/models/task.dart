@@ -19,13 +19,13 @@ class Task {
   String _reName;
   String _coupon;
   String _from;
-  String _to;
+  List _to;
   String _disName;
   String _disImage, _disUid;
   String _disNumber;
   String _paymentType, _disAddress, _plateNumber, _disNotes, _disSign;
-  double _toLong;
-  double _toLat;
+  List  _toLong;
+  List  _toLat;
   double _fromLong;
   double _fromLat;
   List _disImages;
@@ -43,7 +43,7 @@ class Task {
 
   String get from => _from;
 
-  String get to => _to;
+  List  get to => _to;
 
   String get weight => _weight;
 
@@ -63,9 +63,9 @@ class Task {
 
   String get paymentType => _paymentType;
 
-  double get toLong => _toLong;
+  List  get toLong => _toLong;
 
-  double get toLat => _toLat;
+  List  get toLat => _toLat;
 
   double get fromLong => _fromLong;
 
@@ -148,8 +148,8 @@ class Task {
     this._userUid = obj["userUid"];
     this._fromLat = obj["fromLat"];
     this._fromLong = obj["fromLong"];
-    this._toLat = obj["toLat"];
-    this._toLong = obj["toLong"];
+    this._toLat = obj["toLat"]  ;
+    this._toLong = obj["toLong"] ;
     this._paymentType = obj["Payment Type"];
     this._routeType = obj["Route Type"];
     this._coupon = obj["coupon"];
@@ -172,14 +172,16 @@ class Task {
     this._id = obj["id"];
     this._from = obj["fromAdd"];
     this._userPhone = obj["userPhone"];
-    this._to = obj["toAdd"];
+    this._to = obj["toAdd"] as List;
     this._plateNumber = obj["Plate Number"];
     this._disNotes = obj["Dis Notes"];
     this._disImages = obj["Dis Images"];
     this._disSign = obj["Dis Signature"] ?? "not";
   }
 
-  Map<String, dynamic> toMap() {
-    return {'Name': name};
-  }
+  Map<String, dynamic> toJson() => {
+    "type": type,
+   // "message": message,
+ //   "data": data,
+  };
 }

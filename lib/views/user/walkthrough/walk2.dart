@@ -6,7 +6,7 @@ import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
 
 class Walk2 extends StatelessWidget {
-  PageController controller;
+  final PageController controller;
   Walk2(this.controller);
   @override
   Widget build(BuildContext context) {

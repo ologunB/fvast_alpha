@@ -1,12 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
-import 'package:fvastalpha/views/partials/widgets/show_exception_alert_dialog.dart';
-import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ConvertFromUser extends StatefulWidget {
@@ -16,7 +13,6 @@ class ConvertFromUser extends StatefulWidget {
 
 class _ConvertFromUserState extends State<ConvertFromUser> {
   final _formKey = GlobalKey<FormState>();
-  bool _autoValidate = false;
 
   TextEditingController streetController = TextEditingController(text: "");
   TextEditingController cityController = TextEditingController(text: "");
@@ -27,10 +23,6 @@ class _ConvertFromUserState extends State<ConvertFromUser> {
   Future convert() async {
     _formKey.currentState.save();
     _formKey.currentState.validate();
-
-    setState(() {
-      _autoValidate = true;
-    });
 
     if (!_formKey.currentState.validate()) {
       return;
@@ -118,8 +110,7 @@ class _ConvertFromUserState extends State<ConvertFromUser> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Form(
-        key: _formKey,
-        autovalidate: _autoValidate,
+        key: _formKey,autovalidateMode: AutovalidateMode.always,
         child: Container(
           height: MediaQuery.of(context).size.height,
           child: Column(

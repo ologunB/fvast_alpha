@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fvastalpha/models/notification.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationPage extends StatefulWidget {
   @override
@@ -95,16 +94,16 @@ class _NotificationPageState extends State<NotificationPage> {
                                   child: Text(
                                     item.message,
                                     style: TextStyle(
-                                        fontSize: 20, color: Colors.grey[800]),
+                                        fontSize: 16, color: Colors.grey[800]),
                                   ),
                                 ),
-                                Divider(),
+                                Divider(height: 0,),
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
                                     item.date,
                                     style: TextStyle(
-                                        fontSize: 17, color: Colors.red),
+                                        fontSize: 14, color: Colors.red),
                                   ),
                                 )
                               ],

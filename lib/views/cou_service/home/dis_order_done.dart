@@ -5,11 +5,8 @@ import 'package:fvastalpha/models/task.dart';
 import 'package:fvastalpha/models/wallet.dart';
 import 'package:fvastalpha/views/cou_service/partials/dis_layout_template.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
-import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_button.dart';
 import 'package:fvastalpha/views/partials/widgets/custom_dialog.dart';
-import 'package:fvastalpha/views/user/partials/layout_template.dart';
-import 'package:smooth_star_rating/smooth_star_rating.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DisOrderCompletedPage extends StatefulWidget {
@@ -61,9 +58,8 @@ class _DisOrderCompletedPageState extends State<DisOrderCompletedPage> {
                   ),
                   Container(
                     padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15)),
+                    decoration:
+                        BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
                     child: Column(
                       children: <Widget>[
                         Padding(
@@ -81,11 +77,9 @@ class _DisOrderCompletedPageState extends State<DisOrderCompletedPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Payment Type: ",
-                                  style: TextStyle(fontSize: 16)),
+                              Text("Payment Type: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(widget.task.paymentType,
-                                  style: TextStyle(fontSize: 16))
+                              Text(widget.task.paymentType, style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -93,11 +87,9 @@ class _DisOrderCompletedPageState extends State<DisOrderCompletedPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Receiver's Name: ",
-                                  style: TextStyle(fontSize: 16)),
+                              Text("Receiver's Name: ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(widget.task.reName,
-                                  style: TextStyle(fontSize: 16))
+                              Text(widget.task.reName, style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -105,11 +97,9 @@ class _DisOrderCompletedPageState extends State<DisOrderCompletedPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Receiver's  Mobile",
-                                  style: TextStyle(fontSize: 16)),
+                              Text("Receiver's  Mobile", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(widget.task.reNum,
-                                  style: TextStyle(fontSize: 16))
+                              Text(widget.task.reNum, style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -117,11 +107,9 @@ class _DisOrderCompletedPageState extends State<DisOrderCompletedPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: <Widget>[
-                              Text("Package Type ",
-                                  style: TextStyle(fontSize: 16)),
+                              Text("Package Type ", style: TextStyle(fontSize: 16)),
                               Expanded(child: Divider(thickness: 2)),
-                              Text(widget.task.type,
-                                  style: TextStyle(fontSize: 16))
+                              Text(widget.task.type, style: TextStyle(fontSize: 16))
                             ],
                           ),
                         ),
@@ -166,19 +154,16 @@ class _DisOrderCompletedPageState extends State<DisOrderCompletedPage> {
                               }
                               return Column(
                                 children: <Widget>[
-                                  Text(
-                                      "Balance: ₦ " +
-                                          commaFormat.format(mBalance),
+                                  Text("Balance: ₦ " + commaFormat.format(mBalance),
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                          fontSize: 20,
+                                          fontSize: 16,
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold)),
                                   Text(
                                     "Comments: $comments",
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w600),
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                                   ),
                                 ],
                               );
@@ -190,7 +175,7 @@ class _DisOrderCompletedPageState extends State<DisOrderCompletedPage> {
                                   Text("Balance: ₦ 0",
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                          fontSize: 20,
+                                          fontSize: 16,
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold)),
                                 ],
@@ -202,8 +187,8 @@ class _DisOrderCompletedPageState extends State<DisOrderCompletedPage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    "₦ ${widget.task.amount}",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                    "₦ ${commaFormat.format(widget.task.amount)}",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(18.0),
@@ -218,47 +203,44 @@ class _DisOrderCompletedPageState extends State<DisOrderCompletedPage> {
                                     isLoading: isLoading,
                                     onClicked: () {
                                       Map<String, Object> disWalletData = Map();
+                                      disWalletData.putIfAbsent("Amount", () => widget.task.amount);
+                                      disWalletData.putIfAbsent("uid", () => MY_UID);
+                                      disWalletData.putIfAbsent("date", () => presentDateTime());
+                                      disWalletData.putIfAbsent("id", () => widget.task.id);
                                       disWalletData.putIfAbsent(
-                                          "Amount", () => widget.task.amount);
+                                          "type", () => widget.task.paymentType);
                                       disWalletData.putIfAbsent(
-                                          "uid", () => MY_UID);
-                                      disWalletData.putIfAbsent(
-                                          "date", () => presentDateTime());
-                                      disWalletData.putIfAbsent(
-                                          "id", () => widget.task.id);
-                                      disWalletData.putIfAbsent("type",
-                                          () => widget.task.paymentType);
-                                      disWalletData.putIfAbsent(
-                                          "Timestamp",
-                                          () => DateTime.now()
-                                              .millisecondsSinceEpoch);
+                                          "Timestamp", () => DateTime.now().millisecondsSinceEpoch);
 
                                       setState(() {
                                         isLoading = true;
                                       });
-                                      Firestore.instance
-                                          .collection("Utils")
-                                          .document(
-                                              "Wallet") //create for dispatcher
-                                          .collection(MY_UID)
-                                          .document(widget.task.id)
-                                          .setData(disWalletData)
-                                          .then((value) {
-                                        Firestore.instance
-                                            .collection("Utils")
-                                            .document(
-                                                "Wallet") //create for dispatcher
-                                            .collection(widget.task.userUid)
-                                            .document(widget.task.id)
-                                            .setData(disWalletData)
-                                            .then((value) {
-                                          Navigator.pushAndRemoveUntil(
-                                              context,
-                                              CupertinoPageRoute(
-                                                  builder: (context) =>
-                                                      DisLayoutTemplate()),
-                                              (Route<dynamic> route) => false);
-                                        });
+
+                                      Firestore _firestore = Firestore.instance;
+
+                                      WriteBatch writeBatch = _firestore.batch();
+                                      writeBatch.setData(
+                                          _firestore
+                                              .collection("Utils")
+                                              .document("Wallet") //create for dispatcher
+                                              .collection(MY_UID)
+                                              .document(widget.task.id),
+                                          disWalletData);
+
+                                      writeBatch.setData(
+                                          _firestore
+                                              .collection("Utils")
+                                              .document("Wallet") //create for dispatcher
+                                              .collection(widget.task.userUid)
+                                              .document(widget.task.id),
+                                          disWalletData);
+
+                                      writeBatch.commit().then((value) {
+                                        Navigator.pushAndRemoveUntil(
+                                            context,
+                                            CupertinoPageRoute(
+                                                builder: (context) => DisLayoutTemplate()),
+                                            (Route<dynamic> route) => false);
                                       });
                                     },
                                   ));

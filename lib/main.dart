@@ -9,13 +9,12 @@ import 'package:fvastalpha/views/user/partials/layout_template.dart';
 import 'package:fvastalpha/views/user/walkthrough/walkthrough_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:firebase_core/firebase_core.dart';
 
-void main() => runApp(
-    // FirebaseApp defaultApp = await Firebase.initializeApp();
-    MyApp());
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -53,7 +52,7 @@ class _MyWrapperState extends State<MyWrapper> {
 
   void assign() async {
     MY_UID = await uid;
-    currentLocation = await Geolocator().getCurrentPosition();
+    currentLocation = await Geolocator.getCurrentPosition();
   }
 
   @override

@@ -3,12 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:fvastalpha/views/cou_service/settings/privacy_policy.dart';
+import 'package:fvastalpha/views/cou_service/settings/terms_conditions.dart';
 import 'package:fvastalpha/views/partials/utils/constants.dart';
 import 'package:fvastalpha/views/partials/utils/styles.dart';
 import 'package:fvastalpha/views/partials/widgets/show_exception_alert_dialog.dart';
 import 'package:fvastalpha/views/user/auth/signin_page.dart';
 import 'package:loading_overlay/loading_overlay.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SignupPage extends StatefulWidget {
   @override
@@ -22,7 +23,6 @@ class _SignupPageState extends State<SignupPage> {
   bool isDispatcher = false;
 
   final _formKey = GlobalKey<FormState>();
-  bool _autoValidate = false;
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passController = TextEditingController();
@@ -35,17 +35,14 @@ class _SignupPageState extends State<SignupPage> {
   bool isLoading = false;
 
   Future signUp() async {
+    offKeyboard(context);
+
     if (selectedType == null) {
       showCenterToast("Choose a Type", context);
       return;
     }
     _formKey.currentState.save();
     _formKey.currentState.validate();
-
-    setState(() {
-      _autoValidate = true;
-    });
-
     if (!_formKey.currentState.validate()) {
       return;
     }
@@ -77,14 +74,9 @@ class _SignupPageState extends State<SignupPage> {
           mData.putIfAbsent("Uid", () => user.uid);
           mData.putIfAbsent("Avatar", () => "mm");
           mData.putIfAbsent("online", () => false);
-          mData.putIfAbsent(
-              "Timestamp", () => DateTime.now().millisecondsSinceEpoch);
+          mData.putIfAbsent("Timestamp", () => DateTime.now().millisecondsSinceEpoch);
 
-          Firestore.instance
-              .collection("All")
-              .document(user.uid)
-              .setData(mData)
-              .then((val) {
+          Firestore.instance.collection("All").document(user.uid).setData(mData).then((val) {
             showCupertinoDialog(
                 context: context,
                 builder: (_) {
@@ -100,23 +92,19 @@ class _SignupPageState extends State<SignupPage> {
                           padding: EdgeInsets.all(5.0),
                           child: Container(
                             decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(50),
-                                color: Colors.red),
+                                borderRadius: BorderRadius.circular(50), color: Colors.red),
                             child: FlatButton(
                               onPressed: () {
                                 Navigator.pushAndRemoveUntil(
                                     context,
-                                    CupertinoPageRoute(
-                                        builder: (context) => SigninPage()),
+                                    CupertinoPageRoute(builder: (context) => SigninPage()),
                                     (Route<dynamic> route) => false);
                               },
                               child: Text(
                                 "  OK  ",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white),
+                                    fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white),
                               ),
                             ),
                           ),
@@ -127,19 +115,16 @@ class _SignupPageState extends State<SignupPage> {
                 });
 
             setState(() {
-              _autoValidate = false;
               isLoading = false;
             });
           }).catchError((e) {
-            showExceptionAlertDialog(
-                context: context, exception: e, title: "Error");
+            showExceptionAlertDialog(context: context, exception: e, title: "Error");
             setState(() {
               isLoading = false;
             });
           });
         }).catchError((e) {
-          showExceptionAlertDialog(
-              context: context, exception: e, title: "Error");
+          showExceptionAlertDialog(context: context, exception: e, title: "Error");
           setState(() {
             isLoading = false;
           });
@@ -167,7 +152,7 @@ class _SignupPageState extends State<SignupPage> {
         isLoading: isLoading,
         child: Form(
           key: _formKey,
-          autovalidate: _autoValidate,
+          autovalidateMode: AutovalidateMode.always,
           child: Container(
             height: MediaQuery.of(context).size.height,
             child: Column(
@@ -176,8 +161,7 @@ class _SignupPageState extends State<SignupPage> {
                     child: Container(
                   decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius:
-                          BorderRadius.only(bottomLeft: Radius.circular(70))),
+                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(70))),
                   child: Container(
                     padding: EdgeInsets.all(20),
                     child: ListView(
@@ -188,13 +172,11 @@ class _SignupPageState extends State<SignupPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               IconButton(
-                                  icon: Icon(Icons.arrow_back_ios,
-                                      color: Styles.appPrimaryColor),
+                                  icon: Icon(Icons.arrow_back_ios, color: Styles.appPrimaryColor),
                                   onPressed: () {
                                     Navigator.pushAndRemoveUntil(
                                         context,
-                                        CupertinoPageRoute(
-                                            builder: (context) => SigninPage()),
+                                        CupertinoPageRoute(builder: (context) => SigninPage()),
                                         (Route<dynamic> route) => false);
                                   }),
                               Expanded(
@@ -240,9 +222,7 @@ class _SignupPageState extends State<SignupPage> {
                                     borderRadius: BorderRadius.circular(20.0),
                                   )),
                               style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w400),
+                                  color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                             ),
                           ),
                         ),
@@ -271,9 +251,7 @@ class _SignupPageState extends State<SignupPage> {
                                 ),
                               ),
                               style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w400),
+                                  color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                             ),
                           ),
                         ),
@@ -292,7 +270,7 @@ class _SignupPageState extends State<SignupPage> {
                                 return null;
                               },
                               controller: phoneController,
-                              maxLength: 14,
+                              maxLength: 11,
                               decoration: InputDecoration(
                                 fillColor: Styles.commonDarkBackground,
                                 filled: true,
@@ -308,9 +286,7 @@ class _SignupPageState extends State<SignupPage> {
                                 ),
                               ),
                               style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w400),
+                                  color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                             ),
                           ),
                         ),
@@ -347,9 +323,7 @@ class _SignupPageState extends State<SignupPage> {
                                 ),
                               ),
                               style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w400),
+                                  color: Colors.black, fontSize: 18, fontWeight: FontWeight.w400),
                             ),
                           ),
                         ),
@@ -360,12 +334,10 @@ class _SignupPageState extends State<SignupPage> {
                             child: Column(
                               children: <Widget>[
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Theme(
                                     data: ThemeData(
-                                        primaryColor:
-                                            Styles.commonDarkBackground,
+                                        primaryColor: Styles.commonDarkBackground,
                                         hintColor: Styles.commonDarkBackground),
                                     child: TextFormField(
                                       keyboardType: TextInputType.text,
@@ -379,8 +351,7 @@ class _SignupPageState extends State<SignupPage> {
                                       decoration: InputDecoration(
                                         fillColor: Styles.commonDarkBackground,
                                         filled: true,
-                                        suffixIcon:
-                                            Icon(Icons.center_focus_strong),
+                                        suffixIcon: Icon(Icons.center_focus_strong),
                                         contentPadding: EdgeInsets.all(10),
                                         hintText: 'Street Address',
                                         hintStyle: TextStyle(
@@ -388,8 +359,7 @@ class _SignupPageState extends State<SignupPage> {
                                             fontSize: 18,
                                             fontWeight: FontWeight.w400),
                                         border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
+                                          borderRadius: BorderRadius.circular(20.0),
                                         ),
                                       ),
                                       style: TextStyle(
@@ -400,12 +370,10 @@ class _SignupPageState extends State<SignupPage> {
                                   ),
                                 ),
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Theme(
                                     data: ThemeData(
-                                        primaryColor:
-                                            Styles.commonDarkBackground,
+                                        primaryColor: Styles.commonDarkBackground,
                                         hintColor: Styles.commonDarkBackground),
                                     child: TextFormField(
                                       keyboardType: TextInputType.text,
@@ -419,8 +387,7 @@ class _SignupPageState extends State<SignupPage> {
                                       decoration: InputDecoration(
                                         fillColor: Styles.commonDarkBackground,
                                         filled: true,
-                                        suffixIcon:
-                                            Icon(Icons.center_focus_strong),
+                                        suffixIcon: Icon(Icons.center_focus_strong),
                                         contentPadding: EdgeInsets.all(10),
                                         hintText: 'City',
                                         hintStyle: TextStyle(
@@ -428,8 +395,7 @@ class _SignupPageState extends State<SignupPage> {
                                             fontSize: 18,
                                             fontWeight: FontWeight.w400),
                                         border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
+                                          borderRadius: BorderRadius.circular(20.0),
                                         ),
                                       ),
                                       style: TextStyle(
@@ -440,12 +406,10 @@ class _SignupPageState extends State<SignupPage> {
                                   ),
                                 ),
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Theme(
                                     data: ThemeData(
-                                        primaryColor:
-                                            Styles.commonDarkBackground,
+                                        primaryColor: Styles.commonDarkBackground,
                                         hintColor: Styles.commonDarkBackground),
                                     child: TextFormField(
                                       keyboardType: TextInputType.text,
@@ -460,8 +424,7 @@ class _SignupPageState extends State<SignupPage> {
                                       decoration: InputDecoration(
                                         fillColor: Styles.commonDarkBackground,
                                         filled: true,
-                                        suffixIcon:
-                                            Icon(Icons.confirmation_number),
+                                        suffixIcon: Icon(Icons.confirmation_number),
                                         contentPadding: EdgeInsets.all(10),
                                         hintText: 'Plate Number',
                                         hintStyle: TextStyle(
@@ -469,8 +432,7 @@ class _SignupPageState extends State<SignupPage> {
                                             fontSize: 18,
                                             fontWeight: FontWeight.w400),
                                         border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
+                                          borderRadius: BorderRadius.circular(20.0),
                                         ),
                                       ),
                                       style: TextStyle(
@@ -480,7 +442,7 @@ class _SignupPageState extends State<SignupPage> {
                                     ),
                                   ),
                                 ),
-                            /*    Padding(
+                                /*    Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Theme(
@@ -517,8 +479,7 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         DropdownButton<String>(
                           hint: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
                             child: Text("Sign up as "),
                           ),
                           value: selectedType,
@@ -528,8 +489,7 @@ class _SignupPageState extends State<SignupPage> {
                               value: value,
                               child: Text(
                                 "Sign up as $value",
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                             );
                           }).toList(),
@@ -553,23 +513,23 @@ class _SignupPageState extends State<SignupPage> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: FlatButton(
-                              onPressed:() {
-                                      signUp();
-                                    },
+                              onPressed: () {
+                                signUp();
+                              },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 mainAxisSize: MainAxisSize.max,
                                 children: <Widget>[
                                   Padding(
                                     padding: EdgeInsets.all(5.0),
-                                    child:Text(
-                                            "SIGN UP",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w900,
-                                                color: Colors.white),
-                                          ),
+                                    child: Text(
+                                      "SIGN UP",
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -593,9 +553,8 @@ class _SignupPageState extends State<SignupPage> {
                                     onTap: () {
                                       Navigator.pushAndRemoveUntil(
                                           context,
-                                          CupertinoPageRoute(
-                                              builder: (context) => SigninPage()),
-                                              (Route<dynamic> route) => false);
+                                          CupertinoPageRoute(builder: (context) => SigninPage()),
+                                          (Route<dynamic> route) => false);
                                     },
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
@@ -634,16 +593,8 @@ class _SignupPageState extends State<SignupPage> {
                                               fontWeight: FontWeight.w400,
                                               color: Styles.appPrimaryColor),
                                           recognizer: TapGestureRecognizer()
-                                            ..onTap = () async {
-                                              String _url =
-                                                  "https://fvast.com.ng/terms";
-                                              if (await canLaunch(_url)) {
-                                                await launch(_url);
-                                              } else {
-                                                showCenterToast(
-                                                    " Could not launch $_url", context);
-                                                throw 'Could not launch $_url';
-                                              }
+                                            ..onTap = () {
+                                              moveTo(context, TandCs());
                                             }),
                                       TextSpan(
                                         text: ' and ',
@@ -659,16 +610,8 @@ class _SignupPageState extends State<SignupPage> {
                                               fontWeight: FontWeight.w400,
                                               color: Styles.appPrimaryColor),
                                           recognizer: TapGestureRecognizer()
-                                            ..onTap = () async {
-                                              String _url =
-                                                  "https://fvast.com.ng/privacy";
-                                              if (await canLaunch(_url)) {
-                                                await launch(_url);
-                                              } else {
-                                                showCenterToast(
-                                                    " Could not launch $_url", context);
-                                                throw 'Could not launch $_url';
-                                              }
+                                            ..onTap = () {
+                                              moveTo(context, PrivacyPo());
                                             }),
                                     ]),
                               )
@@ -679,7 +622,6 @@ class _SignupPageState extends State<SignupPage> {
                     ),
                   ),
                 )),
-
               ],
             ),
           ),
